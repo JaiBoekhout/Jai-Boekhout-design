@@ -3,7 +3,7 @@ import {
   getContent, getFeaturedProjects, getMoreProjects, projectUrlSlug, projectHasLiveCaseStudy,
 } from "@/store/contentStore";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
 
 function toDate(iso: string | undefined): Date {
   if (!iso) return new Date();

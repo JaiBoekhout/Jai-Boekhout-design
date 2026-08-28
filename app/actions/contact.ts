@@ -28,7 +28,7 @@ export async function submitEnquiry(
 
   const apiKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.NOTIFICATION_EMAIL ?? "jai_boekhout@hotmail.nl";
-  const fromEmail = process.env.FROM_EMAIL ?? "portfolio@jaiboekhout.com";
+  const fromEmail = process.env.FROM_EMAIL ?? "portfolio@jaiboekhout.nl";
 
   if (apiKey) {
     try {

@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { InlineScript } from "@/components/InlineScript";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
