@@ -321,7 +321,7 @@ export function MediaSection() {
     arr.forEach(f => fd.append("file", f));
     fd.append("folder", folder);
     try {
-      const res  = await fetch("/api/media/upload", { method: "POST", body: fd });
+      const res  = await fetch("/api/media?action=upload", { method: "POST", body: fd });
       const data = await res.json();
       const rejectedCount: number = data.rejected?.length ?? 0;
       if (data.uploaded?.length) await fetchTree();
@@ -381,7 +381,7 @@ export function MediaSection() {
     setCreatingFolder(true);
     const fp = newFolderParent ? `${newFolderParent}/${name}` : name;
     try {
-      await fetch("/api/media/folder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folder: fp }) });
+      await fetch("/api/media?action=folder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folder: fp }) });
       await fetchTree();
       setCurrentFolder(fp);
     } finally { setCreatingFolder(false); setNewFolderName(""); setShowNewFolder(false); }
@@ -391,7 +391,7 @@ export function MediaSection() {
 
   async function handleDeleteFolder(folderPath: string) {
     try {
-      await fetch("/api/media/delete", {
+      await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: folderPath, type: "folder" }),
@@ -408,7 +408,7 @@ export function MediaSection() {
   async function handleDeleteFile(file: MediaFile) {
     setIsDeletingFile(true);
     try {
-      await fetch("/api/media/delete", {
+      await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: file.path, type: "file" }),
@@ -427,7 +427,7 @@ export function MediaSection() {
       const updated = replaceMediaUsage(content, oldFile.src, newSrc);
       updateContent(updated);
       persistContent(updated);
-      await fetch("/api/media/delete", {
+      await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: oldFile.path, type: "file" }),
@@ -449,7 +449,7 @@ export function MediaSection() {
       // upload route to the imports root, which silently relocated the replacement.
       const folder = oldFile.path.includes("/") ? oldFile.path.split("/").slice(0, -1).join("/") : "";
       if (folder) fd.append("folder", folder);
-      const res = await fetch("/api/media/upload", { method: "POST", body: fd });
+      const res = await fetch("/api/media?action=upload", { method: "POST", body: fd });
       const data = await res.json();
       const newSrc = data.uploaded?.[0]?.src;
       if (!newSrc) {
@@ -468,7 +468,7 @@ export function MediaSection() {
     const targetFolder = movingTo;
     setIsMoving(true);
     try {
-      const res  = await fetch("/api/media/move", {
+      const res  = await fetch("/api/media?action=move", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ from: file.path, toFolder: targetFolder }),
@@ -514,7 +514,7 @@ export function MediaSection() {
     try {
       await Promise.all(
         selectedFiles.map((f) =>
-          fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
+          fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
         )
       );
       exitSelectMode();
@@ -527,7 +527,7 @@ export function MediaSection() {
     try {
       const results = await Promise.all(
         selectedFiles.map(async (f) => {
-          const res = await fetch("/api/media/move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) });
+          const res = await fetch("/api/media?action=move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) });
           const data = await res.json();
           return { file: f, data };
         })

@@ -313,7 +313,7 @@ function ResumeUpload({ value, onChange }: { value: string | undefined; onChange
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/resume/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/media?action=resume", { method: "POST", body: formData });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || "Upload failed");
       onChange(json.src);

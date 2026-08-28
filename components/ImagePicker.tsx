@@ -192,7 +192,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     arr.forEach((f) => fd.append("file", f));
     if (folder) fd.append("folder", folder);
     try {
-      const data = await fetch("/api/media/upload", { method: "POST", body: fd }).then((r) => r.json());
+      const data = await fetch("/api/media?action=upload", { method: "POST", body: fd }).then((r) => r.json());
       if (data.uploaded?.[0]?.src) {
         onChange(data.uploaded[0].src);
         setOpen(false);
@@ -234,7 +234,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     if (!previewFile) return;
     setIsMoving(true);
     try {
-      const res  = await fetch("/api/media/move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: previewFile.path, toFolder: movingTo }) });
+      const res  = await fetch("/api/media?action=move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: previewFile.path, toFolder: movingTo }) });
       const data = await res.json();
       if (data.success) { setPreviewFile(null); setMovingTo(""); await fetchTree(); }
     } finally { setIsMoving(false); }
@@ -245,7 +245,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     if (!previewFile) return;
     setIsDeletingFile(true);
     try {
-      await fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
+      await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
       if (value === previewFile.src) onChange(undefined);
       setPreviewFile(null);
       await fetchTree();
@@ -278,7 +278,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     try {
       await Promise.all(
         selectedFiles.map((f) =>
-          fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
+          fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
         )
       );
       if (selectedFiles.some((f) => f.src === value)) onChange(undefined);
@@ -292,7 +292,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     try {
       await Promise.all(
         selectedFiles.map((f) =>
-          fetch("/api/media/move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) })
+          fetch("/api/media?action=move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) })
         )
       );
       exitSelectMode();
@@ -312,7 +312,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
       updateContent(updated);
       persistContent(updated);
       if (value === oldFile.src) onChange(newSrc);
-      await fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: oldFile.path, type: "file" }) });
+      await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: oldFile.path, type: "file" }) });
       setPreviewFile(null);
       setShowReplacePicker(false);
       await fetchTree();
@@ -328,7 +328,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
       // upload route to the imports root, which silently relocated the replacement.
       const folder = oldFile.path.includes("/") ? oldFile.path.split("/").slice(0, -1).join("/") : "";
       if (folder) fd.append("folder", folder);
-      const res = await fetch("/api/media/upload", { method: "POST", body: fd });
+      const res = await fetch("/api/media?action=upload", { method: "POST", body: fd });
       const data = await res.json();
       const newSrc = data.uploaded?.[0]?.src;
       if (!newSrc) return;

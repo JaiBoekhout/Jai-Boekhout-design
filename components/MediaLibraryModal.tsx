@@ -92,7 +92,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     Array.from(files).forEach((f) => fd.append("file", f));
     if (folderFilter !== "all") fd.append("folder", folderFilter);
     try {
-      await fetch("/api/media/upload", { method: "POST", body: fd }).then((r) => r.json());
+      await fetch("/api/media?action=upload", { method: "POST", body: fd }).then((r) => r.json());
       await fetchTree();
     } finally { setUploading(false); }
   }
@@ -106,7 +106,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     if (!previewFile) return;
     setIsMoving(true);
     try {
-      const res  = await fetch("/api/media/move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: previewFile.path, toFolder: movingTo }) });
+      const res  = await fetch("/api/media?action=move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: previewFile.path, toFolder: movingTo }) });
       const data = await res.json();
       if (data.success) { setPreviewFile(null); setMovingTo(""); await fetchTree(); }
     } finally { setIsMoving(false); }
@@ -116,7 +116,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     if (!previewFile) return;
     setIsDeletingFile(true);
     try {
-      await fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
+      await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
       setPreviewFile(null);
       await fetchTree();
     } finally { setIsDeletingFile(false); }
@@ -148,7 +148,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     try {
       await Promise.all(
         selectedFiles.map((f) =>
-          fetch("/api/media/delete", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
+          fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
         )
       );
       exitSelectMode();
@@ -161,7 +161,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     try {
       await Promise.all(
         selectedFiles.map((f) =>
-          fetch("/api/media/move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) })
+          fetch("/api/media?action=move", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: f.path, toFolder: bulkMovingTo }) })
         )
       );
       exitSelectMode();
