@@ -1,26 +1,438 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Manrope:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Raw palette tokens — dark defaults ──────────────────────────────────── */
+:root {
+  --c-bg:          #0F1519;
+  --c-bg-card:     #1A2128;
+  --c-bg-deep:     #141D24;
+  --c-bg-deeper:   #0C1117;
+  --c-bg-glass:    rgba(13, 12, 10, 0.9);
+  --c-heading:     #F5F1EA;
+  --c-quote-emphasis: #EDE8DF;
+  --c-text:        #EDE8DF;
+  --c-text-muted:  #EDE8DF;
+  --c-text-body:   #A8B4BC;
+  --c-text-dim:    #EDE8DF;
+  --c-teal:        #14ADB5;
+  --c-teal-rgb:    20, 173, 181;
+  --c-border:      rgba(237, 232, 223, 0.08);
+  --c-border-soft: rgba(237, 232, 223, 0.06);
+  --c-border-xs:   rgba(237, 232, 223, 0.05);
+  --c-border-med:  rgba(237, 232, 223, 0.12);
+  --c-divider:     #989793;
+  /* Alpha text levels for overlay/sub-text */
+  --c-text-30:     rgba(152, 151, 147, 0.7);
+  --c-text-40:     #989793;
+  --c-text-50:     #989793;
+  --c-text-55:     #a8a7a3;
+  --c-text-60:     rgba(237, 232, 223, 0.65);
+  --c-text-70:     rgba(237, 232, 223, 0.75);
+  --c-text-72:     rgba(237, 232, 223, 0.77);
+  --c-text-80:     rgba(237, 232, 223, 0.85);
+  --c-surface-3:   rgba(237, 232, 223, 0.03);
+  --c-surface-4:   rgba(237, 232, 223, 0.04);
+  --c-surface-10:  rgba(237, 232, 223, 0.1);
+  /* Design System tab font pairing — overridden by CMSDesignSystem.fontPairing at runtime */
+  --font-heading: 'Poppins', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --font-secondary: 'Fraunces', serif;
+  /* Per-component accent colors — every one defaults to following --c-teal, so nothing
+     changes visually until a component is given its own override in the Design System tab
+     (see CMSComponentColors / COMPONENT_COLOR_MAP in store/contentStore.ts). Declared once
+     here (not repeated in the light-mode block) since var(--c-teal) already resolves to
+     whichever mode is active — these just track it automatically unless overridden. */
+  --btn-color:      var(--c-teal);
+  --link-color:     var(--c-teal);
+  --link-hover-color: var(--link-color);
+  --label-color:    var(--c-teal);
+  --field-color:    var(--c-teal);
+  --textarea-color: var(--c-teal);
+  --checkbox-color: var(--c-teal);
+  --radio-color:    var(--c-teal);
+  --switch-color:   var(--c-teal);
+  --menu-color:     var(--c-teal);
+  --tabbar-color:   var(--c-teal);
+  /* Menu/Tab Bar/Text Area/Switch structural + standalone color options — defaults match
+     DEFAULT_DESIGN_SYSTEM in store/contentStore.ts, overridden by the CMS at runtime. */
+  --menu-panel-bg:      #1A2128;
+  --menu-panel-border:  #989793;
+  --menu-corner:        12px;
+  --tabbar-bg:          #1A2128;
+  --tabbar-border:      #989793;
+  --tabbar-corner:      999px;
+  --tabbar-font-size:   11px;
+  --textarea-bg:        #161B20;
+  --textarea-text:      #EDE8DF;
+  --switch-thumb:       #0F1519;
+  --switch-track-off:   #2F353A;
+}
+
+/* ── Light mode overrides ────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  /* Tailwind semantic vars */
+  --background:      #F5F1EB;
+  --foreground:      #1A2128;
+  --card:            #EBE7E0;
+  --card-foreground: #1A2128;
+  --muted-foreground:#4A5D6B;
+  --border:          rgba(26, 33, 40, 0.1);
+  --primary:         #0B9AA2;
+  --primary-foreground: #F5F1EB;
+  --muted:           #DDD9D2;
+  --accent:          #E4E0D9;
+  --accent-foreground: #1A2128;
+  --input-background: #E4E0D9;
+
+  /* Raw palette tokens — light overrides */
+  --c-bg:          #F5F1EB;
+  --c-bg-card:     #EBE7E0;
+  --c-bg-deep:     #E2DDD6;
+  --c-bg-deeper:   #D8D3CC;
+  --c-bg-glass:    rgba(245, 241, 235, 0.92);
+  --c-heading:     #0D1318;
+  --c-quote-emphasis: #0D1318;
+  --c-text:        #1A2128;
+  --c-text-muted:  #4A5D6B;
+  --c-text-body:   #3D5260;
+  --c-text-dim:    #1A2128;
+  --c-teal:        #0B9AA2;
+  --c-teal-rgb:    11, 154, 162;
+  --c-border:      rgba(26, 33, 40, 0.1);
+  --c-border-soft: rgba(26, 33, 40, 0.07);
+  --c-border-xs:   rgba(26, 33, 40, 0.05);
+  --c-border-med:  rgba(26, 33, 40, 0.14);
+  --c-divider:     #A9A9A7;
+  /* Alpha text levels — light equivalents */
+  --c-text-30:     rgba(26, 33, 40, 0.3);
+  --c-text-40:     rgba(26, 33, 40, 0.4);
+  --c-text-50:     rgba(26, 33, 40, 0.5);
+  --c-text-55:     rgba(26, 33, 40, 0.55);
+  --c-text-60:     rgba(26, 33, 40, 0.6);
+  --c-text-70:     rgba(26, 33, 40, 0.7);
+  --c-text-72:     rgba(26, 33, 40, 0.72);
+  --c-text-80:     rgba(26, 33, 40, 0.8);
+  --c-surface-3:   rgba(26, 33, 40, 0.03);
+  --c-surface-4:   rgba(26, 33, 40, 0.04);
+  --c-surface-10:  rgba(26, 33, 40, 0.1);
+  --menu-panel-bg:      #EBE7E0;
+  --menu-panel-border:  #A9A9A7;
+  --tabbar-bg:          #EBE7E0;
+  --tabbar-border:      #A9A9A7;
+  --textarea-bg:        #FBFAF8;
+  --textarea-text:      #1A2128;
+  --switch-thumb:       #F5F1EB;
+  --switch-track-off:   #D6D3CE;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-size: 16px;
+  --background: #0F1519;
+  --foreground: #EDE8DF;
+  --card: #1A2128;
+  --card-foreground: #EDE8DF;
+  --popover: #141210;
+  --popover-foreground: #EDE8DF;
+  --primary: #14ADB5;
+  --primary-foreground: #0D0C0A;
+  --secondary: #303941;
+  --secondary-foreground: #EDE8DF;
+  --muted: #303941;
+  --muted-foreground: #EDE8DF;
+  --accent: #1E2830;
+  --accent-foreground: #EDE8DF;
+  --destructive: #c0392b;
+  --destructive-foreground: #EDE8DF;
+  --border: rgba(237, 232, 223, 0.08);
+  --input: transparent;
+  --input-background: #1E1B17;
+  --switch-background: #3A342A;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: rgba(200, 169, 106, 0.4);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: #1A2128;
+  --sidebar-foreground: #EDE8DF;
+  --sidebar-primary: #14ADB5;
+  --sidebar-primary-foreground: #0D0C0A;
+  --sidebar-accent: #1E2830;
+  --sidebar-accent-foreground: #EDE8DF;
+  --sidebar-border: rgba(237, 232, 223, 0.08);
+  --sidebar-ring: rgba(200, 169, 106, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+
+  /* Rich text output rendered outside the editor (project overlay, case study detail) */
+  .rte-content { font-family: var(--font-body); font-size: var(--body-size, 14px); color: var(--c-text-70, rgba(237,232,223,0.7)); line-height: var(--body-line-height, 1.75); font-weight: var(--body-weight, 300); letter-spacing: var(--body-letter-spacing, normal); }
+  /* Testimonial quotes are authored in Tiptap, which can bake a literal inline color (e.g. from
+     pasted text, or the editor's own color tool) straight into the saved HTML — that overrides
+     the container's inherited color and stayed unreadable (light-on-light) whenever the color
+     happened to be a light one and the site was switched to light mode. Forcing every descendant
+     back to the theme-aware quote color, scoped to just this container so it doesn't touch other
+     rich-text fields that may intentionally use custom colors. */
+  .rte-content.quote-color-fix, .rte-content.quote-color-fix * { color: var(--c-quote-emphasis) !important; }
+  /* Key Skills chips + Projects rows in the Professional Experience section — the generic
+     --c-border-soft/--c-border tokens are barely visible (6-10% opacity), and unlike --c-divider
+     they're shared by dozens of other borders sitewide, so they aren't something the Design
+     System's "Divider" color picker controls. Scoped, theme-specific values here instead of
+     editing those shared tokens, so only this section's outlines are affected. */
+  .pro-exp-outline { border: 1px solid rgba(237, 232, 223, 0.18) !important; }
+  :root[data-theme="light"] .pro-exp-outline { border-color: rgba(26, 33, 40, 0.3) !important; }
+  /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
+     container has no max-width of its own and can otherwise stretch past 100+ chars/line on
+     wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
+     Tiptap sometimes outputs a single paragraph as a bare text node with no wrapping tag. */
+  .rte-content { max-width: 60ch; }
+  /* Professional Experience card's left column (Overview + Highlights) — ~50% wider than the
+     shared 60ch reading measure once the card's layout switches to its 2-column grid (matching
+     that grid's own md breakpoint). Applied to the shared wrapper so both sections line-wrap
+     at the same width as each other, not just Overview alone. */
+  @media (min-width: 768px) {
+    .experience-overview { max-width: 90ch; }
+  }
+  .rte-content h1 { font-family: var(--font-heading); font-size: var(--h1-size, 22px); font-weight: var(--heading-weight, 500); color: var(--c-text); margin: 20px 0 8px; line-height: var(--heading-line-height, 1.2); letter-spacing: var(--heading-letter-spacing, normal); }
+  .rte-content h2 { font-family: var(--font-heading); font-size: var(--h2-size, 18px); font-weight: var(--heading-weight, 400); color: var(--c-text); margin: 18px 0 7px; line-height: var(--heading-line-height, 1.25); letter-spacing: var(--heading-letter-spacing, normal); }
+  .rte-content h3 { font-family: var(--font-heading); font-size: var(--h3-size, 15px); font-weight: var(--heading-weight, 400); color: var(--c-text); margin: 14px 0 6px; line-height: var(--heading-line-height, 1.3); letter-spacing: var(--heading-letter-spacing, normal); }
+  .rte-content h4 { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-text-body); margin: 12px 0 5px; }
+  .rte-content h5 { font-family: var(--font-mono); font-size: var(--label-size, 10px); font-weight: var(--label-weight, 400); color: var(--c-text-muted); margin: 10px 0 4px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .rte-content h6 { font-family: var(--font-heading); font-size: var(--h6-size, 11px); font-weight: var(--heading-weight, 400); color: var(--c-text); margin: 8px 0 4px; line-height: var(--heading-line-height, 1.3); letter-spacing: var(--heading-letter-spacing, normal); }
+  .rte-content p[data-type="caption"] { font-family: var(--font-mono); font-size: var(--label-size, 10px); font-weight: var(--label-weight, 400); color: var(--c-text-muted); letter-spacing: 0.06em; margin: 2px 0 12px; font-style: italic; }
+  .rte-content p { margin: 0 0 10px; }
+  .rte-content ul, .rte-content ol { padding-left: 20px; margin: 0 0 10px; }
+  .rte-content li { margin-bottom: 4px; }
+  .rte-content hr { border: none; border-top: 1px solid var(--c-border); margin: 18px 0; }
+  .rte-content img { max-width: 100%; border-radius: 8px; margin: 12px 0; display: block; }
+  .rte-content iframe { border-radius: 8px; margin: 12px 0; max-width: 100%; }
+  .rte-content a.rte-link { color: var(--c-teal); text-decoration: underline; }
+  .rte-content strong { color: var(--c-text); font-weight: 500; }
+  /* h1/h2/h3/h4/h6 all resolve to --heading-weight (default 500, same as strong's fixed 500
+     above), which makes a plain Bold toggle inside a heading render identically to not-bold —
+     bolder guarantees a visibly heavier weight than whatever the heading's own weight is. */
+  .rte-content h1 strong, .rte-content h2 strong, .rte-content h3 strong,
+  .rte-content h4 strong, .rte-content h6 strong { font-weight: bolder; }
+  .rte-content em { opacity: 0.8; }
+  .rte-content blockquote { border-left: 3px solid var(--c-teal); padding-left: 14px; margin: 12px 0; opacity: 0.8; font-style: italic; }
+  .rte-content a.rte-btn { display: inline-block; padding: 7px 18px; border-radius: 8px; text-decoration: none; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; margin: 4px 3px 4px 0; }
+  .rte-content a.rte-btn-primary { background: var(--c-teal); color: #0C1117; border: 1.5px solid var(--c-teal); }
+  .rte-content a.rte-btn-secondary { background: transparent; color: var(--c-teal); border: 1.5px solid var(--c-teal); }
+  .rte-content a.rte-btn-ghost { background: transparent; color: var(--c-text-muted); border: 1.5px solid rgba(237,232,223,0.2); }
+
+  /* Tables — block + overflow-x on the table itself makes it horizontally
+     scrollable on narrow screens without needing extra wrapper markup, since
+     the raw stored HTML has no wrapper div (that's an editor-only decoration). */
+  .rte-content table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-collapse: collapse; margin: 16px 0; }
+  .rte-content table tbody { display: table; width: 100%; }
+  .rte-content table td, .rte-content table th { border: 1px solid var(--c-border); padding: 8px 10px; text-align: left; vertical-align: top; min-width: 100px; }
+  .rte-content table th { background: rgba(20,173,181,0.08); color: var(--c-text); font-weight: 500; }
+  .rte-content table tr:nth-child(even) td { background: rgba(237,232,223,0.02); }
+
+  /* Collapsible panel — native <details>/<summary>, so open/close needs no JS.
+     Icon rotates on [open]; the rotation angle differs per icon glyph so each
+     one reads as "open" (chevron flips, plus becomes a cross, arrow points down). */
+  .rte-content details.rte-collapsible { border: 1px solid rgba(20,173,181,0.25); border-radius: 10px; margin: 16px 0; overflow: hidden; background: rgba(20,173,181,0.03); }
+  .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
+  .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
+  .rte-content details.rte-collapsible > summary.rte-collapsible-summary::marker { content: ""; }
+  .rte-content .rte-collapsible-icon { flex-shrink: 0; display: inline-flex; width: 16px; height: 16px; align-items: center; justify-content: center; color: var(--c-teal); transition: transform 0.25s ease; }
+  /* Drawn as a geometric border-corner rather than a Unicode "⌄" glyph — the glyph's font
+     metrics sit low within its own line box on most fonts, making it look off-centre no
+     matter how the surrounding box is aligned. The border-corner itself isn't naturally
+     centred either though: the visible V hangs entirely below the box's own centre (its
+     vertex sits ~2.1px below centre, nothing above), so margin-top pulls the box up by
+     that same amount before rotating, landing the V's visual centroid on the true centre. */
+  .rte-content details.rte-collapsible[data-icon="chevron"] .rte-collapsible-icon::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-top: -2.1px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .rte-content details.rte-collapsible[data-icon="plus"] .rte-collapsible-icon::before { content: "+"; font-size: 17px; font-weight: 600; line-height: 1; }
+  .rte-content details.rte-collapsible[data-icon="arrow"] .rte-collapsible-icon::before { content: "→"; font-size: 15px; line-height: 1; }
+  .rte-content details.rte-collapsible[open] .rte-collapsible-icon { transform: rotate(180deg); }
+  .rte-content details.rte-collapsible[data-icon="plus"][open] .rte-collapsible-icon { transform: rotate(45deg); }
+  .rte-content details.rte-collapsible[data-icon="arrow"][open] .rte-collapsible-icon { transform: rotate(90deg); }
+  .rte-content .rte-collapsible-body { padding: 0 16px 16px; }
+  .rte-content .rte-collapsible-body > *:first-child { margin-top: 0; }
+  .rte-content .rte-collapsible-body > *:last-child { margin-bottom: 0; }
+
+  /* Agency attribution "i" info trigger + callout — sits inline after the "Created while
+     working at [Company]" credit line. Callout is a floating card anchored under the icon
+     on normal screens; below 640px it drops to a static full-width card instead (a floating
+     card that narrow would clip against the viewport edge). */
+  .agency-info-trigger {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(20,173,181,0.4);
+    background: rgba(20,173,181,0.08);
+    color: var(--c-teal);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .agency-info-trigger:hover { opacity: 0.72; transform: scale(1.08); }
+  .agency-info-trigger:focus-visible { outline: 2px solid var(--c-teal); outline-offset: 2px; }
+  .agency-info-callout {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 40;
+    width: 300px;
+    max-width: calc(100vw - 32px);
+    background: var(--c-bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    padding: 16px 18px;
+  }
+  .agency-info-callout p {
+    margin: 0;
+    padding-right: 16px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--c-text);
+  }
+  .agency-info-callout-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    background: none;
+    color: var(--c-text-muted);
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  .agency-info-callout-close:hover { opacity: 0.7; }
+  @media (max-width: 640px) {
+    .agency-info-callout { position: static; width: 100%; max-width: none; margin-top: 10px; }
+  }
+
+  /* Nav logo — invert on dark bg so white background disappears and teal/gray remain */
+  .nav-logo { filter: invert(1) hue-rotate(180deg); }
+  [data-theme="light"] .nav-logo { filter: none; }
+
+  /* Default link underline behaviour — overridden by the CMS's linkUnderline setting via the
+     dynamically injected Design System <style> tag once content loads. */
+  .site-link { color: var(--link-color); text-decoration: none; transition: color 0.2s ease, opacity 0.2s ease; }
+  .site-link:hover { color: var(--link-hover-color); opacity: 0.75; }
+
+  /* Clients & Companies logo carousel — solid dark fill in dark mode; in light mode the fill
+     would just be a second, redundant dark band, so it's replaced with a black outline instead. */
+  .clients-carousel-bg { background: #1A2128; border: none; }
+  [data-theme="light"] .clients-carousel-bg { background: transparent; border: 1px solid #000; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes marquee-left {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  @keyframes marquee-right {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0); }
+  }
+
+  html {
+    font-size: var(--font-size);
+    font-family: var(--font-body);
+  }
+
+  h1 { font-size: var(--text-2xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  h2 { font-size: var(--text-xl); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  h3 { font-size: var(--text-lg); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  h4 { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  label { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  input { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }
+
+  /* Work page's "View more projects" — Card view (CMSWork.projectListLayout === "card").
+     --plg-cols (set inline per the CMS's configured column count, 2-6) only takes effect at
+     the widest breakpoint; the steps below it are fixed at 3/2/1 regardless of that setting. */
+  .project-list-grid { display: grid; grid-template-columns: repeat(1, 1fr); }
+  @media (min-width: 640px)  { .project-list-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .project-list-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1280px) { .project-list-grid { grid-template-columns: repeat(var(--plg-cols, 4), 1fr); } }
 }

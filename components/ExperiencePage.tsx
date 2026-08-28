@@ -1,0 +1,31 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import type { ComponentType } from "react";
+import { pathKeyToUrl } from "@/lib/paths";
+
+interface OnNavigateProps {
+  onNavigate: (path: string, projectId?: string) => void;
+}
+
+// Bridges an Experience* component's onNavigate(path, projectId?) callback — inherited from
+// the pre-routing SPA, still the shared interface all 4 components and PathCTA speak — onto
+// real navigation, so these components work unmodified under real routes. projectId, when
+// given, always means "open this project on /work", regardless of which path navigated there
+// (e.g. Evaluate's project list links out to Work).
+export function ExperiencePage<P extends OnNavigateProps>({
+  Component,
+  ...rest
+}: { Component: ComponentType<P> } & Omit<P, keyof OnNavigateProps>) {
+  const router = useRouter();
+
+  function onNavigate(path: string, projectId?: string) {
+    if (path === "work" && projectId) {
+      router.push(`/work/${projectId}`);
+      return;
+    }
+    router.push(pathKeyToUrl(path));
+  }
+
+  return <Component {...(rest as unknown as P)} onNavigate={onNavigate} />;
+}
