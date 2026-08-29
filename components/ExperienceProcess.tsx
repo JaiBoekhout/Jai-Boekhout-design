@@ -83,7 +83,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             computed from the same scroll position) so it slides up to fill the gap once
             the top bar hides, rather than leaving an empty band above it. */}
         <div
-          className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pb-2 w-full max-w-3xl lg:max-w-[900px] sticky z-30"
+          className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[900px] sticky z-30"
           style={{
             top: topBarHidden ? 0 : TOP_BAR_HEIGHT,
             transition: "top 0.3s ease",
