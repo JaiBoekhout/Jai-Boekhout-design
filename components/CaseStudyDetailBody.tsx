@@ -41,7 +41,7 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
         </div>
 
         {/* Title */}
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px,4.5vw,52px)", fontWeight: 500, color: TEAL, lineHeight: 1.1, marginBottom: 8, letterSpacing: "-0.02em" }}>
+        <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px,4.5vw,52px)", fontWeight: 500, color: TEAL, lineHeight: 1.1, marginBottom: 8, letterSpacing: "-0.02em" }}>
           {project.name}
         </h1>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)", marginBottom: 6 }}>

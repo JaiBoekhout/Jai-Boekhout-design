@@ -47,6 +47,7 @@ export default function NotFound() {
         </p>
 
         <h1
+          className="hero-mobile-h3"
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "clamp(32px, 5vw, 52px)",

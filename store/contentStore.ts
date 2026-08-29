@@ -526,6 +526,11 @@ export interface CMSTypeScale {
   body: CMSTypeScaleBody;
   headings: CMSTypeScaleHeadings;
   labels: CMSTypeScaleLabels;
+  // Optional, independent base+ratio pair for viewports under 768px — absent by default (no
+  // existing saved content has it), which is what keeps the mobile media-query override in
+  // buildDesignSystemCss() fully opt-in rather than silently derived from whatever desktop
+  // values already happen to be set.
+  mobile?: { baseFontSize: number; scaleRatio: number };
 }
 
 // p is the reference point (base × ratio^0); each level above steps up one more power of the
@@ -931,6 +936,42 @@ export function buildDesignSystemCss(ds: CMSDesignSystem): string {
       })()
     : "";
 
+  // Only emitted once the admin has explicitly configured a mobile scale — ts.mobile stays
+  // absent for every existing saved doc, so this is a strict opt-in, never silently derived
+  // from whatever desktop values already happen to be set. Reuses the same --h1/h2/h3/h6/body/
+  // small-size variables under a max-width media query: .rte-content/.ProseMirror (globals.css,
+  // RichTextEditor.tsx) already read these with a hardcoded fallback, so rich text becomes
+  // responsive for free. The .hero-mobile-h1/h2/h3 rules (each page hero's own inline clamp()
+  // override, below 768px only) are generated HERE rather than as a static globals.css rule —
+  // an invalid var() computes to the *inherited* value, not "ignore this declaration", so a
+  // rule referencing --h1-size that's always present would collapse every hero to ~16px for
+  // anyone without a mobile scale configured. Emitting the override rule and the variables it
+  // depends on together, only when both exist, avoids that entirely.
+  //
+  // The wildcard descendant selector (.hero-mobile-h1 *) matters because several heroes are
+  // dangerouslySetInnerHTML CMS content, and the RichTextEditor's own per-run font-size control
+  // can leave an explicit inline `<span style="font-size:96px">` wrapping the actual text (e.g.
+  // the homepage headline does) — an inline style on that descendant span always wins over a
+  // class-based rule on the ancestor <h1>, no matter the !important, since inheritance only
+  // applies when the descendant has no size of its own. Forcing every descendant to inherit
+  // the (now-overridden) ancestor size is what actually makes the visible text shrink.
+  const mobileTypeScaleCss =
+    isCustom && ts.mobile
+      ? (() => {
+          const m = computeTypeScaleSizes(ts.mobile!.baseFontSize, ts.mobile!.scaleRatio);
+          return `
+@media (max-width: 767px) {
+  :root {
+    --h1-size: ${m.h1}px; --h2-size: ${m.h2}px; --h3-size: ${m.h3}px; --h6-size: ${m.h6}px;
+    --body-size: ${m.p}px; --small-size: ${m.small}px;
+  }
+  .hero-mobile-h1, .hero-mobile-h1 * { font-size: ${m.h1}px !important; }
+  .hero-mobile-h2, .hero-mobile-h2 * { font-size: ${m.h2}px !important; }
+  .hero-mobile-h3, .hero-mobile-h3 * { font-size: ${m.h3}px !important; }
+}`;
+        })()
+      : "";
+
   const underline = ds.linkUnderline ?? "none";
   const linkCss = `
 .site-link { text-decoration: ${underline === "always" ? "underline" : "none"}; }
@@ -1002,7 +1043,7 @@ ${darkComponentVars}${typeScaleVars}
 ${lightComponentVars}
 }
 ${structuralCss}
-${linkCss}`;
+${linkCss}${mobileTypeScaleCss}`;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────

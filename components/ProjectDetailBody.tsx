@@ -374,7 +374,7 @@ export function ProjectDetailBody({
         </div>
 
         {/* Title */}
-        <h3 className="lg:pr-[180px]" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
+        <h3 className="lg:pr-[180px] hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
           {project.name}
         </h3>
 

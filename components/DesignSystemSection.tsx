@@ -414,7 +414,24 @@ function formatSize(px: number, unit: SizeUnit): string {
 
 function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onChange: (patch: Partial<CMSTypeScale>) => void }) {
   const [unit, setUnit] = useState<SizeUnit>("px");
-  const sizes = computeTypeScaleSizes(typeScale.baseFontSize, typeScale.scaleRatio);
+  // Which base+ratio pair the Base font-size/Scale fields (and the preview) currently edit —
+  // "mobile" falls back to a copy of the desktop values until the admin actually changes
+  // something, rather than starting from a blank/zero pair. typeScale.mobile itself stays
+  // undefined until that first edit, which is what keeps the public site's mobile override
+  // (buildDesignSystemCss, store/contentStore.ts) a strict opt-in.
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const activeScale = device === "mobile"
+    ? (typeScale.mobile ?? { baseFontSize: typeScale.baseFontSize, scaleRatio: typeScale.scaleRatio })
+    : { baseFontSize: typeScale.baseFontSize, scaleRatio: typeScale.scaleRatio };
+  const sizes = computeTypeScaleSizes(activeScale.baseFontSize, activeScale.scaleRatio);
+
+  function updateActiveScale(patch: Partial<{ baseFontSize: number; scaleRatio: number }>) {
+    if (device === "desktop") {
+      onChange(patch);
+      return;
+    }
+    onChange({ mobile: { ...activeScale, ...patch } });
+  }
 
   function updateBody(patch: Partial<CMSTypeScale["body"]>) {
     onChange({ body: { ...typeScale.body, ...patch } });
@@ -436,12 +453,36 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
           <div className="mb-5">
             <TextInputField label="Preview text" value={typeScale.previewText} onChange={(v) => onChange({ previewText: v })} />
           </div>
+
+          <div className="flex items-center gap-1 mb-3">
+            {(["desktop", "mobile"] as const).map((d) => (
+              <button
+                key={d}
+                onClick={() => setDevice(d)}
+                style={{
+                  padding: "5px 12px", borderRadius: 6, border: "none", cursor: "pointer",
+                  fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase",
+                  background: device === d ? "rgba(20,173,181,0.15)" : "transparent",
+                  color: device === d ? "#14ADB5" : "#6B7E8A",
+                }}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          {device === "mobile" && (
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, color: "#6B7E8A", marginBottom: 10, lineHeight: 1.5 }}>
+              {typeScale.mobile
+                ? "Applies below 768px — page headings, hero statements, and rich text all switch to these sizes."
+                : "Starts as a copy of Desktop — change a value below to enable a mobile-specific scale (applies below 768px)."}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <NumberField label="Base font-size" value={typeScale.baseFontSize} onChange={(v) => onChange({ baseFontSize: v })} suffix="px" />
+            <NumberField label="Base font-size" value={activeScale.baseFontSize} onChange={(v) => updateActiveScale({ baseFontSize: v })} suffix="px" />
             <SelectField
               label="Scale"
-              value={String(typeScale.scaleRatio)}
-              onChange={(v) => onChange({ scaleRatio: parseFloat(v) })}
+              value={String(activeScale.scaleRatio)}
+              onChange={(v) => updateActiveScale({ scaleRatio: parseFloat(v) })}
               options={TYPE_SCALE_RATIOS.map((r) => ({ value: String(r.value), label: r.label }))}
             />
           </div>

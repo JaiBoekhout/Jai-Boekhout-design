@@ -155,6 +155,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
       {/* Hero */}
       <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full text-center mt-16 mb-8">
         <motion.h1
+          className="hero-mobile-h1"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}

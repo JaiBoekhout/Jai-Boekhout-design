@@ -387,6 +387,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
           {/* ── Left: heading + body + buttons ── */}
           <div>
             <h3
+              className="hero-mobile-h3"
               style={{
                 fontFamily: "var(--font-heading)",
                 fontStyle: "italic",
