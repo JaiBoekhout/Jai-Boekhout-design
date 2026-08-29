@@ -435,7 +435,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <button
         onClick={() => onChange({ ...data, stats: [...data.stats, { id: `stat-${Date.now()}`, value: "0", label: "New Stat" }] })}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Stat
       </button>
@@ -494,7 +494,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <button
         onClick={() => onChange({ ...data, skills: [...data.skills, { title: "New Category", skills: [] }] })}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Category
       </button>
@@ -626,7 +626,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <button
         onClick={() => { const c = [...(data.clients ?? []), { name: "New Client", row: 1 } as CMSClient]; onChange({ ...data, clients: c }); }}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Client
       </button>
@@ -734,7 +734,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
           setOpenExp(e.length - 1);
         }}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Experience
       </button>
@@ -797,7 +797,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <button
         onClick={() => onChange({ ...data, qualifications: [...data.qualifications, { title: "New Qualification", org: null }] })}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Qualification
       </button>
@@ -853,7 +853,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <button
         onClick={() => onChange({ ...data, testimonials: [...data.testimonials, { name: "New Testimonial", quote: "", highlights: [] }] })}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Testimonial
       </button>

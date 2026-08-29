@@ -102,7 +102,7 @@ export function ProcessSection({ data, onChange }: Props) {
           setOpenStep(step.id);
         }}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
-        style={{ background: "rgba(20,173,181,0.08)", border: "1px solid rgba(20,173,181,0.25)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Step
       </button>

@@ -160,7 +160,7 @@ export function StorySection({ data, onChange }: Props) {
       <button
         onClick={addTimelineItem}
         className="flex items-center gap-2 transition-opacity hover:opacity-80 mb-6"
-        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px", width: "100%" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={12} /> Add Timeline Entry
       </button>
@@ -221,7 +221,7 @@ export function StorySection({ data, onChange }: Props) {
       <button
         onClick={addInterest}
         className="flex items-center gap-2 transition-opacity hover:opacity-80 mb-6"
-        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px", width: "100%" }}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={12} /> Add Interest
       </button>
