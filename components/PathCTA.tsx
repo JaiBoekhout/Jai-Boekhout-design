@@ -396,9 +396,8 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
                 lineHeight: 1.15,
                 marginBottom: "16px",
               }}
-            >
-              {content.evaluate.ctaHeading}
-            </h3>
+              dangerouslySetInnerHTML={{ __html: content.evaluate.ctaHeading }}
+            />
             <div
               className="rte-content"
               style={{ fontSize: "16px", color: "var(--c-text-muted)", marginBottom: "28px" }}

@@ -881,7 +881,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       )}
 
       <CMSSectionHeading>Contact CTA</CMSSectionHeading>
-      <CMSInput label="CTA Heading" value={data.ctaHeading} onChange={(v) => onChange({ ...data, ctaHeading: v })} />
+      <RichTextEditor label="CTA Heading" value={data.ctaHeading} onChange={(v) => onChange({ ...data, ctaHeading: v })} />
       <RichTextEditor label="CTA Body" value={data.ctaBody} onChange={(v) => onChange({ ...data, ctaBody: v })} />
     </div>
   );
