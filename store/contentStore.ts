@@ -317,10 +317,9 @@ export interface CMSClient {
 }
 
 export interface CMSEvaluate {
-  // The big page heading (e.g. "Are you the right person for this role?") — separate from
-  // heroStatement below, which is the smaller paragraph underneath it. Optional so existing
-  // saved content without it falls back to the original hardcoded text.
-  heroTitle?: string;
+  // Single rich-text field for the whole hero — the big heading and the smaller paragraph
+  // underneath it are both typed and styled in here (per-run font-size), the same pattern as
+  // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
   bio: string;
   industries: string[];
@@ -1046,7 +1045,7 @@ export const DEFAULT_CONTENT: CMSContent = {
     deletedProjectIds: ["open-studio"],
   },
   evaluate: {
-    heroStatement: "<h1><span style=\"font-size: 14px;\">Everything you need to evaluate me as a candidate, from experience and qualifications to the projects, processes and multidisciplinary skills I bring to a team.</span></h1><p></p>",
+    heroStatement: "<h1><span style=\"font-size: 58px; line-height: 1;\">Are you the right person for this role?</span><br>Everything you need to evaluate me as a candidate, from experience and qualifications to the projects, processes and multidisciplinary skills I bring to a team.</h1><h1></h1><p></p>",
     bio: "<p>Dutch-born UX/UI Designer, Web Designer and Creative Technologist based in Australia.</p><p>I combine design thinking, digital strategy, project management and technical implementation to create user-centred digital experiences that solve real business and customer problems.</p><p>With experience spanning UX design, web design, digital marketing, project management and creative technology, I bring a multidisciplinary perspective that helps bridge the gap between user needs, business goals and technical execution.</p>",
     industries: ["Education","Wellness","Agriculture","Tourism","E-commerce","Small Business"],
     stats: [

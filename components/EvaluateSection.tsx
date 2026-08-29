@@ -372,7 +372,6 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
-      <CMSInput label="Page Title (public page)" value={data.heroTitle ?? "Are you the right person for this role?"} onChange={(v) => onChange({ ...data, heroTitle: v })} />
       <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
 
       <CMSSectionHeading>Who I Am</CMSSectionHeading>

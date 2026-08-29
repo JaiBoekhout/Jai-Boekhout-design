@@ -149,21 +149,6 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   lineHeight: 1.1,
                   fontWeight: 400,
                 }}
-              >
-                {cms.heroTitle || "Are you the right person for this role?"}
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "16px",
-                  color: "var(--c-text-muted)",
-                  lineHeight: 1.7,
-                  fontWeight: 300,
-                  marginTop: "16px",
-                }}
                 dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
               />
             </>
