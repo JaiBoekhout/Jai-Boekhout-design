@@ -72,7 +72,7 @@ export function StorySection({ data, onChange }: Props) {
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
       <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
-      <CMSInput label="Sub-headline" value={data.subheadline} onChange={(v) => onChange({ ...data, subheadline: v })} />
+      <RichTextEditor label="Sub-headline" value={data.subheadline} onChange={(v) => onChange({ ...data, subheadline: v })} />
       <ImagePicker
         label="Portrait Photo · 3:4 portrait"
         previewRatio="3/4"

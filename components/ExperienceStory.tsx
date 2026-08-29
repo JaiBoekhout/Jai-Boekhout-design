@@ -61,9 +61,8 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             maxWidth: "480px",
             marginTop: "16px",
           }}
-        >
-          {cms.subheadline}
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: cms.subheadline }}
+        />
       </div>
 
       <div className="px-8 md:px-16 mt-16 grid md:grid-cols-5 gap-16">
