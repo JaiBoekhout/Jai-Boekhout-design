@@ -250,38 +250,17 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                       className="overflow-hidden"
                     >
                       <div className="pt-5 pl-9 grid md:grid-cols-5 gap-6">
-                        {/* Row 1: description beside the Example box. Row 2: Methods &
-                            Activities spans the same width as the description, directly
-                            underneath it — explicit placement rather than relying on
-                            auto-flow, since Example needs to sit beside row 1, not row 2. */}
-                        <div
-                          className="md:col-span-3 md:col-start-1 md:row-start-1 rte-content"
-                          style={{ color: "var(--c-text-body)", marginBottom: "30px" }}
-                          dangerouslySetInnerHTML={{ __html: step.description }}
-                        />
-                        <div
-                          className="md:col-span-2 md:col-start-4 md:row-start-1 p-4 rounded-lg"
-                          style={{ background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
-                        >
-                          <p
-                            style={{
-                              fontFamily: "var(--font-mono)",
-                              fontSize: "10px",
-                              color: "var(--c-teal)",
-                              letterSpacing: "0.08em",
-                              textTransform: "uppercase",
-                              marginBottom: "8px",
-                            }}
-                          >
-                            Example
-                          </p>
+                        {/* Left column: description then Methods & Activities, stacked in
+                            normal flow so the list sits a fixed 30px under the description
+                            regardless of how tall the Example box next to them runs — a
+                            shared grid row would instead clamp the list to start only once
+                            the taller of the two columns finishes. */}
+                        <div className="md:col-span-3">
                           <div
                             className="rte-content"
-                            style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
-                            dangerouslySetInnerHTML={{ __html: step.example }}
+                            style={{ color: "var(--c-text-body)", marginBottom: "30px" }}
+                            dangerouslySetInnerHTML={{ __html: step.description }}
                           />
-                        </div>
-                        <div className="md:col-span-3 md:col-start-1 md:row-start-2">
                           <p
                             style={{
                               fontFamily: "var(--font-mono)",
@@ -302,6 +281,28 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                               </span>
                             </div>
                           ))}
+                        </div>
+                        <div
+                          className="md:col-span-2 p-4 rounded-lg"
+                          style={{ background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
+                        >
+                          <p
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "10px",
+                              color: "var(--c-teal)",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              marginBottom: "8px",
+                            }}
+                          >
+                            Example
+                          </p>
+                          <div
+                            className="rte-content"
+                            style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
+                            dangerouslySetInnerHTML={{ __html: step.example }}
+                          />
                         </div>
                       </div>
                     </motion.div>
