@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getContent, getFeaturedProjects, getMoreProjects, getPublishedProjectBySlug, projectUrlSlug } from "@/store/contentStore";
+import { getContent, getPublishedProjects, getPublishedProjectBySlug, projectUrlSlug } from "@/store/contentStore";
 import { stripHtml } from "@/lib/utils";
 import { ProjectPageView } from "@/components/ProjectPageView";
 
 export async function generateStaticParams() {
-  const content = getContent();
-  return [...getFeaturedProjects(content), ...getMoreProjects(content)]
-    .filter((p) => !p.status || p.status === "published")
-    .map((p) => ({ slug: projectUrlSlug(p) }));
+  return getPublishedProjects(getContent()).map((p) => ({ slug: projectUrlSlug(p) }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

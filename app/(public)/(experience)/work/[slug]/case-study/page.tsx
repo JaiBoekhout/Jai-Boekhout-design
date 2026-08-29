@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  getContent, getFeaturedProjects, getMoreProjects, getPublishedProjectBySlug,
+  getContent, getPublishedProjects, getPublishedProjectBySlug,
   projectHasLiveCaseStudy, projectUrlSlug,
 } from "@/store/contentStore";
 import { stripHtml } from "@/lib/utils";
@@ -9,8 +9,7 @@ import { CaseStudyPageView } from "@/components/CaseStudyPageView";
 
 export async function generateStaticParams() {
   const content = getContent();
-  return [...getFeaturedProjects(content), ...getMoreProjects(content)]
-    .filter((p) => !p.status || p.status === "published")
+  return getPublishedProjects(content)
     .filter((p) => projectHasLiveCaseStudy(p, content.work.caseStudies))
     .map((p) => ({ slug: projectUrlSlug(p) }));
 }
