@@ -66,7 +66,12 @@ export function ProjectModalView({ slug }: { slug: string }) {
           project={project}
           mode="modal"
           onClose={close}
-          onSelectProject={(id) => router.push(`/work/${id}`)}
+          // Replace, not push — this is a modal-to-modal hop (View More card inside an already-
+          // open modal), so it must not add its own entry to the history stack. Otherwise
+          // chaining through several "View More" cards stacks one entry per hop, and close()'s
+          // router.back() only ever undoes one hop at a time instead of returning to wherever
+          // the visitor actually started (the grid, an Evaluate link, etc.) in a single click.
+          onSelectProject={(id) => router.replace(`/work/${id}`)}
           onViewCaseStudy={(p) => {
             if (p.fullCaseStudyLocked) setLockGateProject(p);
             else router.push(`/work/${projectUrlSlug(p)}/case-study`);
