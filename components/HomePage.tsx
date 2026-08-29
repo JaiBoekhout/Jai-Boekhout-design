@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
+import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { useContentStore } from "@/store/contentStore";
 import type { CMSHomeCard } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
@@ -54,10 +55,11 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
       transition={{ duration: 0.5 }}
       style={{ background: "var(--background)", transition: "background 0.3s ease" }}
     >
-      {/* Header */}
-      <div className="flex justify-between items-start" style={{ position: "relative" }}>
-        {/* Logo — absolutely centred so left/right content widths don't shift it, matching
-            the same treatment used in the top nav bar on the path pages. */}
+      {/* Header — desktop: logo absolutely centred between the left text block and right
+          icon cluster. Mobile: the icon cluster collapses into one hamburger menu (its hover-
+          driven font-size dropdown and closely-packed icons don't work well as tap targets),
+          and the text block moves from beside the logo to centred underneath it. */}
+      <div className="hidden md:flex justify-between items-start" style={{ position: "relative" }}>
         <img
           src={logoUrl}
           alt="Jai Boekhout Design"
@@ -110,6 +112,43 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           >
             <User size={21} />
           </button>
+        </div>
+      </div>
+
+      <div className="flex md:hidden flex-col items-center" style={{ position: "relative" }}>
+        <div style={{ position: "absolute", top: 0, right: 0 }}>
+          <MobileNavMenu onAdminClick={() => onNameClick?.()} />
+        </div>
+        <img
+          src={logoUrl}
+          alt="Jai Boekhout Design"
+          className="nav-logo"
+          style={{ height: "40px", width: "auto", pointerEvents: "none" }}
+        />
+        <div className="flex flex-col items-center gap-1" style={{ marginTop: "10px" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "11px",
+              color: "var(--c-text-muted)",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              textAlign: "center",
+            }}
+          >
+            Jai Boekhout — Portfolio
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "11px",
+              color: "var(--c-text-muted)",
+              letterSpacing: "0.08em",
+              textAlign: "center",
+            }}
+          >
+            UX & Product Designer
+          </span>
         </div>
       </div>
 
