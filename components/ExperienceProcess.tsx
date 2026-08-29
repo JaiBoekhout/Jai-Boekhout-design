@@ -100,7 +100,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "9px",
+                    fontSize: "12px",
                     color: openStep === step.id ? "var(--c-teal)" : "var(--c-text-dim)",
                     letterSpacing: "0.1em",
                   }}
@@ -120,14 +120,14 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     transition: "all 0.3s",
                   }}
                 >
-                  <span style={{ fontSize: "10px", color: openStep === step.id ? "var(--c-teal)" : "var(--c-text-muted)" }}>
+                  <span style={{ fontSize: "12px", color: openStep === step.id ? "var(--c-teal)" : "var(--c-text-muted)" }}>
                     {step.title.charAt(0)}
                   </span>
                 </div>
                 <span
                   style={{
                     fontFamily: "var(--font-body)",
-                    fontSize: "11px",
+                    fontSize: "12px",
                     color: openStep === step.id ? "var(--c-text)" : "var(--c-text-muted)",
                     fontWeight: 400,
                   }}
