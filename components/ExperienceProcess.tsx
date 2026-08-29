@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { useContentStore } from "@/store/contentStore";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { PathCTA } from "@/components/PathCTA";
 
-// Matches the public top bar's rendered height (app/(public)/page.tsx) — the stepper
-// sticks right below it when shown, and slides up to top:0 when the bar hides, using
+// Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) — the
+// stepper sticks right below it when shown, and slides up to top:0 when the bar hides, using
 // the same useHideOnScroll() hook so both stay in sync without any prop-passing.
 const TOP_BAR_HEIGHT = 64;
 
@@ -17,6 +17,33 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
   const { content } = useContentStore();
   const cmsSteps = content.process.steps;
   const topBarHidden = useHideOnScroll();
+  const stepperRef = useRef<HTMLDivElement>(null);
+  const panelRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // Measured (not hardcoded) so it stays correct across font-scale changes, which resize the
+  // stepper's own text/circles — used as each panel's scroll-margin-top so scrollIntoView lands
+  // it just below the sticky stepper instead of underneath it.
+  const [stepperHeight, setStepperHeight] = useState(0);
+
+  useEffect(() => {
+    const el = stepperRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setStepperHeight(entry.contentRect.height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Selecting a step from the sticky nav both opens its panel and scrolls it into view right
+  // below the stepper — otherwise a step further down the page opens off-screen, behind (or
+  // below) whatever's currently in view. The scroll waits out the accordion's own 0.3s
+  // collapse/expand transition first: whichever step was previously open shifts every panel
+  // below it as it collapses, so scrolling immediately targets a position that's still moving
+  // and overshoots once the layout finishes settling.
+  function goToStep(id: string) {
+    setOpenStep(id);
+    setTimeout(() => {
+      panelRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 320);
+  }
 
   return (
     <motion.div
@@ -83,6 +110,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             computed from the same scroll position) so it slides up to fill the gap once
             the top bar hides, rather than leaving an empty band above it. */}
         <div
+          ref={stepperRef}
           className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[900px] sticky z-30"
           style={{
             top: topBarHidden ? 0 : TOP_BAR_HEIGHT,
@@ -93,7 +121,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           {cmsSteps.map((step, i) => (
             <div key={step.id} className="flex items-center flex-shrink-0">
               <button
-                onClick={() => setOpenStep(openStep === step.id ? null : step.id)}
+                onClick={() => goToStep(step.id)}
                 className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
                 style={{ minWidth: "80px" }}
               >
@@ -155,9 +183,17 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           {cmsSteps.map((step, i) => (
             <motion.div
               key={step.id}
+              ref={(el) => { panelRefs.current[step.id] = el; }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.06 }}
+              // Always reserves space as if the top bar were visible, even though it's
+              // conditionally hidden — useHideOnScroll shows it again on *any* upward scroll
+              // (no threshold), so goToStep's own scroll-up reliably brings it back before
+              // landing. Reserving less here would size this correctly for an instant where
+              // the bar happens to be hidden, then have the bar slide back over the panel's
+              // header the moment our scroll starts moving.
+              style={{ scrollMarginTop: TOP_BAR_HEIGHT + stepperHeight + 16 }}
             >
               <button
                 className="w-full text-left p-5 rounded-xl border transition-colors"
