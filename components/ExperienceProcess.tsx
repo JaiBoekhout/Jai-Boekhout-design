@@ -85,22 +85,6 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           }}
           dangerouslySetInnerHTML={{ __html: content.process.heroStatement }}
         />
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "16px",
-            color: "var(--c-text-muted)",
-            lineHeight: 1.7,
-            fontWeight: 300,
-            maxWidth: "540px",
-            marginTop: "16px",
-          }}
-        >
-          {content.process.heroSubheading || "My design process is structured but not rigid. Each project shapes how I apply these principles. Select any stage to explore how I work."}
-        </motion.p>
       </div>
 
       {/* Process Steps */}

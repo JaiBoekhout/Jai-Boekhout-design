@@ -23,7 +23,6 @@ export function ProcessSection({ data, onChange }: Props) {
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
       <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
-      <CMSInput label="Hero Subheading (public page)" value={data.heroSubheading ?? "My design process is structured but not rigid. Each project shapes how I apply these principles. Select any stage to explore how I work."} onChange={(v) => onChange({ ...data, heroSubheading: v })} />
 
       <CMSSectionHeading>Process Steps</CMSSectionHeading>
       {data.steps.map((step, i) => (

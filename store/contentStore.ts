@@ -365,10 +365,10 @@ export interface CMSProcessStep {
 }
 
 export interface CMSProcess {
+  // Single rich-text field for the whole hero — the big heading and the smaller paragraph
+  // underneath it are both typed and styled in here (per-run font-size), the same pattern as
+  // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
-  // The paragraph under the hero heading (e.g. "My design process is structured but not
-  // rigid..."). Optional so existing saved content without it falls back to the original text.
-  heroSubheading?: string;
   steps: CMSProcessStep[];
 }
 
@@ -1093,7 +1093,7 @@ export const DEFAULT_CONTENT: CMSContent = {
     beyondDesignHidden: true,
   },
   process: {
-    heroStatement: "Design is more than creating screens.",
+    heroStatement: "<h1><span style=\"font-size: 64px; line-height: 1;\">Design is more than creating screens.</span><br>My design process is structured but not rigid. Each project shapes how I apply these principles. Select any stage to explore how I work.</h1><h1></h1><p></p>",
     steps: [
       {"id":"problem","title":"Problem","tagline":"Understand before you act","description":"<p>A good design solution starts with asking the right questions. Before touching Figma or writing a brief, I invest time in understanding what is actually broken and why. That means talking to the people involved, looking at what exists, and getting clear on what success looks like. Skipping this step is the fastest way to design the wrong thing really well.</p>","activities":["Client and stakeholder interviews","Identifying the core problem vs the presenting symptom","Reviewing existing user data, analytics, or feedback where available","Mapping constraints, budget, timeline, technical limitations, business goals","Defining what success looks like before any design begins"],"example":"<p>At Annosky, four apps were being built simultaneously with significant design work already underway before any real users had been involved. The actual problem was not a UI problem, it was a research gap. Advocating for usability testing at colleges across the Netherlands before finalising the apps meant real behaviour could inform the design rather than internal assumptions. Over 500 students later, several core design decisions changed as a direct result.</p>"},
       {"id":"research","title":"Research","tagline":"Evidence, not assumptions","description":"<p>Research is where good design decisions get made. Before any concepts or wireframes, I need to understand the users, the market, and the context. This means going beyond what clients think their users want and finding out what they actually do, need, and struggle with. </p>","activities":["User interviews and surveys","Competitor and market benchmarking","Reviewing existing analytics and user feedback","User role mapping and persona development","OOUX - mapping objects, attributes, and relationships before designing screens"],"example":"<p>On Open Studios Australia, research revealed five distinct user types each with completely different goals and mental models. Rather than designing one interface and adding permissions on top, mapping each role separately before touching a screen meant every design decision had a clear user need behind it.</p>"},
