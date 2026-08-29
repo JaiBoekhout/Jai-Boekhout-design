@@ -106,6 +106,9 @@ export function ProcessSection({ data, onChange }: Props) {
       >
         <Plus size={13} /> Add Step
       </button>
+
+      <CMSSectionHeading>Closing Quote</CMSSectionHeading>
+      <RichTextEditor label="Quote" value={data.closingQuote} onChange={(v) => onChange({ ...data, closingQuote: v })} />
     </div>
   );
 }

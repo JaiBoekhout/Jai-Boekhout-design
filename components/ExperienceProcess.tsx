@@ -296,6 +296,21 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             </motion.div>
           ))}
         </div>
+
+        {/* Closing Quote */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 p-5 rounded-xl max-w-3xl lg:max-w-[1000px] w-full"
+          style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
+        >
+          <div
+            className="rte-content"
+            style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
+            dangerouslySetInnerHTML={{ __html: content.process.closingQuote }}
+          />
+        </motion.div>
       </div>
       <PathCTA currentPath="process" onNavigate={onNavigate} />
     </motion.div>

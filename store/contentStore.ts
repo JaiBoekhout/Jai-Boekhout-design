@@ -369,6 +369,9 @@ export interface CMSProcess {
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
   steps: CMSProcessStep[];
+  // Quote box shown at the bottom of the page, above the CTA — same pattern as CMSStory's
+  // closingQuote.
+  closingQuote: string;
 }
 
 export interface CMSTimelineItem {
@@ -1102,6 +1105,7 @@ export const DEFAULT_CONTENT: CMSContent = {
       {"id":"testing","title":"Testing","tagline":"Validate early, validate often","description":"I run usability testing throughout the process, not just at the end. Unmoderated sessions for quick feedback, moderated sessions for deep exploration. I document findings into actionable design decisions and share results openly with the team.","activities":["Moderated usability testing","Unmoderated testing (Maze)","A/B testing","First-click analysis","Think-aloud protocols"],"example":"A two-week unmoderated test on the revised sign-up flow (n=48) surfaced 3 wording issues and 1 interaction pattern that confused 60% of participants. Fixed before any engineering time was spent."},
       {"id":"impact","title":"Impact","tagline":"Design without outcomes is decoration","description":"Shipping isn't the end. I define metrics before design starts and track them post-launch. I advocate for design reviews 4–8 weeks post-release to close the feedback loop and inform the next cycle.","activities":["Success metric definition","Post-launch review","Analytics monitoring","Retrospectives","Design debt tracking"],"example":"Following the patient portal launch, a 6-week review confirmed task completion improved from 61% to 89%. These results were fed back into the roadmap as evidence for continued UX investment."},
     ],
+    closingQuote: "<p style=\"text-align: center;\"><span style=\"font-size: 14px; color: rgb(237, 232, 223);\"><strong><em>\"Design is not just what it looks like and feels like. Design is how it works.\"</em></strong></span><br><span style=\"font-size: 14px; color: rgb(237, 232, 223);\"><strong><em>- Steve Jobs -</em></strong></span></p>",
   },
   story: {
     heroStatement: "My journey through design, technology and problem solving.",
@@ -2074,6 +2078,7 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
     { label: "Process — Hero Statement", value: content.process.heroStatement },
     ...content.process.steps.map((s) => ({ label: `Process — "${s.title}" Description`, value: s.description })),
     ...content.process.steps.map((s) => ({ label: `Process — "${s.title}" Example`, value: s.example })),
+    { label: "Process — Closing Quote", value: content.process.closingQuote },
     { label: "Story — Hero Statement", value: content.story.heroStatement },
     ...content.story.timeline.map((t, i) => ({ label: `Story — Timeline "${t.title || `Entry ${i + 1}`}" Body`, value: t.body })),
     { label: "Story — Closing Quote", value: content.story.closingQuote },
@@ -2127,6 +2132,7 @@ export function replaceMediaUsage(content: CMSContent, oldSrc: string, newSrc: s
         description: swapRich(s.description) ?? s.description,
         example: swapRich(s.example) ?? s.example,
       })),
+      closingQuote: swapRich(content.process.closingQuote) ?? content.process.closingQuote,
     },
     story: {
       ...content.story,
