@@ -878,10 +878,6 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
           <RichTextEditor label="Personal Note" value={data.beyondDesign} onChange={(v) => onChange({ ...data, beyondDesign: v })} />
         </>
       )}
-
-      <CMSSectionHeading>Contact CTA</CMSSectionHeading>
-      <RichTextEditor label="CTA Heading" value={data.ctaHeading} onChange={(v) => onChange({ ...data, ctaHeading: v })} />
-      <RichTextEditor label="CTA Body" value={data.ctaBody} onChange={(v) => onChange({ ...data, ctaBody: v })} />
     </div>
   );
 }

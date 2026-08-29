@@ -506,6 +506,21 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                         </CMSCard>
                       ))}
                     </div>
+
+                    {/* Lives here rather than under Evaluate because PathCTA (this same
+                        heading/body pair) renders at the bottom of all 4 experience pages, not
+                        just Evaluate — Home better reflects that it's site-wide, not page-specific. */}
+                    <CMSSectionHeading>Contact CTA</CMSSectionHeading>
+                    <RichTextEditor
+                      label="CTA Heading"
+                      value={content.evaluate.ctaHeading}
+                      onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaHeading: v } })}
+                    />
+                    <RichTextEditor
+                      label="CTA Body"
+                      value={content.evaluate.ctaBody}
+                      onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaBody: v } })}
+                    />
                   </>
                 )}
                 {activeTab === "work" && (
