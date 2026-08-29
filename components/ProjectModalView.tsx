@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  useContentStore, getFeaturedProjects, getMoreProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
+  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
 } from "@/store/contentStore";
 import type { CMSProject } from "@/store/contentStore";
 import { ProjectDetailChrome } from "@/components/ProjectDetailChrome";
@@ -43,9 +43,9 @@ export function ProjectModalView({ slug }: { slug: string }) {
   const project = getPublishedProjectBySlug(content, slug);
   if (!project) return null;
 
-  const pool = [...getFeaturedProjects(content), ...getMoreProjects(content)].filter(
-    (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i
-  );
+  // Published-only and enriched (case study status included) — an unpublished project must
+  // never show up in another project's "View More" list, whether pinned by id or auto-filled.
+  const pool = getPublishedProjects(content);
   const viewMoreProjects = resolveViewMore(pool, {
     pinnedIds: project.viewMorePinnedIds,
     category: project.viewMoreCategory,

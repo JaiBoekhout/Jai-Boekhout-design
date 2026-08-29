@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  useContentStore, getFeaturedProjects, getMoreProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
+  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
 } from "@/store/contentStore";
 import type { CMSProject } from "@/store/contentStore";
 import { ProjectDetailChrome } from "@/components/ProjectDetailChrome";
@@ -45,9 +45,9 @@ export function ProjectPageView({ slug }: { slug: string }) {
     return null;
   }
 
-  const pool = [...getFeaturedProjects(content), ...getMoreProjects(content)].filter(
-    (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i
-  );
+  // Published-only and enriched (case study status included) — an unpublished project must
+  // never show up in another project's "View More" list, whether pinned by id or auto-filled.
+  const pool = getPublishedProjects(content);
   const viewMoreProjects = resolveViewMore(pool, {
     pinnedIds: project.viewMorePinnedIds,
     category: project.viewMoreCategory,
