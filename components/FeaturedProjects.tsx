@@ -182,7 +182,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   <div style={{
                     fontFamily: "var(--font-body)",
                     fontSize: 12,
-                    color: "rgba(255,255,255,0.48)",
+                    color: "#F3F2F2",
                     lineHeight: 1.55,
                     marginBottom: 11,
                     display: "-webkit-box",
