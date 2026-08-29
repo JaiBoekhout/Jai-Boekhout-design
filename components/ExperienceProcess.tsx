@@ -111,7 +111,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             the top bar hides, rather than leaving an empty band above it. */}
         <div
           ref={stepperRef}
-          className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[900px] sticky z-30"
+          className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[1000px] sticky z-30"
           style={{
             top: topBarHidden ? 0 : TOP_BAR_HEIGHT,
             transition: "top 0.3s ease",
@@ -179,7 +179,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
         </div>
 
         {/* Accordion */}
-        <div className="flex flex-col gap-2 max-w-3xl lg:max-w-[900px] w-full">
+        <div className="flex flex-col gap-2 max-w-3xl lg:max-w-[1000px] w-full">
           {cmsSteps.map((step, i) => (
             <motion.div
               key={step.id}
@@ -250,36 +250,38 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                       className="overflow-hidden"
                     >
                       <div className="pt-5 pl-9 grid md:grid-cols-5 gap-6">
-                        <div className="md:col-span-3">
+                        {/* Row 1: description beside the Example box. Row 2: Methods &
+                            Activities spans the same width as the description, directly
+                            underneath it — explicit placement rather than relying on
+                            auto-flow, since Example needs to sit beside row 1, not row 2. */}
+                        <div
+                          className="md:col-span-3 md:col-start-1 md:row-start-1 rte-content"
+                          style={{ color: "var(--c-text-body)", marginBottom: "30px" }}
+                          dangerouslySetInnerHTML={{ __html: step.description }}
+                        />
+                        <div
+                          className="md:col-span-2 md:col-start-4 md:row-start-1 p-4 rounded-lg"
+                          style={{ background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
+                        >
+                          <p
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              fontSize: "10px",
+                              color: "var(--c-teal)",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              marginBottom: "8px",
+                            }}
+                          >
+                            Example
+                          </p>
                           <div
                             className="rte-content"
-                            style={{ color: "var(--c-text-body)", marginBottom: "16px" }}
-                            dangerouslySetInnerHTML={{ __html: step.description }}
+                            style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
+                            dangerouslySetInnerHTML={{ __html: step.example }}
                           />
-                          <div
-                            className="p-4 rounded-lg"
-                            style={{ background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
-                          >
-                            <p
-                              style={{
-                                fontFamily: "var(--font-mono)",
-                                fontSize: "10px",
-                                color: "var(--c-teal)",
-                                letterSpacing: "0.08em",
-                                textTransform: "uppercase",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              Example
-                            </p>
-                            <div
-                              className="rte-content"
-                              style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
-                              dangerouslySetInnerHTML={{ __html: step.example }}
-                            />
-                          </div>
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-3 md:col-start-1 md:row-start-2">
                           <p
                             style={{
                               fontFamily: "var(--font-mono)",
