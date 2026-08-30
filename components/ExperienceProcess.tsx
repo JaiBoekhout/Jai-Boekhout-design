@@ -307,7 +307,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
         >
           <div
-            className="rte-content"
+            className="rte-content rte-quote"
             style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
             dangerouslySetInnerHTML={{ __html: content.process.closingQuote }}
           />

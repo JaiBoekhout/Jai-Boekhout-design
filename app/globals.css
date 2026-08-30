@@ -248,6 +248,12 @@
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
      Tiptap sometimes outputs a single paragraph as a bare text node with no wrapping tag. */
   .rte-content { max-width: 60ch; }
+  /* Short, intentionally-centered blocks (pull quotes) shouldn't inherit the reading-width cap
+     above — a quote well under 60ch shrinks its box to fit the text, which then sits flush
+     against the LEFT edge of its (much wider) card rather than actually centered, no matter
+     what alignment is chosen in the rich text editor: text-align only centers text within its
+     own box, and a max-width this narrow leaves no room to do that against the card. */
+  .rte-content.rte-quote { max-width: none; }
   /* Professional Experience card's left column (Overview + Highlights) — ~50% wider than the
      shared 60ch reading measure once the card's layout switches to its 2-column grid (matching
      that grid's own md breakpoint). Applied to the shared wrapper so both sections line-wrap
