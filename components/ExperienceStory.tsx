@@ -203,9 +203,12 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         {/* Profile Image — a separate grid item (not nested in the Interests sidebar below) so
             it can be independently reordered: order-first puts it above the Timeline/"The
             Journey" section on mobile, while md:order-none + explicit column/row placement
-            restores its normal spot above Interests in the desktop sidebar column. */}
+            restores its normal spot above Interests in the desktop sidebar column. Only on
+            desktop is Interests actually positioned directly below this (on mobile Timeline
+            sits between them regardless) — with no caption to fill the gap, tighten that
+            md:mb-10 down to 30px so Interests doesn't look disconnected from the photo. */}
         {cms.portraitImageUrl && (
-          <div className="order-first md:order-none md:col-start-4 md:col-span-2 md:row-start-1 mb-10">
+          <div className={`order-first md:order-none md:col-start-4 md:col-span-2 md:row-start-1 mb-10${cms.portraitCaption ? "" : " md:mb-[30px]"}`}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
