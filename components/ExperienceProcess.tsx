@@ -123,7 +123,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             the top bar hides, rather than leaving an empty band above it. */}
         <div
           ref={stepperRef}
-          className="hidden md:flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[1000px] sticky z-30"
+          className="flex items-center justify-center gap-0 mb-12 overflow-x-auto pt-4 pb-2 w-full max-w-3xl lg:max-w-[1000px] sticky z-30"
           style={{
             top: topBarHidden ? 0 : TOP_BAR_HEIGHT,
             transition: "top 0.3s ease",

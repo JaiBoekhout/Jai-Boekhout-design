@@ -133,26 +133,38 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
           className={`mx-8 md:mx-16 mt-14 p-6 rounded-2xl border grid gap-6 ${STATS_GRID_CLASS[homeStats.length] ?? STATS_GRID_CLASS[3]}`}
           style={{ background: "var(--c-bg-card)", borderColor: "var(--c-border-soft)" }}
         >
-          {homeStats.map(({ id, value, label, icon }) => {
+          {homeStats.map(({ id, value, label, icon }, i) => {
             const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
             return (
-              <div key={id} className="flex flex-col gap-2 items-center text-center md:items-start md:text-left">
-                <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Icon size={18} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)" }}>
-                    {label}
+              // display:contents so the divider below can be its own grid item (a separate
+              // row when stacked to grid-cols-1 on mobile) without an extra wrapper box
+              // affecting the grid's own column/row tracks.
+              <div key={id} className="contents">
+                {/* Mobile-only divider between stacked stats — hidden at md: and up, where
+                    the grid switches to side-by-side columns and this wouldn't read as
+                    "between" the same way. display:none there removes it from the grid
+                    entirely rather than leaving an empty cell. */}
+                {i > 0 && (
+                  <div className="md:hidden" style={{ width: "75%", height: "1px", background: "var(--c-divider)", margin: "0 auto" }} />
+                )}
+                <div className="flex flex-col gap-2 items-center text-center md:items-start md:text-left">
+                  <div className="flex items-center gap-2 justify-center md:justify-start">
+                    <Icon size={18} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)" }}>
+                      {label}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontSize: "32px",
+                      color: "var(--c-text)",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {value}
                   </span>
                 </div>
-                <span
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "32px",
-                    color: "var(--c-text)",
-                    lineHeight: 1,
-                  }}
-                >
-                  {value}
-                </span>
               </div>
             );
           })}

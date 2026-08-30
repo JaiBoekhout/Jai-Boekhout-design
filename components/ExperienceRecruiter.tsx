@@ -681,9 +681,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           </motion.div>
         )}
 
-        <PathCTA currentPath="recruit" onNavigate={onNavigate} />
-
       </div>
+
+      {/* Sits outside the px-8 wrapper above — PathCTA's own full-mode layout applies its own
+          px-8 md:px-16 padding (matching how the other 3 experience pages render it), so
+          nesting it inside this page's padding too was doubling the horizontal inset and
+          making the CTA/form noticeably narrower than the rest of the page's content. */}
+      <PathCTA currentPath="recruit" onNavigate={onNavigate} />
     </motion.div>
   );
 }
