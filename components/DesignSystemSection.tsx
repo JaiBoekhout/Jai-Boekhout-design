@@ -236,7 +236,7 @@ function PlainColorPairControl({
           </button>
         )}
       </div>
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <ColorInput label="Dark mode" value={darkValue} onChange={onDarkChange} />
         <ColorInput label="Light mode" value={lightValue} onChange={onLightChange} />
       </div>
@@ -329,7 +329,7 @@ function ComponentColorControl({
           ))}
         </div>
       )}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <ColorInput label="Dark mode" value={darkValue} onChange={(v) => onChange({ [darkKey]: v })} />
         <ColorInput label="Light mode" value={lightValue} onChange={(v) => onChange({ [lightKey]: v })} />
       </div>
@@ -447,7 +447,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
 
   return (
     <div style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)", borderRadius: 14, padding: 24, marginTop: 16, marginBottom: 8 }}>
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left column: controls */}
         <div>
           <div className="mb-5">
@@ -477,7 +477,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
                 : "Starts as a copy of Desktop — change a value below to enable a mobile-specific scale (applies below 768px)."}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <NumberField label="Base font-size" value={activeScale.baseFontSize} onChange={(v) => updateActiveScale({ baseFontSize: v })} suffix="px" />
             <SelectField
               label="Scale"
@@ -488,7 +488,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
           </div>
 
           <p style={sectionLabelStyle}>Body</p>
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <SelectField label="Font" value={typeScale.body.font} onChange={(v) => updateBody({ font: v })} options={CUSTOM_BODY_FONTS.map((f) => ({ value: f.css, label: f.label }))} />
             <SelectField label="Weight" value={String(typeScale.body.weight)} onChange={(v) => updateBody({ weight: parseInt(v) })} options={FONT_WEIGHTS.map((w) => ({ value: String(w), label: String(w) }))} />
             <NumberField label="Line-height" value={typeScale.body.lineHeight} onChange={(v) => updateBody({ lineHeight: v })} step={0.05} />
@@ -496,7 +496,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
           </div>
 
           <p style={sectionLabelStyle}>Headings — H1–H6, S, XS</p>
-          <div className="grid grid-cols-2 gap-3 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
             <SelectField label="Font" value={typeScale.headings.font} onChange={(v) => updateHeadings({ font: v })} options={CUSTOM_HEADING_FONTS.map((f) => ({ value: f.css, label: f.label }))} />
             <SelectField label="Weight" value={String(typeScale.headings.weight)} onChange={(v) => updateHeadings({ weight: parseInt(v) })} options={FONT_WEIGHTS.map((w) => ({ value: String(w), label: String(w) }))} />
             <NumberField label="Line-height" value={typeScale.headings.lineHeight} onChange={(v) => updateHeadings({ lineHeight: v })} step={0.05} />
@@ -515,7 +515,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
           </p>
 
           <p style={sectionLabelStyle}>Labels / Mono</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <SelectField label="Font" value={typeScale.labels.font} onChange={(v) => updateLabels({ font: v })} options={CUSTOM_MONO_FONTS.map((f) => ({ value: f.css, label: f.label }))} />
             <NumberField label="Font-size" value={typeScale.labels.fontSize} onChange={(v) => updateLabels({ fontSize: v })} suffix="px" />
             <SelectField label="Weight" value={String(typeScale.labels.weight)} onChange={(v) => updateLabels({ weight: parseInt(v) })} options={FONT_WEIGHTS.map((w) => ({ value: String(w), label: String(w) }))} />
@@ -669,7 +669,7 @@ function ButtonVariantEditor({
           {style.icon === "right" && <Send size={13} />}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         <SelectField label="Style" value={style.fill} onChange={(v) => onChange({ fill: v })} options={[
           { value: "fill", label: "Fill" }, { value: "outline", label: "Outline" }, { value: "text", label: "Text" },
         ]} />
@@ -867,7 +867,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             <div key={token.key} className="mb-5" style={{ alignSelf: "start" }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#EDE8DF", fontWeight: 500, marginBottom: 2 }}>{token.label}</p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 8 }}>{token.description}</p>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <ColorInput label="Dark mode" value={data.colors[token.key]} onChange={(v) => updateColor(token.key, v)} />
                 <ColorInput label="Light mode" value={data.colors[lightKey] ?? "#000000"} onChange={(v) => updateColor(lightKey, v)} />
               </div>
@@ -891,7 +891,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                             Remove
                           </button>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                           <ColorInput label="Dark mode" value={c[darkK] ?? c.accentDark} onChange={(v) => updateColors({ [darkK]: v })} />
                           <ColorInput label="Light mode" value={c[lightK] ?? c.accentLight} onChange={(v) => updateColors({ [lightK]: v })} />
                         </div>
@@ -929,7 +929,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           <strong style={{ color: "#EDE8DF" }}>{pairing.body.split(",")[0].replace(/'/g, "")}</strong> for body text, and{" "}
           <strong style={{ color: "#EDE8DF" }}>{pairing.mono.split(",")[0].replace(/'/g, "")}</strong> for labels/mono accents.
         </p>
-        <div className="grid grid-cols-4 gap-3 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
           {FONT_PAIRINGS.map((p) => {
             const active = data.fontPairing === p.id;
             return (
@@ -983,7 +983,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
       <div id="ds-preview" style={{ scrollMarginTop: 20 }}>
         <CMSSectionHeading>Preview</CMSSectionHeading>
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <PreviewCard mode="dark" colors={data.colors} pairing={pairing} />
           <PreviewCard mode="light" colors={data.colors} pairing={pairing} />
         </div>
@@ -1265,7 +1265,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             onLightChange={(v) => updateMenuStyle({ panelBorderLight: v })}
           />
         </div>
-        <div className="grid grid-cols-2 gap-3 mb-5" style={{ maxWidth: 400 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5" style={{ maxWidth: 400 }}>
           <SelectField
             label="On hover"
             value={data.menuStyle.hoverEffect}
@@ -1348,7 +1348,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             onLightChange={(v) => updateTabBarStyle({ borderLight: v })}
           />
         </div>
-        <div className="grid grid-cols-3 gap-3 mb-5" style={{ maxWidth: 500 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5" style={{ maxWidth: 500 }}>
           <SelectField
             label="Active tab style"
             value={data.tabBarStyle.fill}
@@ -1397,7 +1397,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>
           Logo updates everywhere instantly, same as colors and fonts. Favicons are fetched directly by the browser and cached, so they may take a refresh or two to show for returning visitors.
         </p>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <ImagePicker
             label="Logo"
             previewRatio="1/1"
@@ -1480,7 +1480,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           rows={4}
         />
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
           {companies.map((company, i) => (
             <div key={company.id} className="rounded-xl p-4" style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.06)", ...companiesDrag.cardStyle(i) }} {...companiesDrag.dropTargetProps(i)}>
               <div className="flex items-center justify-between gap-1 mb-3">

@@ -559,7 +559,7 @@ export function MediaSection() {
 
   return (
     <div
-      className="flex h-full relative"
+      className="flex flex-col md:flex-row h-full relative"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -621,8 +621,12 @@ export function MediaSection() {
         </div>
       )}
 
-      {/* ── Folder sidebar ─────────────────────────────────────────────────── */}
-      <div style={{ width: 200, flexShrink: 0, borderRight: "1px solid rgba(237,232,223,0.06)", paddingRight: 12, marginRight: 20, display: "flex", flexDirection: "column" }}>
+      {/* ── Folder sidebar — full width, stacked above the main area on mobile;
+          fixed 200px column to its left at md: and up ─────────────────────── */}
+      <div
+        className="w-full md:w-[200px] flex-shrink-0 pb-4 mb-4 border-b md:border-b-0 md:pb-0 md:mb-0 md:pr-3 md:mr-5 md:border-r"
+        style={{ borderColor: "rgba(237,232,223,0.06)", display: "flex", flexDirection: "column" }}
+      >
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9.5, letterSpacing: "0.14em", color: "#EDE8DF", textTransform: "uppercase", marginBottom: 10 }}>Folders</p>
 
         {/* Root */}
@@ -720,7 +724,7 @@ export function MediaSection() {
               </span>
             ))}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {uploadMsg && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: uploadMsg.startsWith("✓") ? "#14ADB5" : "#EDE8DF" }}>{uploadMsg}</span>}
             <div style={{ position: "relative" }}>
               <Search size={12} style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "#6B7E8A", pointerEvents: "none" }} />
@@ -850,7 +854,7 @@ export function MediaSection() {
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#EDE8DF" }}>Scanning media library…</span>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0 }}>
+          <div className="flex flex-col md:flex-row" style={{ gap: 16, flex: 1, minHeight: 0 }}>
 
             {/* Image grid */}
             <div style={{ flex: 1, minWidth: 0, overflowY: "auto" }}>
@@ -918,7 +922,7 @@ export function MediaSection() {
 
             {/* ── Metadata / actions panel ───────────────────────────────── */}
             {selected && (
-              <div style={{ width: 240, flexShrink: 0, background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 14, alignSelf: "flex-start", position: "sticky", top: 0 }}>
+              <div className="w-full md:w-[240px] md:sticky md:top-0" style={{ flexShrink: 0, background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 14, alignSelf: "flex-start" }}>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span style={labelStyle}>Image Info</span>

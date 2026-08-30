@@ -840,7 +840,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         </p>
       </div>
 
-      <div className="grid grid-cols-2 mb-2" style={{ gap: "8px" }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 mb-2" style={{ gap: "8px" }}>
         {featuredRows.map((p, pos) => {
           const canMoveUp = pos > 0;
           const canMoveDown = pos < featuredRows.length - 1;
@@ -1002,7 +1002,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12px", color: "#8C9AA3", marginTop: "-8px", marginBottom: "16px", lineHeight: 1.5 }}>
         Controls how the &quot;View more projects&quot; list appears on the public Work page, underneath the Featured Grid.
       </p>
-      <div className="flex items-end gap-6 mb-6">
+      <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-6">
         <div>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Layout</p>
           <div className="flex gap-2">

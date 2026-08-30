@@ -547,8 +547,8 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
         </div>
       </div>
 
-      {/* Client cards — 2 column grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      {/* Client cards — 2 column grid on tablet/desktop, stacked on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         {(data.clients ?? []).map((client, i) => (
           <div key={i} className="rounded-xl p-4" style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.06)", ...clientsDrag.cardStyle(i) }} {...clientsDrag.dropTargetProps(i)}>
 
@@ -796,11 +796,11 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
               </div>
             </div>
             <CMSInput label="Qualification Title" value={q.title} onChange={(v) => { const qs = [...data.qualifications]; qs[i] = { ...qs[i], title: v }; onChange({ ...data, qualifications: qs }); }} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <CMSInput label="Institution" value={q.org || ""} onChange={(v) => { const qs = [...data.qualifications]; qs[i] = { ...qs[i], org: v || null }; onChange({ ...data, qualifications: qs }); }} />
               <CMSInput label="Year" value={q.year ?? ""} onChange={(v) => { const qs = [...data.qualifications]; qs[i] = { ...qs[i], year: v || undefined }; onChange({ ...data, qualifications: qs }); }} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <CMSInput label="Major (optional)" value={q.major ?? ""} onChange={(v) => { const qs = [...data.qualifications]; qs[i] = { ...qs[i], major: v || undefined }; onChange({ ...data, qualifications: qs }); }} />
               <CMSInput label="Minor (optional)" value={q.minor ?? ""} onChange={(v) => { const qs = [...data.qualifications]; qs[i] = { ...qs[i], minor: v || undefined }; onChange({ ...data, qualifications: qs }); }} />
             </div>

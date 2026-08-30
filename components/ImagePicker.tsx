@@ -537,8 +537,9 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
               <button onClick={closeModal} style={{ background: "none", border: "none", cursor: "pointer", color: "#EDE8DF", display: "flex", flexShrink: 0 }}><X size={16} /></button>
             </div>
 
-            {/* Body: sidebar | grid | info panel */}
-            <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+            {/* Body: sidebar | grid | info panel — stacked on mobile (each capped to a scrollable
+                strip so the grid still gets most of the vertical space), side by side at md: up */}
+            <div className="flex flex-col md:flex-row" style={{ flex: 1, overflow: "hidden", position: "relative", minHeight: 0 }}>
 
               {/* Drop overlay */}
               {modalDragging && (
@@ -553,7 +554,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
               )}
 
               {/* Folder sidebar */}
-              <div style={{ width: 190, flexShrink: 0, borderRight: "1px solid rgba(237,232,223,0.07)", overflowY: "auto", padding: "12px 8px" }}>
+              <div className="w-full md:w-[190px] max-h-36 md:max-h-none border-b md:border-b-0 md:border-r" style={{ flexShrink: 0, borderColor: "rgba(237,232,223,0.07)", overflowY: "auto", padding: "12px 8px" }}>
                 <button
                   onClick={() => { setFolderFilter("all"); setPreviewFile(null); }}
                   style={{
@@ -579,7 +580,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
               </div>
 
               {/* Image grid */}
-              <div style={{ flex: 1, overflowY: "auto", padding: 16, minWidth: 0 }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: 16, minWidth: 0, minHeight: 0 }}>
                 {/* Toolbar: Unused · Select · Reload · Upload — matches the Media Library's own */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
                   <button
@@ -757,7 +758,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
 
               {/* ── Info panel ──────────────────────────────────────────────── */}
               {previewFile && (
-                <div style={{ width: 250, flexShrink: 0, borderLeft: "1px solid rgba(237,232,223,0.07)", overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+                <div className="w-full md:w-[250px] max-h-64 md:max-h-none border-t md:border-t-0 md:border-l" style={{ flexShrink: 0, borderColor: "rgba(237,232,223,0.07)", overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
 
                   {/* Use this image button */}
                   <button

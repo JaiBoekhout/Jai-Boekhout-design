@@ -167,7 +167,7 @@ export function StorySection({ data, onChange }: Props) {
           </div>
           {openIdx === i && (
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <CMSInput label="Year" value={item.year} onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], year: v }; onChange({ ...data, timeline: t }); }} />
                 <CMSInput label="Tag / Era" value={item.tag} onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], tag: v }; onChange({ ...data, timeline: t }); }} />
               </div>
