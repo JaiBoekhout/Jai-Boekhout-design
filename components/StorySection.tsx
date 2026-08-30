@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import type { CMSStory } from "@/store/contentStore";
 
@@ -71,8 +72,20 @@ export function StorySection({ data, onChange }: Props) {
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
-      <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
-      <RichTextEditor label="Sub-headline" value={data.subheadline} onChange={(v) => onChange({ ...data, subheadline: v })} />
+      <ResponsiveRichTextEditor
+        label="Hero Statement"
+        value={data.heroStatement}
+        onChange={(v) => onChange({ ...data, heroStatement: v })}
+        mobileValue={data.heroStatementMobile}
+        onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+      />
+      <ResponsiveRichTextEditor
+        label="Sub-headline"
+        value={data.subheadline}
+        onChange={(v) => onChange({ ...data, subheadline: v })}
+        mobileValue={data.subheadlineMobile}
+        onMobileChange={(v) => onChange({ ...data, subheadlineMobile: v })}
+      />
       <ImagePicker
         label="Portrait Photo · 3:4 portrait"
         previewRatio="3/4"
@@ -227,7 +240,13 @@ export function StorySection({ data, onChange }: Props) {
       </button>
 
       <CMSSectionHeading>Closing Quote</CMSSectionHeading>
-      <RichTextEditor label="Quote" value={data.closingQuote} onChange={(v) => onChange({ ...data, closingQuote: v })} />
+      <ResponsiveRichTextEditor
+        label="Quote"
+        value={data.closingQuote}
+        onChange={(v) => onChange({ ...data, closingQuote: v })}
+        mobileValue={data.closingQuoteMobile}
+        onMobileChange={(v) => onChange({ ...data, closingQuoteMobile: v })}
+      />
     </div>
   );
 }

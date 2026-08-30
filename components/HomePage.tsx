@@ -154,8 +154,11 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
 
       {/* Hero */}
       <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full text-center mt-16 mb-8">
+        {/* Headline — dual-rendered (desktop/mobile toggled by CSS, not JS) once a mobile
+            override exists; the mobile variant drops hero-mobile-h1 since the admin is now
+            hand-authoring this field's mobile look directly, not relying on the global scale. */}
         <motion.h1
-          className="hero-mobile-h1"
+          className={home.headlineMobile ? "hidden md:block hero-mobile-h1" : "hero-mobile-h1"}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -169,7 +172,26 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           }}
           dangerouslySetInnerHTML={{ __html: home.headline }}
         />
+        {home.headlineMobile && (
+          <motion.h1
+            className="block md:hidden"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "clamp(52px, 8vw, 96px)",
+              color: "var(--foreground)",
+              lineHeight: 1.05,
+              fontWeight: 400,
+              letterSpacing: "-0.02em",
+            }}
+            dangerouslySetInnerHTML={{ __html: home.headlineMobile }}
+          />
+        )}
+
         <motion.p
+          className={home.subheadlineMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
@@ -182,7 +204,25 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           }}
           dangerouslySetInnerHTML={{ __html: home.subheadline }}
         />
+        {home.subheadlineMobile && (
+          <motion.p
+            className="block md:hidden"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "clamp(16px, 2vw, 20px)",
+              color: "var(--muted-foreground)",
+              lineHeight: 1.6,
+              fontWeight: 300,
+            }}
+            dangerouslySetInnerHTML={{ __html: home.subheadlineMobile }}
+          />
+        )}
+
         <motion.p
+          className={home.questionMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.45 }}
@@ -195,6 +235,22 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           }}
           dangerouslySetInnerHTML={{ __html: home.question }}
         />
+        {home.questionMobile && (
+          <motion.p
+            className="block md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontStyle: "italic",
+              fontSize: "32px",
+              color: "var(--c-teal)",
+              marginTop: "8px",
+            }}
+            dangerouslySetInnerHTML={{ __html: home.questionMobile }}
+          />
+        )}
       </div>
 
       {/* Cards Grid */}
@@ -371,7 +427,15 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
             textAlign: "center",
           }}
         >
-          {content.global.location} · <span dangerouslySetInnerHTML={{ __html: home.footerNote }} />
+          {content.global.location} ·{" "}
+          {home.footerNoteMobile ? (
+            <>
+              <span className="hidden md:inline" dangerouslySetInnerHTML={{ __html: home.footerNote }} />
+              <span className="inline md:hidden" dangerouslySetInnerHTML={{ __html: home.footerNoteMobile }} />
+            </>
+          ) : (
+            <span dangerouslySetInnerHTML={{ __html: home.footerNote }} />
+          )}
         </span>
       </div>
     </motion.div>

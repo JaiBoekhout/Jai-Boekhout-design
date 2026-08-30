@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSArrayEditor, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import type { CMSProcess, CMSProcessStep } from "@/store/contentStore";
 
 function newStepId(): string {
@@ -22,7 +23,13 @@ export function ProcessSection({ data, onChange }: Props) {
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
-      <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
+      <ResponsiveRichTextEditor
+        label="Hero Statement"
+        value={data.heroStatement}
+        onChange={(v) => onChange({ ...data, heroStatement: v })}
+        mobileValue={data.heroStatementMobile}
+        onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+      />
 
       <CMSSectionHeading>Process Steps</CMSSectionHeading>
       {data.steps.map((step, i) => (
@@ -108,7 +115,13 @@ export function ProcessSection({ data, onChange }: Props) {
       </button>
 
       <CMSSectionHeading>Closing Quote</CMSSectionHeading>
-      <RichTextEditor label="Quote" value={data.closingQuote} onChange={(v) => onChange({ ...data, closingQuote: v })} />
+      <ResponsiveRichTextEditor
+        label="Quote"
+        value={data.closingQuote}
+        onChange={(v) => onChange({ ...data, closingQuote: v })}
+        mobileValue={data.closingQuoteMobile}
+        onMobileChange={(v) => onChange({ ...data, closingQuoteMobile: v })}
+      />
     </div>
   );
 }

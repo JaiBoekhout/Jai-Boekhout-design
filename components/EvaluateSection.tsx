@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown, X, Eye, EyeOff, Upload, FileText, Loader2 } from "lucide-react";
 import { CMSInput, CMSUrlInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
 import { STAT_ICON_OPTIONS } from "@/lib/statIcons";
@@ -372,11 +373,23 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
-      <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
+      <ResponsiveRichTextEditor
+        label="Hero Statement"
+        value={data.heroStatement}
+        onChange={(v) => onChange({ ...data, heroStatement: v })}
+        mobileValue={data.heroStatementMobile}
+        onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+      />
 
       <CMSSectionHeading>Who I Am</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.bioHeading ?? "About Me"} onChange={(v) => onChange({ ...data, bioHeading: v })} />
-      <RichTextEditor label="Bio" value={data.bio} onChange={(v) => onChange({ ...data, bio: v })} />
+      <ResponsiveRichTextEditor
+        label="Bio"
+        value={data.bio}
+        onChange={(v) => onChange({ ...data, bio: v })}
+        mobileValue={data.bioMobile}
+        onMobileChange={(v) => onChange({ ...data, bioMobile: v })}
+      />
       <CMSInput label="Industries — Section Heading (public page)" value={data.industriesHeading ?? "Industries"} onChange={(v) => onChange({ ...data, industriesHeading: v })} />
       <CMSChipEditor label="Industries" items={data.industries} onChange={(v) => onChange({ ...data, industries: v })} />
 
@@ -875,7 +888,13 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       {!data.beyondDesignHidden && (
         <>
           <CMSInput label="Section Heading (public page)" value={data.beyondDesignHeading ?? "Beyond Design"} onChange={(v) => onChange({ ...data, beyondDesignHeading: v })} />
-          <RichTextEditor label="Personal Note" value={data.beyondDesign} onChange={(v) => onChange({ ...data, beyondDesign: v })} />
+          <ResponsiveRichTextEditor
+            label="Personal Note"
+            value={data.beyondDesign}
+            onChange={(v) => onChange({ ...data, beyondDesign: v })}
+            mobileValue={data.beyondDesignMobile}
+            onMobileChange={(v) => onChange({ ...data, beyondDesignMobile: v })}
+          />
         </>
       )}
     </div>

@@ -139,7 +139,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 Path 02 — Evaluate
               </motion.span>
               <motion.h1
-                className="hero-mobile-h2"
+                className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
@@ -152,6 +152,22 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 }}
                 dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
               />
+              {cms.heroStatementMobile && (
+                <motion.h1
+                  className="block md:hidden"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "clamp(28px, 4.5vw, 58px)",
+                    color: "var(--c-text)",
+                    lineHeight: 1.1,
+                    fontWeight: 400,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+                />
+              )}
             </>
           }
         />
@@ -172,10 +188,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {cms.bioHeading || "About Me"}
             </p>
             <div
-              className="rte-content"
+              className={cms.bioMobile ? "rte-content hidden md:block" : "rte-content"}
               style={{ fontSize: "16px", color: "var(--c-text-body)" }}
               dangerouslySetInnerHTML={{ __html: cms.bio }}
             />
+            {cms.bioMobile && (
+              <div
+                className="rte-content block md:hidden"
+                style={{ fontSize: "16px", color: "var(--c-text-body)" }}
+                dangerouslySetInnerHTML={{ __html: cms.bioMobile }}
+              />
+            )}
           </div>
           <div>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
@@ -632,10 +655,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {cms.beyondDesignHeading || "Beyond Design"}
             </p>
             <div
-              className="rte-content"
+              className={cms.beyondDesignMobile ? "rte-content hidden md:block" : "rte-content"}
               style={{ fontSize: "16px", color: "var(--c-text-body)", maxWidth: "600px" }}
               dangerouslySetInnerHTML={{ __html: cms.beyondDesign }}
             />
+            {cms.beyondDesignMobile && (
+              <div
+                className="rte-content block md:hidden"
+                style={{ fontSize: "16px", color: "var(--c-text-body)", maxWidth: "600px" }}
+                dangerouslySetInnerHTML={{ __html: cms.beyondDesignMobile }}
+              />
+            )}
           </motion.div>
         )}
 

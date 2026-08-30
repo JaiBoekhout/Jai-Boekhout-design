@@ -24,13 +24,21 @@ export interface CMSHomeCard {
   description: string;
 }
 
+// The `*Mobile` fields below are optional, independent overrides for what renders below the
+// 768px breakpoint — undefined means "no override, use the desktop field everywhere" (the
+// existing, unchanged behavior). Same opt-in pattern as CMSTypeScale's `mobile?` field: nothing
+// is forced into existence just because the feature exists.
 export interface CMSHomepage {
   headline: string;
+  headlineMobile?: string;
   subheadline: string;
+  subheadlineMobile?: string;
   question: string;
+  questionMobile?: string;
   // "Available for opportunities" — the second half of the footer line. The first half (the
   // location) keeps pulling from Global Settings -> Location rather than being duplicated here.
   footerNote: string;
+  footerNoteMobile?: string;
   cards: {
     work: CMSHomeCard;
     recruit: CMSHomeCard;
@@ -225,6 +233,7 @@ export type ProjectListLayout = "list" | "card";
 
 export interface CMSWork {
   heroStatement: string;
+  heroStatementMobile?: string;
   caseStudies: CMSCaseStudy[];
   homeStats: CMSWorkStatsConfig;
   projects: CMSProject[];
@@ -323,7 +332,9 @@ export interface CMSEvaluate {
   // underneath it are both typed and styled in here (per-run font-size), the same pattern as
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
+  heroStatementMobile?: string;
   bio: string;
+  bioMobile?: string;
   industries: string[];
   stats: CMSStat[];
   // Downloadable PDF shown under At a Glance — uploaded via a dedicated endpoint
@@ -340,8 +351,11 @@ export interface CMSEvaluate {
   additional: string[];
   testimonials: CMSTestimonial[];
   beyondDesign: string;
+  beyondDesignMobile?: string;
   ctaHeading: string;
+  ctaHeadingMobile?: string;
   ctaBody: string;
+  ctaBodyMobile?: string;
   // Section eyebrow labels (the small teal uppercase kicker above each section on the public
   // page) — optional so existing saved content without them falls back to the current text.
   bioHeading?: string;
@@ -370,10 +384,12 @@ export interface CMSProcess {
   // underneath it are both typed and styled in here (per-run font-size), the same pattern as
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
+  heroStatementMobile?: string;
   steps: CMSProcessStep[];
   // Quote box shown at the bottom of the page, above the CTA — same pattern as CMSStory's
   // closingQuote.
   closingQuote: string;
+  closingQuoteMobile?: string;
 }
 
 export interface CMSTimelineItem {
@@ -390,7 +406,9 @@ export interface CMSInterest {
 
 export interface CMSStory {
   heroStatement: string;
+  heroStatementMobile?: string;
   subheadline: string;
+  subheadlineMobile?: string;
   portraitImageUrl?: string;
   portraitImagePosition?: string;
   portraitImageScale?: number;
@@ -399,6 +417,7 @@ export interface CMSStory {
   interests: CMSInterest[];
   interestsHeading?: string;
   closingQuote: string;
+  closingQuoteMobile?: string;
 }
 
 export interface CMSEnquiry {

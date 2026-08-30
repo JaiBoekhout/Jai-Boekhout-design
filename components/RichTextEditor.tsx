@@ -680,7 +680,8 @@ type Dialog = "link" | "video" | "pdf" | "button" | "color" | null;
 // 720px still wrapped the LS stepper onto a 3rd line whenever LH/WT/LS all had an active
 // "reset to default" × showing at once (each adds ~21px row 1 doesn't need when they're at
 // "Auto") — 800px keeps all three steppers, clear buttons included, on row 1.
-const EDITOR_WIDTH = "800px";
+export const RICH_TEXT_EDITOR_WIDTH = "800px";
+const EDITOR_WIDTH = RICH_TEXT_EDITOR_WIDTH;
 
 interface Props {
   value: string;
@@ -855,9 +856,14 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="mb-4" style={{ maxWidth: EDITOR_WIDTH }}>
-      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>
-        {label}
-      </label>
+      {/* Empty label suppressed (rather than always rendering the element) so
+          ResponsiveRichTextEditor can supply its own label+device-toggle row above this
+          component instead of double-labeling the field. */}
+      {label && (
+        <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>
+          {label}
+        </label>
+      )}
 
       {/* ── Toolbar — sticky so it stays reachable while editing a long field.
            top: 70 stacks it directly below the card's own sticky header (same height). ── */}

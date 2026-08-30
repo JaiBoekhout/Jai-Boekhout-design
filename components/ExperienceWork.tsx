@@ -59,7 +59,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
           Path 01 — Work
         </motion.span>
         <motion.h1
-          className="hero-mobile-h2"
+          className={content.work.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -73,6 +73,23 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
           }}
           dangerouslySetInnerHTML={{ __html: content.work.heroStatement }}
         />
+        {content.work.heroStatementMobile && (
+          <motion.h1
+            className="block md:hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "clamp(32px, 5vw, 64px)",
+              color: "var(--c-text)",
+              lineHeight: 1.1,
+              fontWeight: 400,
+              maxWidth: "800px",
+            }}
+            dangerouslySetInnerHTML={{ __html: content.work.heroStatementMobile }}
+          />
+        )}
       </div>
 
       {/* Featured Projects grid */}

@@ -14,6 +14,7 @@ import { HistorySection } from "@/components/HistorySection";
 import { DesignSystemSection, DESIGN_SYSTEM_SECTIONS } from "@/components/DesignSystemSection";
 import { CMSInput, CMSSectionHeading, CMSCard } from "@/components/CMSFields";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { deleteEnquiryAction, clearEnquiriesAction } from "@/app/actions/contact";
 import type { Enquiry } from "@/app/actions/contact";
 
@@ -455,28 +456,36 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                       <CMSInput label="Tagline" value={content.global.tagline} onChange={(v) => updateContent({ global: { ...content.global, tagline: v } })} />
                     </div>
                     <CMSSectionHeading>Homepage</CMSSectionHeading>
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Headline"
                       value={content.homepage.headline}
                       onChange={(v) => updateContent({ homepage: { ...content.homepage, headline: v } })}
+                      mobileValue={content.homepage.headlineMobile}
+                      onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, headlineMobile: v } })}
                       previewStyle="font-family: var(--font-heading); font-size: clamp(52px, 8vw, 96px); color: var(--foreground); line-height: 1.05; font-weight: 400; letter-spacing: -0.02em; text-align: center;"
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Sub-headline"
                       value={content.homepage.subheadline}
                       onChange={(v) => updateContent({ homepage: { ...content.homepage, subheadline: v } })}
+                      mobileValue={content.homepage.subheadlineMobile}
+                      onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, subheadlineMobile: v } })}
                       previewStyle="font-family: var(--font-body); font-size: clamp(16px, 2vw, 20px); color: var(--muted-foreground); line-height: 1.6; font-weight: 300; text-align: center;"
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Question"
                       value={content.homepage.question}
                       onChange={(v) => updateContent({ homepage: { ...content.homepage, question: v } })}
+                      mobileValue={content.homepage.questionMobile}
+                      onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, questionMobile: v } })}
                       previewStyle="font-family: var(--font-heading); font-style: italic; font-size: 32px; color: var(--c-teal); text-align: center;"
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Footer Note (shown after the location, e.g. Adelaide, Australia · [this])"
                       value={content.homepage.footerNote}
                       onChange={(v) => updateContent({ homepage: { ...content.homepage, footerNote: v } })}
+                      mobileValue={content.homepage.footerNoteMobile}
+                      onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, footerNoteMobile: v } })}
                       previewStyle="font-family: var(--font-mono); font-size: 10px; color: var(--c-text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: center;"
                     />
 
@@ -510,15 +519,19 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                         heading/body pair) renders at the bottom of all 4 experience pages, not
                         just Evaluate — Home better reflects that it's site-wide, not page-specific. */}
                     <CMSSectionHeading>Contact CTA</CMSSectionHeading>
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="CTA Heading"
                       value={content.evaluate.ctaHeading}
                       onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaHeading: v } })}
+                      mobileValue={content.evaluate.ctaHeadingMobile}
+                      onMobileChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaHeadingMobile: v } })}
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="CTA Body"
                       value={content.evaluate.ctaBody}
                       onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaBody: v } })}
+                      mobileValue={content.evaluate.ctaBodyMobile}
+                      onMobileChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaBodyMobile: v } })}
                     />
                   </>
                 )}

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, LayoutGrid, Image as ImageIcon, X, Trash2, Copy, Search, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { CMSInput, CMSUrlInput, CMSSlugInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
 import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout } from "@/store/contentStore";
@@ -817,7 +818,13 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
-      <RichTextEditor label="Hero Statement" value={data.heroStatement} onChange={(v) => onChange({ ...data, heroStatement: v })} />
+      <ResponsiveRichTextEditor
+        label="Hero Statement"
+        value={data.heroStatement}
+        onChange={(v) => onChange({ ...data, heroStatement: v })}
+        mobileValue={data.heroStatementMobile}
+        onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+      />
 
       <CMSSectionHeading>Stats Bar</CMSSectionHeading>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>

@@ -387,7 +387,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
           {/* ── Left: heading + body + buttons ── */}
           <div>
             <h3
-              className="hero-mobile-h3"
+              className={content.evaluate.ctaHeadingMobile ? "hidden md:block hero-mobile-h3" : "hero-mobile-h3"}
               style={{
                 fontFamily: "var(--font-heading)",
                 fontStyle: "italic",
@@ -399,11 +399,33 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
               }}
               dangerouslySetInnerHTML={{ __html: content.evaluate.ctaHeading }}
             />
+            {content.evaluate.ctaHeadingMobile && (
+              <h3
+                className="block md:hidden"
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontStyle: "italic",
+                  fontSize: "clamp(28px, 4vw, 52px)",
+                  color: "var(--c-text)",
+                  fontWeight: 300,
+                  lineHeight: 1.15,
+                  marginBottom: "16px",
+                }}
+                dangerouslySetInnerHTML={{ __html: content.evaluate.ctaHeadingMobile }}
+              />
+            )}
             <div
-              className="rte-content"
+              className={content.evaluate.ctaBodyMobile ? "rte-content hidden md:block" : "rte-content"}
               style={{ fontSize: "16px", color: "var(--c-text-muted)", marginBottom: "28px" }}
               dangerouslySetInnerHTML={{ __html: content.evaluate.ctaBody }}
             />
+            {content.evaluate.ctaBodyMobile && (
+              <div
+                className="rte-content block md:hidden"
+                style={{ fontSize: "16px", color: "var(--c-text-muted)", marginBottom: "28px" }}
+                dangerouslySetInnerHTML={{ __html: content.evaluate.ctaBodyMobile }}
+              />
+            )}
 
             <div className="flex flex-wrap items-center gap-3">
               {button}

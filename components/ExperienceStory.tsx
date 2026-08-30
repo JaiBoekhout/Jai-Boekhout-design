@@ -35,7 +35,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           Path 04 — Story
         </motion.span>
         <motion.h1
-          className="hero-mobile-h2"
+          className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -49,7 +49,25 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           }}
           dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
         />
+        {cms.heroStatementMobile && (
+          <motion.h1
+            className="block md:hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "clamp(32px, 5vw, 64px)",
+              color: "var(--c-text)",
+              lineHeight: 1.1,
+              fontWeight: 400,
+              maxWidth: "700px",
+            }}
+            dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+          />
+        )}
         <motion.p
+          className={cms.subheadlineMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -64,6 +82,24 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           }}
           dangerouslySetInnerHTML={{ __html: cms.subheadline }}
         />
+        {cms.subheadlineMobile && (
+          <motion.p
+            className="block md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "16px",
+              color: "var(--c-text-muted)",
+              lineHeight: 1.7,
+              fontWeight: 300,
+              maxWidth: "480px",
+              marginTop: "16px",
+            }}
+            dangerouslySetInnerHTML={{ __html: cms.subheadlineMobile }}
+          />
+        )}
       </div>
 
       <div className="px-8 md:px-16 mt-16 grid md:grid-cols-5 gap-16">
@@ -244,10 +280,17 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
           >
             <div
-              className="rte-content rte-quote"
+              className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
               style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
               dangerouslySetInnerHTML={{ __html: cms.closingQuote }}
             />
+            {cms.closingQuoteMobile && (
+              <div
+                className="rte-content rte-quote block md:hidden"
+                style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
+                dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
+              />
+            )}
           </motion.div>
         </div>
       </div>
