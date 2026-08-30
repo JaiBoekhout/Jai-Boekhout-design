@@ -391,11 +391,19 @@ export function MediaSection() {
 
   async function handleDeleteFolder(folderPath: string) {
     try {
-      await fetch("/api/media", {
+      const res = await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: folderPath, type: "folder" }),
       });
+      // A folder holding only pre-existing local files can't actually be removed on the
+      // deployed site (read-only filesystem) — surface that instead of silently doing
+      // nothing and leaving the folder to reappear on refresh with no explanation.
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setUploadMsg(data.error || "Delete failed");
+        return;
+      }
       if (currentFolder === folderPath || currentFolder.startsWith(folderPath + "/")) {
         setCurrentFolder("");
       }
@@ -408,11 +416,19 @@ export function MediaSection() {
   async function handleDeleteFile(file: MediaFile) {
     setIsDeletingFile(true);
     try {
-      await fetch("/api/media", {
+      const res = await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: file.path, type: "file" }),
       });
+      // A pre-existing local file (one of the ones already in the repo, not uploaded through
+      // this panel) can't actually be removed on the deployed site's read-only filesystem —
+      // surface that instead of silently closing the panel on a delete that didn't happen.
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setUploadMsg(data.error || "Delete failed");
+        return;
+      }
       setSelected(null);
       await fetchTree();
     } finally { setIsDeletingFile(false); }
@@ -512,11 +528,18 @@ export function MediaSection() {
     if (bulkUsages.length > 0 && !bulkDeleteConfirm) { setBulkDeleteConfirm(true); return; }
     setIsBulkDeleting(true);
     try {
-      await Promise.all(
+      const results = await Promise.all(
         selectedFiles.map((f) =>
           fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
         )
       );
+      // Pre-existing local files can't actually be removed on the deployed site (read-only
+      // filesystem) — a mixed selection can partially succeed, so report that rather than
+      // silently refreshing as if everything was deleted.
+      const failedCount = results.filter((r) => !r.ok).length;
+      if (failedCount > 0) {
+        setUploadMsg(`${failedCount} of ${results.length} file${results.length > 1 ? "s" : ""} couldn't be deleted — built-in site files can't be removed from the live site`);
+      }
       exitSelectMode();
       await fetchTree();
     } finally { setIsBulkDeleting(false); }

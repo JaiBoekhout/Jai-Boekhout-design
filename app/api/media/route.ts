@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { list, put, del, rename, createFolder, type ListBlobResultBlob } from "@vercel/blob";
+import { list, put, del, head, rename, createFolder, type ListBlobResultBlob } from "@vercel/blob";
 import { getSession } from "@/lib/auth";
 import { MEDIA_EXTS, VIDEO_EXTS, maxBytesFor, uniqueFilename } from "@/lib/media";
 
@@ -405,6 +405,12 @@ export async function DELETE(request: Request) {
           blobDeleted = true;
         }
       } else {
+        // del() doesn't throw for a pathname that doesn't exist — it's a no-op, not an
+        // error — so head() first to know whether anything was actually there to delete.
+        // Without this check, a local-only file's failed fs.unlinkSync above would be
+        // masked: del() on the (never-existent) blob path would "succeed" doing nothing,
+        // and blobDeleted would wrongly end up true.
+        await head(blobPrefix);
         await del(blobPrefix);
         blobDeleted = true;
       }

@@ -51,6 +51,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
   const [movingTo, setMovingTo]               = useState("");
   const [isMoving, setIsMoving]               = useState(false);
   const [isDeletingFile, setIsDeletingFile]   = useState(false);
+  const [mediaError, setMediaError]           = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalDragCountRef = useRef(0);
 
@@ -116,7 +117,16 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     if (!previewFile) return;
     setIsDeletingFile(true);
     try {
-      await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
+      const res = await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: previewFile.path, type: "file" }) });
+      // A pre-existing local file (one already in the repo, not uploaded through this
+      // modal) can't actually be removed on the deployed site's read-only filesystem —
+      // surface that instead of silently closing the preview on a delete that didn't happen.
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setMediaError(data.error || "Delete failed");
+        return;
+      }
+      setMediaError(null);
       setPreviewFile(null);
       await fetchTree();
     } finally { setIsDeletingFile(false); }
@@ -146,11 +156,18 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
     if (bulkUsages.length > 0 && !bulkDeleteConfirm) { setBulkDeleteConfirm(true); return; }
     setIsBulkDeleting(true);
     try {
-      await Promise.all(
+      const results = await Promise.all(
         selectedFiles.map((f) =>
           fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: f.path, type: "file" }) })
         )
       );
+      // Pre-existing local files can't actually be removed on the deployed site (read-only
+      // filesystem) — a mixed selection can partially succeed, so report that rather than
+      // silently refreshing as if everything was deleted.
+      const failedCount = results.filter((r) => !r.ok).length;
+      setMediaError(failedCount > 0
+        ? `${failedCount} of ${results.length} file${results.length > 1 ? "s" : ""} couldn't be deleted — built-in site files can't be removed from the live site`
+        : null);
       exitSelectMode();
       await fetchTree();
     } finally { setIsBulkDeleting(false); }
@@ -323,6 +340,12 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
                   </>
                 )}
               </div>
+            )}
+
+            {mediaError && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, color: "#E05252", marginBottom: 12, lineHeight: 1.5 }}>
+                {mediaError}
+              </p>
             )}
 
             {bulkDeleteConfirm && selectedPaths.size > 0 && (
