@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Download } from "lucide-react";
 import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
@@ -120,6 +120,38 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+
+  // Lands on a specific section when arriving via a #hash — e.g. the Work page's stat cards
+  // link here as /evaluate#qualifications. Sections above the target keep reflowing for a
+  // while after first paint (staggered entrance transitions, font swap), which shifts the
+  // target further down mid-scroll — a single scrollIntoView call reliably undershoots it.
+  // Re-issuing an instant (not smooth — a smooth scroll fighting a moving target looks worse
+  // than a clean snap) correction every frame until the target's position stops changing
+  // handles that regardless of exactly what's still settling or how long it takes.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    const target = ({ experience: experienceRef, qualifications: qualificationsRef, testimonials: testimonialsRef } as Record<string, React.RefObject<HTMLDivElement | null>>)[hash];
+    if (!target) return;
+    const start = performance.now();
+    let lastTop: number | null = null;
+    let stableFrames = 0;
+    let rafId: number;
+    function tick() {
+      const el = target?.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      stableFrames = lastTop !== null && Math.abs(top - lastTop) < 1 ? stableFrames + 1 : 0;
+      lastTop = top;
+      el.scrollIntoView({ behavior: "auto", block: "start" });
+      // A brief plateau mid-reflow can look "stable" for a handful of frames before shifting
+      // again — requiring both a longer stable streak AND a minimum elapsed time avoids
+      // mistaking that plateau for the real settle point.
+      if (stableFrames < 20 || performance.now() - start < 800) rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+    const stopId = window.setTimeout(() => cancelAnimationFrame(rafId), 3000);
+    return () => { cancelAnimationFrame(rafId); clearTimeout(stopId); };
+  }, []);
 
   return (
     <motion.div
@@ -310,6 +342,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
 
         {/* Section 3 — Professional Experience */}
         <motion.div
+          id="experience"
           ref={experienceRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -540,6 +573,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
 
         {/* Section 5 — Education & Qualifications */}
         <motion.div
+          id="qualifications"
           ref={qualificationsRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -614,6 +648,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
 
         {/* Section 6 — Testimonials */}
         <motion.div
+          id="testimonials"
           ref={testimonialsRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

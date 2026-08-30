@@ -7,18 +7,17 @@ import { ClientsSlider } from "@/components/ClientsSlider";
 import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy } from "@/store/contentStore";
 import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
-// Literal Tailwind class strings (not built via template interpolation) so the JIT scanner
-// picks them up — the resolved stat count (1-6) selects the grid to use.
-const STATS_GRID_CLASS: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-1 md:grid-cols-2",
-  3: "grid-cols-1 md:grid-cols-3",
-  4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
-  5: "grid-cols-1 md:grid-cols-2 lg:grid-cols-5",
-  6: "grid-cols-1 md:grid-cols-3 lg:grid-cols-6",
+// Same 3 stat ids Evaluate's own "At a Glance" cards make clickable there (the rest are purely
+// informational, no matching detail section to jump to) — mapped here to the #hash anchors
+// those sections expose on Evaluate (see ExperienceRecruiter.tsx's id="..." attributes and its
+// on-mount hash-scroll effect), since Work doesn't have these sections itself.
+const STAT_ID_TO_EVALUATE_ANCHOR: Record<string, string> = {
+  qualifications: "qualifications",
+  "years-design": "experience",
+  countries: "testimonials",
 };
 
-export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => void }) {
+export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, projectId?: string, hash?: string) => void }) {
   const { content } = useContentStore();
 
   const featuredProjects = getFeaturedProjects(content);
@@ -124,47 +123,52 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
 
       {/* Stats bar — a selector over Evaluate → At a Glance entries, configured in the Work
           tab admin; only shown when enabled and at least one slot resolves to a live entry.
-          Sits just above the "Interested in working together?" CTA. */}
+          Styled to match Evaluate's own "At a Glance" cards exactly (individual bordered
+          cards, not one box with dividers) — the 3 stat types Evaluate makes clickable there
+          are clickable here too, jumping to that same section on /evaluate. Sits just above
+          the "Interested in working together?" CTA. */}
       {homeStats.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.5 }}
-          className={`mx-8 md:mx-16 mt-14 p-6 rounded-2xl border grid gap-6 ${STATS_GRID_CLASS[homeStats.length] ?? STATS_GRID_CLASS[3]}`}
-          style={{ background: "var(--c-bg-card)", borderColor: "var(--c-border-soft)" }}
+          className="mx-8 md:mx-16 mt-14 grid grid-cols-2 md:grid-cols-3 gap-2.5"
         >
-          {homeStats.map(({ id, value, label, icon }, i) => {
+          {homeStats.map(({ id, value, label, sub, icon }) => {
+            const anchor = STAT_ID_TO_EVALUATE_ANCHOR[id];
+            const isClickable = !!anchor;
+            const handleActivate = () => onNavigate("recruit", undefined, anchor);
             const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
             return (
-              // display:contents so the divider below can be its own grid item (a separate
-              // row when stacked to grid-cols-1 on mobile) without an extra wrapper box
-              // affecting the grid's own column/row tracks.
-              <div key={id} className="contents">
-                {/* Mobile-only divider between stacked stats — hidden at md: and up, where
-                    the grid switches to side-by-side columns and this wouldn't read as
-                    "between" the same way. display:none there removes it from the grid
-                    entirely rather than leaving an empty cell. */}
-                {i > 0 && (
-                  <div className="md:hidden" style={{ width: "75%", height: "0.5px", background: "var(--c-divider)", opacity: 0.5, margin: "0 auto" }} />
-                )}
-                <div className="flex flex-col gap-2 items-center text-center md:items-start md:text-left">
-                  <div className="flex items-center gap-2 justify-center md:justify-start">
-                    <Icon size={18} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)" }}>
-                      {label}
-                    </span>
-                  </div>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontSize: "32px",
-                      color: "var(--c-text)",
-                      lineHeight: 1,
-                    }}
-                  >
+              <div
+                key={id}
+                role={isClickable ? "button" : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onClick={isClickable ? handleActivate : undefined}
+                onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
+                className="rounded-lg p-3 transition-colors"
+                style={{
+                  background: "var(--c-bg-card)",
+                  border: "1px solid var(--c-border-soft)",
+                  cursor: isClickable ? "pointer" : undefined,
+                }}
+                onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; e.currentTarget.style.background = "var(--c-bg-card-hover, var(--c-bg-card))"; } : undefined}
+                onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; e.currentTarget.style.background = "var(--c-bg-card)"; } : undefined}
+              >
+                <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
+                  <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
+                  <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
                     {value}
                   </span>
                 </div>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                  {label}
+                </span>
+                {sub && (
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "2px" }}>
+                    {sub}
+                  </span>
+                )}
               </div>
             );
           })}
