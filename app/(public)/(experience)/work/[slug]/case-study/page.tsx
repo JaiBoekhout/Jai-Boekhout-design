@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  getContent, getPublishedProjects, getPublishedProjectBySlug,
+  getPublishedProjects, getPublishedProjectBySlug,
   projectHasLiveCaseStudy, projectUrlSlug,
 } from "@/store/contentStore";
+import { getContent } from "@/store/serverContent";
 import { stripHtml } from "@/lib/utils";
 import { CaseStudyPageView } from "@/components/CaseStudyPageView";
 
 export async function generateStaticParams() {
-  const content = getContent();
+  const content = await getContent();
   return getPublishedProjects(content)
     .filter((p) => projectHasLiveCaseStudy(p, content.work.caseStudies))
     .map((p) => ({ slug: projectUrlSlug(p) }));
@@ -16,7 +17,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const content = getContent();
+  const content = await getContent();
   const project = getPublishedProjectBySlug(content, slug);
   if (!project || !projectHasLiveCaseStudy(project, content.work.caseStudies)) return {};
   const image = project.fullCaseStudyBannerUrl ?? project.heroImageUrl ?? project.imgs[0];
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CaseStudyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const content = getContent();
+  const content = await getContent();
   const project = getPublishedProjectBySlug(content, slug);
   if (!project || !projectHasLiveCaseStudy(project, content.work.caseStudies)) notFound();
   return <CaseStudyPageView slug={slug} />;

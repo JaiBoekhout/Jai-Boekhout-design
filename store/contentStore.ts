@@ -1,10 +1,12 @@
 // No "use client" here — this module is imported by both Server Components (work/[slug]'s
-// generateStaticParams/generateMetadata, reading getContent()'s DEFAULT_CONTENT branch) and
-// Client Components (everything using useContentStore()). Every browser-only API below
-// (localStorage, window) is already guarded by `typeof window === "undefined"`, and the one
-// piece that uses React hooks (useContentStore itself) lives in its own "use client" file —
-// see the re-export at the bottom — so nothing here pulls React's client-only APIs into a
-// module a Server Component might import.
+// generateStaticParams/generateMetadata, via store/serverContent.ts's getContent()) and Client
+// Components (everything using useContentStore()). Deliberately has no dependency on
+// lib/cmsContent.ts (marked "server-only") anywhere in this file — getContent() itself lives in
+// store/serverContent.ts precisely so that a static import of it never drags Postgres access
+// into a Client Component's bundle graph just because that component also needed
+// DEFAULT_CONTENT/deepMerge from here. The one piece that uses React hooks (useContentStore
+// itself) lives in its own "use client" file — see the re-export at the bottom — so nothing here
+// pulls React's client-only APIs into a module a Server Component might import.
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1897,8 +1899,6 @@ export function getPublishedProjectBySlug(content: CMSContent, slug: string): CM
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "portfolio_cms_content";
-
 // Exported for testing (see store/contentStore.test.ts) — not meant to be used outside this
 // module otherwise, it exists specifically to back getContent()/updateContent()/persistContent().
 export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
@@ -1919,92 +1919,16 @@ export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
   return result;
 }
 
-export function getContent(): CMSContent {
-  if (typeof window === "undefined") return DEFAULT_CONTENT;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return DEFAULT_CONTENT;
-    const parsed = JSON.parse(stored) as Partial<CMSContent>;
-    const merged = deepMerge(DEFAULT_CONTENT, parsed);
-
-    // Append any default projects not yet in the stored list (new projects added to code),
-    // but skip any that the user has explicitly deleted.
-    const storedIds = new Set(merged.work.projects.map((p) => p.id));
-    const deletedIds = new Set(merged.work.deletedProjectIds ?? []);
-    const newDefaults = DEFAULT_CONTENT.work.projects.filter(
-      (p) => !storedIds.has(p.id) && !deletedIds.has(p.id)
-    );
-    if (newDefaults.length > 0) {
-      merged.work.projects = [...merged.work.projects, ...newDefaults];
-    }
-
-    // evaluate.stats gained an `id` field for the Work-page stats-bar selector feature —
-    // assign a stable, index-based fallback id to any pre-existing entries that don't have
-    // one yet (deterministic across reloads as long as the entry stays at that index, so a
-    // homeStats slot referencing it doesn't silently break before the admin re-saves it).
-    if (Array.isArray(merged.evaluate?.stats)) {
-      merged.evaluate.stats = merged.evaluate.stats.map((s, i) => (s.id ? s : { ...s, id: `stat-legacy-${i}` }));
-    }
-    if (!merged.work.homeStats || typeof merged.work.homeStats !== "object") {
-      merged.work.homeStats = DEFAULT_CONTENT.work.homeStats;
-    } else if (!Array.isArray(merged.work.homeStats.slotIds)) {
-      merged.work.homeStats.slotIds = DEFAULT_CONTENT.work.homeStats.slotIds;
-    }
-
-    // Ensure fields added after initial localStorage saves exist
-    if (!Array.isArray(merged.enquiries)) merged.enquiries = [];
-    if (!merged.mediaMeta || typeof merged.mediaMeta !== "object") merged.mediaMeta = {};
-    if (!merged.branding || typeof merged.branding !== "object") merged.branding = {};
-    if (!merged.designSystem || typeof merged.designSystem !== "object") merged.designSystem = DEFAULT_DESIGN_SYSTEM;
-    if (!merged.designSystem.componentColors || typeof merged.designSystem.componentColors !== "object") {
-      merged.designSystem.componentColors = {};
-    }
-    if (!merged.designSystem.buttonStyles) {
-      merged.designSystem.buttonStyles = DEFAULT_DESIGN_SYSTEM.buttonStyles;
-    } else {
-      merged.designSystem.buttonStyles = {
-        primary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.primary, ...merged.designSystem.buttonStyles.primary },
-        secondary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.secondary, ...merged.designSystem.buttonStyles.secondary },
-        tertiary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.tertiary, ...merged.designSystem.buttonStyles.tertiary },
-      };
-    }
-    if (!merged.designSystem.linkUnderline) merged.designSystem.linkUnderline = "none";
-    merged.designSystem.typeScale = {
-      ...DEFAULT_DESIGN_SYSTEM.typeScale,
-      ...merged.designSystem.typeScale,
-      body: { ...DEFAULT_DESIGN_SYSTEM.typeScale.body, ...merged.designSystem.typeScale?.body },
-      headings: { ...DEFAULT_DESIGN_SYSTEM.typeScale.headings, ...merged.designSystem.typeScale?.headings },
-      labels: { ...DEFAULT_DESIGN_SYSTEM.typeScale.labels, ...merged.designSystem.typeScale?.labels },
-    };
-    merged.designSystem.menuStyle = { ...DEFAULT_DESIGN_SYSTEM.menuStyle, ...merged.designSystem.menuStyle };
-    merged.designSystem.tabBarStyle = { ...DEFAULT_DESIGN_SYSTEM.tabBarStyle, ...merged.designSystem.tabBarStyle };
-    merged.designSystem.textAreaStyle = { ...DEFAULT_DESIGN_SYSTEM.textAreaStyle, ...merged.designSystem.textAreaStyle };
-    merged.designSystem.switchStyle = { ...DEFAULT_DESIGN_SYSTEM.switchStyle, ...merged.designSystem.switchStyle };
-    if (!Array.isArray(merged.designSystem.savedThemes)) merged.designSystem.savedThemes = [];
-
-    return merged;
-  } catch {
-    return DEFAULT_CONTENT;
-  }
-}
-
-export function saveContent(content: CMSContent): boolean {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
-    return true;
-  } catch (e) {
-    console.error("Failed to save CMS content:", e);
-    return false;
-  }
-}
+// getContent() itself lives in store/serverContent.ts, not here — see this file's header comment.
 
 // ─── Version history ────────────────────────────────────────────────────────────
-// A local preview of what version history will look like once content lives in Postgres —
-// same interaction model (a list of past states, restore any of them), just backed by
-// localStorage instead of a database table. persistContent() archives whatever was live
-// immediately before each save, so this fills in from normal use with no separate "start
-// tracking" step. Swapping the backend later means changing what's inside these functions
-// (a fetch instead of a localStorage read/write), not the admin UI that calls them.
+// Deliberately still localStorage-only even though the main content now lives in Postgres
+// (see getContent()/lib/cmsContent.ts) — out of scope for that migration. Same interaction
+// model this was designed for still applies if it moves to a real table later (a list of past
+// states, restore any of them): persistContent() archives whatever was live immediately before
+// each save, so this fills in from normal use with no separate "start tracking" step. Swapping
+// the backend later means changing what's inside these functions (a fetch instead of a
+// localStorage read/write), not the admin UI that calls them.
 const HISTORY_KEY = "portfolio_cms_history";
 const MAX_HISTORY_ENTRIES = 20;
 
@@ -2036,8 +1960,9 @@ export function archiveHistoryEntry(content: CMSContent) {
     const next = [entry, ...getHistory()].slice(0, MAX_HISTORY_ENTRIES);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
   } catch {
-    // Best-effort, same quota constraint saveContent already hits — a save that can't be
-    // archived should still succeed, so this never throws back up to persistContent().
+    // Best-effort (localStorage quota) — a save that can't be archived should still succeed,
+    // so this never throws back up to persistContent(). Version history stays localStorage-only
+    // even after the main content migration to Postgres — out of scope for that migration.
   }
 }
 

@@ -124,11 +124,12 @@ export function AdminCMS({ isOpen, onClose }: Props) {
 
   useEffect(() => {
     if (pendingPersist) {
-      const ok = persistContent();
-      if (!ok) {
-        setSaveError(true);
-        setTimeout(() => setSaveError(false), 5000);
-      }
+      persistContent().then((ok) => {
+        if (!ok) {
+          setSaveError(true);
+          setTimeout(() => setSaveError(false), 5000);
+        }
+      });
       setPendingPersist(false);
     }
   }, [content, pendingPersist]);
@@ -147,8 +148,8 @@ export function AdminCMS({ isOpen, onClose }: Props) {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isOpen, isDirty]);
 
-  function handleSave() {
-    const ok = persistContent();
+  async function handleSave() {
+    const ok = await persistContent();
     if (ok) {
       setSaveError(false);
       setSaved(true);
@@ -220,10 +221,10 @@ export function AdminCMS({ isOpen, onClose }: Props) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
-  function handleLogout() {
+  async function handleLogout() {
     // Don't close over a failed save — that's how an edit quietly disappears. Surface the
     // same error toast as the Save button and let the admin stay put and retry.
-    const ok = persistContent();
+    const ok = await persistContent();
     if (!ok) {
       setSaveError(true);
       setTimeout(() => setSaveError(false), 5000);

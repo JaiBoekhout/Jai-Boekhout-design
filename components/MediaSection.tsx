@@ -426,7 +426,7 @@ export function MediaSection() {
     try {
       const updated = replaceMediaUsage(content, oldFile.src, newSrc);
       updateContent(updated);
-      persistContent(updated);
+      await persistContent(updated);
       await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -478,7 +478,7 @@ export function MediaSection() {
         if (data.src && data.src !== file.src) {
           const updated = replaceMediaUsage(content, file.src, data.src);
           updateContent(updated);
-          persistContent(updated);
+          await persistContent(updated);
         }
         setSelected(null);
         setMovingTo("");
@@ -538,7 +538,7 @@ export function MediaSection() {
       }
       if (updated !== content) {
         updateContent(updated);
-        persistContent(updated);
+        await persistContent(updated);
       }
       exitSelectMode();
       setBulkMovingTo("");
@@ -549,10 +549,10 @@ export function MediaSection() {
   // ── Metadata ────────────────────────────────────────────────────────────────
 
   function getMeta(src: string) { return content.mediaMeta?.[src] ?? {}; }
-  function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
+  async function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
     const updated = { ...content.mediaMeta, [src]: { ...getMeta(src), ...patch } };
     updateContent({ mediaMeta: updated });
-    persistContent({ mediaMeta: updated });
+    await persistContent({ mediaMeta: updated });
   }
 
   const crumbs = breadcrumbs(currentFolder);

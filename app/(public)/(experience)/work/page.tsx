@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { getContent } from "@/store/contentStore";
+import { getContent } from "@/store/serverContent";
 import { stripHtml } from "@/lib/utils";
 import { ExperiencePage } from "@/components/ExperiencePage";
 import { ExperienceWork } from "@/components/ExperienceWork";
 
-export function generateMetadata(): Metadata {
-  const content = getContent();
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContent();
   return {
     title: "Work",
     description: stripHtml(content.work.heroStatement).slice(0, 160),

@@ -1,3 +1,4 @@
+import "server-only";
 import { neon } from "@neondatabase/serverless";
 
 // Lazy — reading process.env.DATABASE_URL at module load time would crash any route that

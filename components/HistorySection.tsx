@@ -34,13 +34,13 @@ export function HistorySection() {
     return () => window.removeEventListener("cms_content_updated", refresh);
   }, []);
 
-  function handleRestore(entry: CMSHistoryEntry) {
+  async function handleRestore(entry: CMSHistoryEntry) {
     // Both calls close over the same pre-restore `content` and independently merge entry.content
     // onto it (see persistContent's own deepMerge) — same pattern MediaSection uses, no need to
     // wait for a state flush. persistContent also archives whatever was live right before this
     // call, so restoring an old version is itself undoable from this same list.
     updateContent(entry.content);
-    const ok = persistContent(entry.content);
+    const ok = await persistContent(entry.content);
     setConfirmId(null);
     if (ok) {
       setRestoredId(entry.id);

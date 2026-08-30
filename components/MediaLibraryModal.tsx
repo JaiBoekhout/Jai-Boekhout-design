@@ -79,10 +79,10 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
         : folderScope;
 
   function getMeta(src: string) { return content.mediaMeta?.[src] ?? {}; }
-  function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
+  async function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
     const updated = { ...content.mediaMeta, [src]: { ...getMeta(src), ...patch } };
     updateContent({ mediaMeta: updated });
-    persistContent({ mediaMeta: updated });
+    await persistContent({ mediaMeta: updated });
   }
 
   async function handleUpload(files: FileList) {

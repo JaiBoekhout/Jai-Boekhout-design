@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import {
-  getContent, getPublishedProjects, projectUrlSlug, projectHasLiveCaseStudy,
+  getPublishedProjects, projectUrlSlug, projectHasLiveCaseStudy,
 } from "@/store/contentStore";
+import { getContent } from "@/store/serverContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
 
@@ -13,12 +14,12 @@ function toDate(iso: string | undefined): Date {
 
 // Enumerates every real URL on the site: the landing page, the 4 experience paths, and every
 // published project/case study's own /work/[slug] (+ /case-study) page — all driven from the
-// same DEFAULT_CONTENT + getFeaturedProjects/getMoreProjects/projectUrlSlug the actual routes
+// same getContent() + getFeaturedProjects/getMoreProjects/projectUrlSlug the actual routes
 // use, so this can never drift from what generateStaticParams builds. A locked case study is
 // excluded entirely (matches its page's own robots: noindex) — there's no point offering search
 // engines a link they can't get past the password gate on.
-export default function sitemap(): MetadataRoute.Sitemap {
-  const content = getContent();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const content = await getContent();
   const projects = getPublishedProjects(content);
 
   const experiencePaths: MetadataRoute.Sitemap = [

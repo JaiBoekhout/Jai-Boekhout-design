@@ -161,10 +161,10 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
 
   // ── Metadata helpers ────────────────────────────────────────────────────────
   function getMeta(src: string) { return content.mediaMeta?.[src] ?? {}; }
-  function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
+  async function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
     const updated = { ...content.mediaMeta, [src]: { ...getMeta(src), ...patch } };
     updateContent({ mediaMeta: updated });
-    persistContent({ mediaMeta: updated });
+    await persistContent({ mediaMeta: updated });
   }
 
   // ── Upload ──────────────────────────────────────────────────────────────────
@@ -310,7 +310,7 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
     try {
       const updated = replaceMediaUsage(content, oldFile.src, newSrc);
       updateContent(updated);
-      persistContent(updated);
+      await persistContent(updated);
       if (value === oldFile.src) onChange(newSrc);
       await fetch("/api/media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: oldFile.path, type: "file" }) });
       setPreviewFile(null);
