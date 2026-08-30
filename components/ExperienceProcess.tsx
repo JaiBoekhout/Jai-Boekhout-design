@@ -134,13 +134,12 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             <div key={step.id} className="flex items-center flex-shrink-0">
               <button
                 onClick={() => goToStep(step.id)}
-                className="flex flex-col items-center gap-2 transition-opacity hover:opacity-80"
-                style={{ minWidth: "80px" }}
+                className="flex flex-col items-center gap-1 md:gap-2 transition-opacity hover:opacity-80 min-w-[36px] md:min-w-[80px]"
               >
                 <span
+                  className="text-[10px] md:text-xs"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: "12px",
                     color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-dim)",
                     letterSpacing: "0.1em",
                   }}
@@ -148,9 +147,8 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                   {"0" + (i + 1)}
                 </span>
                 <div
+                  className="w-6 h-6 md:w-9 md:h-9"
                   style={{
-                    width: "36px",
-                    height: "36px",
                     borderRadius: "50%",
                     border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
                     background: openSteps.has(step.id) ? "rgba(160,142,200,0.12)" : "transparent",
@@ -160,11 +158,15 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     transition: "all 0.3s",
                   }}
                 >
-                  <span style={{ fontSize: "12px", color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-muted)" }}>
+                  <span className="text-[10px] md:text-xs" style={{ color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-muted)" }}>
                     {step.title.charAt(0)}
                   </span>
                 </div>
+                {/* Title — hidden on mobile so the full step row fits the screen width without
+                    horizontal scroll; the number + circle initial above stay as the compact
+                    mobile identifier, full label returns at md: and up. */}
                 <span
+                  className="hidden md:block"
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",
@@ -177,12 +179,11 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               </button>
               {i < cmsSteps.length - 1 && (
                 <div
+                  className="mx-0.5 md:mx-1 min-w-[8px] md:min-w-[20px]"
                   style={{
                     flex: 1,
                     height: "1px",
                     background: "var(--c-border)",
-                    margin: "0 4px",
-                    minWidth: "20px",
                   }}
                 />
               )}
@@ -261,7 +262,11 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <div className="pt-5 pl-9 grid md:grid-cols-5 gap-6">
+                      {/* pl-9 (desktop only) aligns this content under the title, which itself
+                          sits right of the number/circle badge in the header row above — on
+                          mobile that extra left inset isn't needed and just made the left/right
+                          padding around the Example box uneven (wider on the left). */}
+                      <div className="pt-5 pl-0 md:pl-9 grid md:grid-cols-5 gap-6">
                         {/* Left column: description then Methods & Activities, stacked in
                             normal flow so the list sits a fixed 30px under the description
                             regardless of how tall the Example box next to them runs — a
