@@ -48,11 +48,19 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
 
   // Selecting a step from the sticky nav opens its panel (without closing any other — see
   // openSteps above) and scrolls it into view right below the stepper, so a step further down
-  // the page doesn't open off-screen. No delay needed before scrolling: since opening this step
-  // never collapses a different one, nothing above it is still moving.
+  // the page doesn't open off-screen. If the panel isn't already open, opening it runs a 300ms
+  // height animation (Framer Motion, in the accordion below) that keeps reflowing the page —
+  // starting a smooth scrollIntoView while that's still happening gets silently dropped by the
+  // browser instead of animating, which is what made the first click appear to do nothing until
+  // a second click (after the reflow settled) actually scrolled. Waiting for the animation to
+  // finish before scrolling fixes that; an already-open step has no such animation to wait for.
   function goToStep(id: string) {
+    const alreadyOpen = openSteps.has(id);
     setOpenSteps((prev) => new Set(prev).add(id));
-    panelRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(
+      () => panelRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      alreadyOpen ? 0 : 320
+    );
   }
 
   return (
