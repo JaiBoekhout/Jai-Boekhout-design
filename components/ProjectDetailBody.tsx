@@ -277,9 +277,12 @@ export function ProjectDetailBody({
             <ArrowLeft size={12} /> Back to Work
           </Link>
         ) : (
+          // Desktop only in modal mode — ProjectDetailChrome.tsx already renders a "Back to
+          // Projects" + close button pair at the top of the panel on mobile/tablet (lg:hidden
+          // there), so this hero-overlaid copy was showing twice on the same screen below lg:.
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            className="hidden lg:flex items-center gap-1.5 hover:opacity-80 transition-opacity"
             style={{
               position: "absolute", top: 20, left: 20, zIndex: 4,
               fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
