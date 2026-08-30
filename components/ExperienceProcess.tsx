@@ -13,7 +13,12 @@ import { PathCTA } from "@/components/PathCTA";
 const TOP_BAR_HEIGHT = 64;
 
 export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) => void }) {
-  const [openStep, setOpenStep] = useState<string | null>("problem");
+  // A Set (not a single value) — each step opens/closes independently, so opening one never
+  // closes another. A shared single-open-id used to mean opening any step below an already-open
+  // one collapsed that other step at the same instant, yanking the just-clicked step (and
+  // everything below it) upward as the space above it disappeared — exactly the "title jumps
+  // when I click it" bug this was rewritten to fix.
+  const [openSteps, setOpenSteps] = useState<Set<string>>(() => new Set(["problem"]));
   const { content } = useContentStore();
   const cmsSteps = content.process.steps;
   const topBarHidden = useHideOnScroll();
@@ -32,17 +37,22 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
     return () => observer.disconnect();
   }, []);
 
-  // Selecting a step from the sticky nav both opens its panel and scrolls it into view right
-  // below the stepper — otherwise a step further down the page opens off-screen, behind (or
-  // below) whatever's currently in view. The scroll waits out the accordion's own 0.3s
-  // collapse/expand transition first: whichever step was previously open shifts every panel
-  // below it as it collapses, so scrolling immediately targets a position that's still moving
-  // and overshoots once the layout finishes settling.
+  function toggleStep(id: string) {
+    setOpenSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  // Selecting a step from the sticky nav opens its panel (without closing any other — see
+  // openSteps above) and scrolls it into view right below the stepper, so a step further down
+  // the page doesn't open off-screen. No delay needed before scrolling: since opening this step
+  // never collapses a different one, nothing above it is still moving.
   function goToStep(id: string) {
-    setOpenStep(id);
-    setTimeout(() => {
-      panelRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 320);
+    setOpenSteps((prev) => new Set(prev).add(id));
+    panelRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -131,7 +141,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "12px",
-                    color: openStep === step.id ? "var(--c-teal)" : "var(--c-text-dim)",
+                    color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-dim)",
                     letterSpacing: "0.1em",
                   }}
                 >
@@ -142,15 +152,15 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     width: "36px",
                     height: "36px",
                     borderRadius: "50%",
-                    border: `1px solid ${openStep === step.id ? "var(--c-teal)" : "var(--c-surface-10)"}`,
-                    background: openStep === step.id ? "rgba(160,142,200,0.12)" : "transparent",
+                    border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
+                    background: openSteps.has(step.id) ? "rgba(160,142,200,0.12)" : "transparent",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     transition: "all 0.3s",
                   }}
                 >
-                  <span style={{ fontSize: "12px", color: openStep === step.id ? "var(--c-teal)" : "var(--c-text-muted)" }}>
+                  <span style={{ fontSize: "12px", color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-muted)" }}>
                     {step.title.charAt(0)}
                   </span>
                 </div>
@@ -158,7 +168,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",
-                    color: openStep === step.id ? "var(--c-text)" : "var(--c-text-muted)",
+                    color: openSteps.has(step.id) ? "var(--c-text)" : "var(--c-text-muted)",
                     fontWeight: 400,
                   }}
                 >
@@ -203,7 +213,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                   background: "rgba(160,142,200,0.06)",
                   borderColor: "rgba(160,142,200,0.3)",
                 }}
-                onClick={() => setOpenStep(openStep === step.id ? null : step.id)}
+                onClick={() => toggleStep(step.id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -235,7 +245,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     </div>
                   </div>
                   <motion.div
-                    animate={{ rotate: openStep === step.id ? 180 : 0 }}
+                    animate={{ rotate: openSteps.has(step.id) ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <ChevronDown size={16} style={{ color: "var(--c-text-muted)" }} />
@@ -243,7 +253,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 </div>
 
                 <AnimatePresence>
-                  {openStep === step.id && (
+                  {openSteps.has(step.id) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}

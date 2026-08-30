@@ -101,7 +101,19 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
 }
 
 export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string, projectId?: string) => void }) {
-  const [openJob, setOpenJob] = useState<number | null>(0);
+  // A Set (not a single index) — each entry opens/closes independently, so opening one never
+  // closes another. A shared single-open-index used to mean opening any entry below an
+  // already-open one collapsed that other entry at the same instant, yanking the just-clicked
+  // entry (and everything below it) upward as the space above it disappeared.
+  const [openJobs, setOpenJobs] = useState<Set<number>>(() => new Set([0]));
+  function toggleJob(i: number) {
+    setOpenJobs((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
   const { content } = useContentStore();
   const cms = content.evaluate;
   const qualificationsRef = useRef<HTMLDivElement>(null);
@@ -302,13 +314,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 className="rounded-xl border overflow-hidden"
                 style={{
                   background: "var(--c-bg-card)",
-                  borderColor: openJob === i ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
+                  borderColor: openJobs.has(i) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
                   transition: "border-color 0.3s",
                 }}
               >
                 <button
                   className="w-full text-left flex items-center justify-between p-5"
-                  onClick={() => setOpenJob(openJob === i ? null : i)}
+                  onClick={() => toggleJob(i)}
                 >
                   <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-6">
                     <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400 }}>
@@ -322,14 +334,14 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", whiteSpace: "nowrap" }}>
                       {job.period}
                     </span>
-                    <motion.div animate={{ rotate: openJob === i ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <motion.div animate={{ rotate: openJobs.has(i) ? 180 : 0 }} transition={{ duration: 0.2 }}>
                       <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
                     </motion.div>
                   </div>
                 </button>
 
                 <AnimatePresence>
-                  {openJob === i && (
+                  {openJobs.has(i) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
