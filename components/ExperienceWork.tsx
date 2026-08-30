@@ -136,8 +136,8 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
           {homeStats.map(({ id, value, label, icon }) => {
             const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
             return (
-              <div key={id} className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+              <div key={id} className="flex flex-col gap-2 items-center text-center md:items-start md:text-left">
+                <div className="flex items-center gap-2 justify-center md:justify-start">
                   <Icon size={18} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)" }}>
                     {label}
