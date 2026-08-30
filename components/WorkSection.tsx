@@ -833,14 +833,14 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         </p>
       </div>
 
-      <div className="flex flex-col mb-2" style={{ gap: "2px" }}>
+      <div className="grid grid-cols-2 mb-2" style={{ gap: "8px" }}>
         {featuredRows.map((p, pos) => {
           const canMoveUp = pos > 0;
           const canMoveDown = pos < featuredRows.length - 1;
 
           return (
-            <div key={p.id} style={{ display: "flex", flexDirection: "column" }}>
             <div
+              key={p.id}
               className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
               style={{ background: "rgba(20,173,181,0.07)", border: "1px solid rgba(20,173,181,0.18)", ...featuredDrag.cardStyle(pos) }}
               {...featuredDrag.dropTargetProps(pos)}
@@ -922,9 +922,6 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
               >
                 Remove
               </button>
-            </div>
-
-
             </div>
           );
         })}

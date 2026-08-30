@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Download } from "lucide-react";
-import { useContentStore, resolveExperienceProjects, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
+import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
 import type { CMSProject } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { ClientsSlider } from "@/components/ClientsSlider";
+import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
@@ -59,9 +60,8 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
           />
         </>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "38%", maxWidth: 120, opacity: 0.12, filter: "brightness(0) invert(1)" }} />
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
         </div>
       )}
 

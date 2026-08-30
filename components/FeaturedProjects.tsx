@@ -7,6 +7,7 @@ import NextImage, { getImageProps } from "next/image";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { stripHtml } from "@/lib/utils";
+import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 
 const TEAL = "var(--c-teal)";
 const GRID_SIZE = 9;
@@ -143,11 +144,11 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                 />
               </div>
 
-              {/* No-image placeholder — shown whenever no cover source is configured in CMS */}
-              {p && !cardCoverSrc && (
+              {/* Placeholder — shown for an empty grid slot (no project assigned) as well as a
+                  real project with no cover image configured yet in CMS */}
+              {!cardCoverSrc && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 1 }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "38%", maxWidth: 120, opacity: 0.12, filter: "brightness(0) invert(1)" }} />
+                  <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
                 </div>
               )}
 
@@ -298,9 +299,8 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                           )}
                         </>
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "30%", maxWidth: 90, opacity: 0.12, filter: "brightness(0) invert(1)" }} />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <MissingImagePlaceholder logoWidth="30%" logoMaxWidth={90} textSize={9.5} />
                         </div>
                       )}
                       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,9,12,0.95) 0%, rgba(6,9,12,0.55) 42%, transparent 100%)" }} />

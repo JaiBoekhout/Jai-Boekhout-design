@@ -9,6 +9,7 @@ import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, isCaseStudyLive, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { TALL_RATIO_THRESHOLD } from "@/components/ImagePicker";
 import { CompanyCredit } from "@/components/CompanyCredit";
+import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 
 const TEAL = "var(--c-teal)";
 
@@ -398,9 +399,8 @@ export function ProjectDetailBody({
         {coverSrc ? (
           <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
         ) : (
-          <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "22%", maxWidth: 90, opacity: 0.12, filter: "brightness(0) invert(1)" }} />
+          <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
+            <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
           </div>
         )}
 

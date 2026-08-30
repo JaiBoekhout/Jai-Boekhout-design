@@ -134,8 +134,8 @@ export function AdminCMS({ isOpen, onClose }: Props) {
     }
   }, [content, pendingPersist]);
 
-  // Content only reaches localStorage via Save/Logout (or the image-select side effect above)
-  // — closing or reloading the tab directly would otherwise discard dirty in-memory edits with
+  // Content only reaches Postgres via Save/Logout (or the image-select side effect above) —
+  // closing or reloading the tab directly would otherwise discard dirty in-memory edits with
   // no warning at all. Native confirm dialogs can't show custom text, but the browser's own
   // generic "leave site?" prompt is still far better than silent data loss.
   useEffect(() => {
@@ -161,10 +161,9 @@ export function AdminCMS({ isOpen, onClose }: Props) {
     }
   }
 
-  // Everything lives only in this browser's localStorage — clearing site data, switching
-  // devices, or opening the CMS in a private window loses it all with no way back. This is the
-  // stopgap until there's a real database behind getContent()/persistContent(): a plain JSON
-  // export the admin is responsible for keeping somewhere safe themselves.
+  // Content lives in Postgres now, but there's still no version history beyond the last-20-saves
+  // list (see HistorySection) and no built-in disaster recovery — this plain JSON export is the
+  // admin's own safety net to keep somewhere safe themselves.
   function handleDownloadBackup() {
     const blob = new Blob([JSON.stringify(content, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -359,9 +358,8 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                   </div>
                 )}
 
-                {/* Everything here lives only in this browser's localStorage — see the note
-                    in the top bar. Backup/Restore is the safety net until there's a real
-                    database behind it. */}
+                {/* Content lives in Postgres now — Backup/Restore is just the admin's own
+                    disaster-recovery safety net, not the primary persistence path anymore. */}
                 <div className="flex gap-2">
                   <button
                     onClick={handleDownloadBackup}
@@ -428,7 +426,7 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                     {TABS.find((t) => t.id === activeTab)?.label}
                   </h2>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", letterSpacing: "0.08em" }}>
-                    Changes save to localStorage · Connect a database for persistent remote storage
+                    Changes save directly to the live site
                   </p>
                 </div>
                 <button
