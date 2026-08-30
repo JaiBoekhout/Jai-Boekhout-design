@@ -59,8 +59,8 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
           />
         </div>
 
-        {/* Summary + outcomes grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: "0.5px solid rgba(237,232,223,0.06)" }}>
+        {/* Summary + outcomes grid — stacked on mobile, side by side from md: up */}
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: "0.5px solid rgba(237,232,223,0.06)" }}>
           <div>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: TEAL, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14 }}>Overview</p>
             <div className="rte-content" dangerouslySetInnerHTML={{ __html: project.desc }} />
