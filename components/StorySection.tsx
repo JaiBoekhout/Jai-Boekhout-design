@@ -96,6 +96,13 @@ export function StorySection({ data, onChange }: Props) {
         onPositionChange={(pos) => onChange({ ...data, portraitImagePosition: pos })}
         onScaleChange={(s) => onChange({ ...data, portraitImageScale: s })}
       />
+      <ResponsiveRichTextEditor
+        label="Portrait Caption (optional, shown under the photo)"
+        value={data.portraitCaption ?? ""}
+        onChange={(v) => onChange({ ...data, portraitCaption: v })}
+        mobileValue={data.portraitCaptionMobile}
+        onMobileChange={(v) => onChange({ ...data, portraitCaptionMobile: v })}
+      />
 
       <CMSSectionHeading>The Journey (Timeline)</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.timelineHeading ?? "The Journey"} onChange={(v) => onChange({ ...data, timelineHeading: v })} />

@@ -412,6 +412,9 @@ export interface CMSStory {
   portraitImageUrl?: string;
   portraitImagePosition?: string;
   portraitImageScale?: number;
+  // Optional caption shown under the portrait — blank by default, purely opt-in.
+  portraitCaption?: string;
+  portraitCaptionMobile?: string;
   timeline: CMSTimelineItem[];
   timelineHeading?: string;
   interests: CMSInterest[];

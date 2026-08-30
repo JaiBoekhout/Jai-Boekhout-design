@@ -104,7 +104,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
 
       <div className="px-8 md:px-16 mt-16 grid md:grid-cols-5 gap-16">
         {/* Timeline */}
-        <div className="md:col-span-3">
+        <div className="md:col-start-1 md:col-span-3">
           <p
             style={{
               fontFamily: "var(--font-mono)",
@@ -200,15 +200,17 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           </div>
         </div>
 
-        {/* Sidebar: Interests + Photo */}
-        <div className="md:col-span-2">
-          {/* Profile Image */}
-          {cms.portraitImageUrl && (
+        {/* Profile Image — a separate grid item (not nested in the Interests sidebar below) so
+            it can be independently reordered: order-first puts it above the Timeline/"The
+            Journey" section on mobile, while md:order-none + explicit column/row placement
+            restores its normal spot above Interests in the desktop sidebar column. */}
+        {cms.portraitImageUrl && (
+          <div className="order-first md:order-none md:col-start-4 md:col-span-2 md:row-start-1 mb-10">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="rounded-2xl overflow-hidden mb-10"
+              className="rounded-2xl overflow-hidden mx-auto md:mx-0"
               style={{ border: "1px solid var(--c-border-soft)", aspectRatio: "3/4", maxWidth: "50%" }}
             >
               <div
@@ -225,9 +227,25 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                 }}
               />
             </motion.div>
-          )}
+            {cms.portraitCaption && (
+              <div
+                className={cms.portraitCaptionMobile ? "rte-content hidden md:block text-center md:text-left" : "rte-content text-center md:text-left"}
+                style={{ fontSize: "12px", color: "var(--c-text-muted)", marginTop: "12px" }}
+                dangerouslySetInnerHTML={{ __html: cms.portraitCaption }}
+              />
+            )}
+            {cms.portraitCaptionMobile && (
+              <div
+                className="rte-content block md:hidden text-center"
+                style={{ fontSize: "12px", color: "var(--c-text-muted)", marginTop: "12px" }}
+                dangerouslySetInnerHTML={{ __html: cms.portraitCaptionMobile }}
+              />
+            )}
+          </div>
+        )}
 
-          {/* Interests */}
+        {/* Sidebar: Interests */}
+        <div className="md:col-start-4 md:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
