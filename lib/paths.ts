@@ -15,6 +15,16 @@ export function pathKeyToUrl(key: string): string {
   return PATH_URLS[key as PathKey] ?? "/";
 }
 
+// Display name for each path — matches the "Path 0X — Name" eyebrow each experience page
+// renders (ExperienceWork.tsx etc.), so PathSwitcher's "Current Path" pill names the same
+// thing rather than showing that card's marketing question text.
+export const PATH_DISPLAY_NAMES: Record<PathKey, string> = {
+  work: "Work",
+  recruit: "Evaluate",
+  process: "Process",
+  story: "Story",
+};
+
 const URL_TO_KEY: Record<string, PathKey> = {
   "/work": "work",
   "/evaluate": "recruit",

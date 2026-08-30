@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { ArrowLeftRight } from "lucide-react";
-import { useContentStore } from "@/store/contentStore";
+import { PATH_DISPLAY_NAMES, type PathKey } from "@/lib/paths";
 
 interface PathSwitcherProps {
   selectedPath: string;
@@ -10,9 +10,7 @@ interface PathSwitcherProps {
 }
 
 export function PathSwitcher({ selectedPath, onSwitch }: PathSwitcherProps) {
-  const { content } = useContentStore();
-  const cards = content.homepage.cards as Record<string, { question: string; description: string }>;
-  const label = cards[selectedPath]?.question ?? "";
+  const label = PATH_DISPLAY_NAMES[selectedPath as PathKey] ?? "";
 
   return (
     <motion.div
