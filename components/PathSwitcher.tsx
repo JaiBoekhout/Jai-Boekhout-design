@@ -44,7 +44,7 @@ export function PathSwitcher({ selectedPath, onSwitch }: PathSwitcherProps) {
           <span
             style={{
               fontSize: "13px",
-              color: "var(--c-text)",
+              color: "var(--c-teal)",
               fontFamily: "var(--font-body)",
               fontWeight: 400,
               maxWidth: "280px",
@@ -76,7 +76,7 @@ export function PathSwitcher({ selectedPath, onSwitch }: PathSwitcherProps) {
           }}
         >
           <ArrowLeftRight size={13} />
-          Switch Path
+          <span className="hidden sm:inline">Switch Path</span>
         </button>
       </div>
     </motion.div>
