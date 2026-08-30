@@ -8,6 +8,7 @@ import type { CMSProject } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
+import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
@@ -117,6 +118,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const { content } = useContentStore();
   const cms = content.evaluate;
   const qualificationsRef = useRef<HTMLDivElement>(null);
+  const experienceRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div
@@ -239,30 +242,39 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {cms.statsHeading || "At a Glance"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-              {cms.stats.map(({ value, label, sub }) => {
-                // The Qualifications stat is a shortcut down to its own section further down
-                // the page — every other stat is purely informational, so only this one gets
-                // the hover/click treatment.
-                const isQualifications = label === "Qualifications";
+              {cms.stats.map(({ id, value, label, sub, icon }) => {
+                // Keyed by the stat's stable id, not its (admin-editable) label — "countries"
+                // started life as "Countries Worked In" and is now relabeled "Testimonials" on
+                // the live site, which would have silently broken a label-based match. Every
+                // other stat stays purely informational, no hover/click treatment.
+                const scrollTarget = (
+                  { qualifications: qualificationsRef, "years-design": experienceRef, countries: testimonialsRef } as Record<string, React.RefObject<HTMLDivElement | null>>
+                )[id];
+                const isClickable = !!scrollTarget;
+                const handleActivate = () => scrollTarget?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
                 return (
                   <div
-                    key={label}
-                    role={isQualifications ? "button" : undefined}
-                    tabIndex={isQualifications ? 0 : undefined}
-                    onClick={isQualifications ? () => qualificationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }) : undefined}
-                    onKeyDown={isQualifications ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); qualificationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); } } : undefined}
+                    key={id}
+                    role={isClickable ? "button" : undefined}
+                    tabIndex={isClickable ? 0 : undefined}
+                    onClick={isClickable ? handleActivate : undefined}
+                    onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
                     className="rounded-lg p-3 transition-colors"
                     style={{
                       background: "var(--c-bg-card)",
                       border: "1px solid var(--c-border-soft)",
-                      cursor: isQualifications ? "pointer" : undefined,
+                      cursor: isClickable ? "pointer" : undefined,
                     }}
-                    onMouseEnter={isQualifications ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; e.currentTarget.style.background = "var(--c-bg-card-hover, var(--c-bg-card))"; } : undefined}
-                    onMouseLeave={isQualifications ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; e.currentTarget.style.background = "var(--c-bg-card)"; } : undefined}
+                    onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; e.currentTarget.style.background = "var(--c-bg-card-hover, var(--c-bg-card))"; } : undefined}
+                    onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; e.currentTarget.style.background = "var(--c-bg-card)"; } : undefined}
                   >
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1, display: "block", marginBottom: "4px" }}>
-                      {value}
-                    </span>
+                    <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
+                      <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
+                        {value}
+                      </span>
+                    </div>
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                       {label}
                     </span>
@@ -298,11 +310,12 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
 
         {/* Section 3 — Professional Experience */}
         <motion.div
+          ref={experienceRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="mb-14 pb-14 border-b"
-          style={{ borderColor: "var(--c-border-soft)" }}
+          style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.experienceHeading || "Professional Experience"}
@@ -601,11 +614,12 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
 
         {/* Section 6 — Testimonials */}
         <motion.div
+          ref={testimonialsRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65 }}
           className="mb-14 pb-14 border-b"
-          style={{ borderColor: "var(--c-border-soft)" }}
+          style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.testimonialsHeading || "Why Teams Like Working With Me"}
