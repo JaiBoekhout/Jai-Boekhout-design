@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DEFAULT_CONTENT, deepMerge, archiveHistoryEntry } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { saveCmsContentAction } from "@/app/actions/cms";
+import { useInitialContent } from "@/store/ContentProvider";
 
 // Split out of contentStore.ts: this is the one piece of that module that uses React hooks, so
 // it needs its own "use client" boundary — contentStore.ts itself stays plain/server-safe (its
@@ -27,17 +28,25 @@ async function fetchContent(): Promise<CMSContent> {
 }
 
 export function useContentStore() {
-  const [content, setContentState] = useState<CMSContent>(DEFAULT_CONTENT);
+  // Seeded by the root layout's server-side getContent() call (see store/ContentProvider.tsx)
+  // — real, current content on the very first render, not the DEFAULT_CONTENT placeholder.
+  // Falls back to DEFAULT_CONTENT only if somehow rendered outside that provider.
+  const initialContent = useInitialContent();
+  const [content, setContentState] = useState<CMSContent>(initialContent ?? DEFAULT_CONTENT);
   const [isDirty, setIsDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialContent);
 
   useEffect(() => {
     let cancelled = false;
-    fetchContent().then((c) => {
-      if (cancelled) return;
-      setContentState(c);
-      setIsLoading(false);
-    });
+    // Only re-fetch on mount when the provider didn't already give us real content — avoids a
+    // redundant round trip (and the wrong-then-right flash it used to cause) on every page load.
+    if (!initialContent) {
+      fetchContent().then((c) => {
+        if (cancelled) return;
+        setContentState(c);
+        setIsLoading(false);
+      });
+    }
     const handler = () => {
       fetchContent().then((c) => {
         if (cancelled) return;
@@ -50,7 +59,7 @@ export function useContentStore() {
       cancelled = true;
       window.removeEventListener("cms_content_updated", handler);
     };
-  }, []);
+  }, [initialContent]);
 
   function updateContent(updates: Partial<CMSContent>) {
     const merged = deepMerge(content, updates);

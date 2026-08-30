@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { InlineScript } from "@/components/InlineScript";
+import { getContent } from "@/store/serverContent";
+import { ContentProvider } from "@/store/ContentProvider";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
@@ -74,11 +76,12 @@ const personJsonLd = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialContent = await getContent();
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
@@ -198,7 +201,9 @@ export default function RootLayout({
         suppressHydrationWarning
         style={{ background: "var(--c-bg)", minHeight: "100vh", transition: "background 0.3s ease" }}
       >
-        {children}
+        <ContentProvider initialContent={initialContent}>
+          {children}
+        </ContentProvider>
         <Analytics />
       </body>
     </html>
