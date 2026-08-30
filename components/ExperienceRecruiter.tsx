@@ -238,7 +238,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
               {cms.statsHeading || "At a Glance"}
             </p>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
               {cms.stats.map(({ value, label, sub }) => {
                 // The Qualifications stat is a shortcut down to its own section further down
                 // the page — every other stat is purely informational, so only this one gets
