@@ -145,7 +145,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string) => v
                     "between" the same way. display:none there removes it from the grid
                     entirely rather than leaving an empty cell. */}
                 {i > 0 && (
-                  <div className="md:hidden" style={{ width: "75%", height: "1px", background: "var(--c-divider)", margin: "0 auto" }} />
+                  <div className="md:hidden" style={{ width: "75%", height: "0.5px", background: "var(--c-divider)", opacity: 0.5, margin: "0 auto" }} />
                 )}
                 <div className="flex flex-col gap-2 items-center text-center md:items-start md:text-left">
                   <div className="flex items-center gap-2 justify-center md:justify-start">
