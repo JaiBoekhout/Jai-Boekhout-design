@@ -234,26 +234,29 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
         })}
       </div>
 
-      {/* ── View More toggle ────────────────────────────────────────────────── */}
-      <div style={{ marginTop: 40, display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ width: "100%", height: "0.5px", background: "linear-gradient(to right, transparent, var(--c-divider), transparent)", marginBottom: -13 }} />
-        <button
-          onClick={() => setListOpen((v) => !v)}
-          className="transition-all hover:border-[rgba(20,173,181,0.5)] hover:text-[#EDE8DF]"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 11,
-            fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.06em",
-            color: "var(--c-text-70)", background: "var(--c-bg)",
-            border: "0.5px solid var(--c-divider)", borderRadius: 999, padding: "13px 26px", cursor: "pointer",
-          }}
-        >
-          <span>{listOpen ? "Close project list" : "View more projects"}</span>
-          <span style={{ fontSize: 18, lineHeight: 1, transition: "transform 0.35s ease", transform: `rotate(${listOpen ? 180 : 0}deg)`, display: "inline-block" }}>⌄</span>
-        </button>
-      </div>
+      {/* ── View More toggle — hidden entirely when there's nothing beyond the featured
+          grid, rather than opening onto an empty list ────────────────────────────── */}
+      {publishedMore.length > 0 && (
+        <div style={{ marginTop: 40, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ width: "100%", height: "0.5px", background: "linear-gradient(to right, transparent, var(--c-divider), transparent)", marginBottom: -13 }} />
+          <button
+            onClick={() => setListOpen((v) => !v)}
+            className="transition-all hover:border-[rgba(20,173,181,0.5)] hover:text-[#EDE8DF]"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 11,
+              fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.06em",
+              color: "var(--c-text-70)", background: "var(--c-bg)",
+              border: "0.5px solid var(--c-divider)", borderRadius: 999, padding: "13px 26px", cursor: "pointer",
+            }}
+          >
+            <span>{listOpen ? "Close project list" : "View more projects"}</span>
+            <span style={{ fontSize: 18, lineHeight: 1, transition: "transform 0.35s ease", transform: `rotate(${listOpen ? 180 : 0}deg)`, display: "inline-block" }}>⌄</span>
+          </button>
+        </div>
+      )}
 
       {/* ── Project list ────────────────────────────────────────────────────── */}
-      {listOpen && (
+      {listOpen && publishedMore.length > 0 && (
         <div style={{ marginTop: 38, animation: "fadeUp 0.4s ease both" }}>
           {allTags.length > 1 && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
