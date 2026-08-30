@@ -18,7 +18,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
     >
       {/* Hero */}
       <div className="px-8 md:px-16 pt-20 pb-16 border-b" style={{ borderColor: "var(--c-border-soft)" }}>
-        <motion.span
+        <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -33,8 +33,8 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           }}
         >
           Path 04 — Story
-        </motion.span>
-        <motion.h1
+        </motion.h1>
+        <motion.h2
           className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -50,7 +50,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
         />
         {cms.heroStatementMobile && (
-          <motion.h1
+          <motion.h2
             className="block md:hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
