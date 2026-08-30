@@ -311,7 +311,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
                   <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text)" }}>{submitState.error}</span>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <TextField required name="name" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} style={{ fontSize: 16 }} />
                 <TextField required name="email" type="email" placeholder="Your email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ fontSize: 16 }} />
               </div>
@@ -329,12 +329,12 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
                   {pending ? "Sending…" : justSent ? "Message sent" : "Send message"}
                 </Button>
                 <div className="hidden sm:block flex-shrink-0" style={{ width: "1px", height: "28px", background: "var(--c-border)" }} />
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                   <a href={`tel:${PHONE_RAW}`} className="flex items-center gap-2 transition-opacity hover:opacity-70"
                     style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", textDecoration: "none" }}>
                     <Phone size={12} style={{ color: "var(--c-teal)" }} />{PHONE}
                   </a>
-                  <span style={{ color: "var(--c-border-med)", fontSize: "12px" }}>·</span>
+                  <span className="hidden sm:inline" style={{ color: "var(--c-border-med)", fontSize: "12px" }}>·</span>
                   <a href={`https://wa.me/${PHONE_RAW.replace("+", "")}`} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 transition-opacity hover:opacity-70"
                     style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", textDecoration: "none" }}>

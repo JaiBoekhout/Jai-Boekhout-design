@@ -207,7 +207,7 @@ export function Checkbox({ checked, onChange, label, id }: CheckboxProps) {
         {checked && <Check size={13} style={{ color: "var(--checkbox-color)" }} />}
       </button>
       {label && (
-        <label htmlFor={inputId} style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-muted)", cursor: "pointer", lineHeight: 1.5 }}>
+        <label htmlFor={inputId} style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 400, color: "#EDE8DF", cursor: "pointer", lineHeight: 1.5 }}>
           {label}
         </label>
       )}
