@@ -1,7 +1,7 @@
 // Split out of contentStore.ts so that file can stay safely importable from the client hook
-// (useContentStoreHook.ts, for DEFAULT_CONTENT/deepMerge/archiveHistoryEntry) — this module's
-// import of lib/cmsContent.ts (marked "server-only") would otherwise drag Postgres access into
-// the client bundle graph the moment anything in contentStore.ts's module scope referenced it,
+// (useContentStoreHook.ts, for DEFAULT_CONTENT/deepMerge) — this module's import of
+// lib/cmsContent.ts (marked "server-only") would otherwise drag Postgres access into the
+// client bundle graph the moment anything in contentStore.ts's module scope referenced it,
 // regardless of whether getContent() itself is ever actually called client-side.
 import "server-only";
 import { getStoredContent } from "@/lib/cmsContent";

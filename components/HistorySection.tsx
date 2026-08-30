@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { History as HistoryIcon, RotateCcw, AlertTriangle, Check } from "lucide-react";
-import { useContentStore, getHistory, diffSections } from "@/store/contentStore";
+import { useContentStore, diffSections } from "@/store/contentStore";
 import type { CMSHistoryEntry } from "@/store/contentStore";
+import { getHistoryAction } from "@/app/actions/cms";
 import { CMSSectionHeading } from "@/components/CMSFields";
 
 function formatTimestamp(iso: string) {
@@ -16,11 +17,8 @@ function formatTimestamp(iso: string) {
   });
 }
 
-// What this list will look like once content lives in Postgres: every entry here is real,
-// stored today under a separate localStorage key (see getHistory() in contentStore.ts) and
-// archived automatically on every save. The only things that change when a database is
-// connected are where entries live (a table instead of this browser) and the 20-entry cap
-// (lifted once storage isn't a quota-limited browser API).
+// Every entry here is real, stored in Postgres (cms_history table, see lib/cmsHistory.ts) and
+// archived automatically on every save — capped at the most recent 20.
 export function HistorySection() {
   const { content, updateContent, persistContent } = useContentStore();
   const [history, setHistory] = useState<CMSHistoryEntry[]>([]);
@@ -28,10 +26,18 @@ export function HistorySection() {
   const [restoredId, setRestoredId] = useState<string | null>(null);
 
   useEffect(() => {
-    const refresh = () => setHistory(getHistory());
+    let cancelled = false;
+    const refresh = () => {
+      getHistoryAction().then((entries) => {
+        if (!cancelled) setHistory(entries as unknown as CMSHistoryEntry[]);
+      });
+    };
     refresh();
     window.addEventListener("cms_content_updated", refresh);
-    return () => window.removeEventListener("cms_content_updated", refresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("cms_content_updated", refresh);
+    };
   }, []);
 
   async function handleRestore(entry: CMSHistoryEntry) {
@@ -62,10 +68,8 @@ export function HistorySection() {
         }}
       >
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12.5px", color: "#EDE8DF", lineHeight: 1.6, margin: 0 }}>
-          A preview of what version history looks like once connected — every save below is
-          real, kept in this browser only and capped at the most recent 20. Connecting a
-          database removes that cap and makes history available from any device, but the list
-          and restore flow you see here won&apos;t change.
+          Every save is archived here automatically, available from any device, capped at the
+          most recent 20 versions.
         </p>
       </div>
 

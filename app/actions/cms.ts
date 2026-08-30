@@ -1,7 +1,8 @@
 "use server";
 
 import { getSession } from "@/lib/auth";
-import { saveStoredContent } from "@/lib/cmsContent";
+import { getStoredContent, saveStoredContent } from "@/lib/cmsContent";
+import { archiveHistoryEntry, getStoredHistory, type StoredHistoryEntry } from "@/lib/cmsHistory";
 import { revalidatePath } from "next/cache";
 
 // Auth-gated the same way deleteEnquiryAction/clearEnquiriesAction (app/actions/contact.ts)
@@ -10,6 +11,13 @@ import { revalidatePath } from "next/cache";
 export async function saveCmsContentAction(content: unknown): Promise<boolean> {
   if (!(await getSession())) return false;
   try {
+    // Archives whatever is actually live in the database right now, not whatever the calling
+    // browser last happened to have in memory — correct even if a different device/tab made
+    // the last save, unlike the old client-tracked "previous" value this replaced.
+    const previous = await getStoredContent();
+    if (previous && JSON.stringify(previous) !== JSON.stringify(content)) {
+      await archiveHistoryEntry(previous);
+    }
     await saveStoredContent(content);
   } catch {
     // Mirrors the old localStorage saveContent()'s quota-error handling — callers (some of
@@ -21,4 +29,12 @@ export async function saveCmsContentAction(content: unknown): Promise<boolean> {
   // in the admin goes live for real visitors immediately rather than only on the next redeploy.
   revalidatePath("/", "layout");
   return true;
+}
+
+// Version history now lives in Postgres (cms_history table) instead of localStorage — see
+// lib/cmsHistory.ts. Auth-gated even though the content itself isn't especially sensitive,
+// since there's no other reason for this to be reachable by a non-admin.
+export async function getHistoryAction(): Promise<StoredHistoryEntry[]> {
+  if (!(await getSession())) return [];
+  return getStoredHistory();
 }

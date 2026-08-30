@@ -25,10 +25,11 @@ function goHard(url: string) {
 }
 
 // Client-side rendering for a real /work/[slug] page. The server page.tsx already gated
-// existence/publication via getPublishedProjectBySlug(DEFAULT_CONTENT, slug) for
+// existence/publication via getPublishedProjectBySlug(await getContent(), slug) for
 // generateStaticParams/generateMetadata/notFound() — this re-resolves the same project from
-// the live useContentStore() so Jai's own unsaved localStorage edits still preview immediately
-// in his browser, exactly like every other CMS-driven view on this site.
+// the live useContentStore() so an in-progress admin edit (saved but not yet reflected in a
+// regenerated static page) still previews immediately, exactly like every other CMS-driven
+// view on this site.
 export function ProjectPageView({ slug }: { slug: string }) {
   const router = useRouter();
   const { content } = useContentStore();

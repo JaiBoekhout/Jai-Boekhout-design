@@ -1922,48 +1922,13 @@ export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
 // getContent() itself lives in store/serverContent.ts, not here — see this file's header comment.
 
 // ─── Version history ────────────────────────────────────────────────────────────
-// Deliberately still localStorage-only even though the main content now lives in Postgres
-// (see getContent()/lib/cmsContent.ts) — out of scope for that migration. Same interaction
-// model this was designed for still applies if it moves to a real table later (a list of past
-// states, restore any of them): persistContent() archives whatever was live immediately before
-// each save, so this fills in from normal use with no separate "start tracking" step. Swapping
-// the backend later means changing what's inside these functions (a fetch instead of a
-// localStorage read/write), not the admin UI that calls them.
-const HISTORY_KEY = "portfolio_cms_history";
-const MAX_HISTORY_ENTRIES = 20;
-
+// Storage/archiving now lives server-side in lib/cmsHistory.ts + app/actions/cms.ts
+// (Postgres cms_history table) — this is just the shape, kept here since it's shared by
+// HistorySection.tsx and diffSections() below.
 export interface CMSHistoryEntry {
   id: string;
   timestamp: string;
   content: CMSContent;
-}
-
-export function getHistory(): CMSHistoryEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem(HISTORY_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function archiveHistoryEntry(content: CMSContent) {
-  try {
-    const entry: CMSHistoryEntry = {
-      id: `h-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      timestamp: new Date().toISOString(),
-      content,
-    };
-    const next = [entry, ...getHistory()].slice(0, MAX_HISTORY_ENTRIES);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-  } catch {
-    // Best-effort (localStorage quota) — a save that can't be archived should still succeed,
-    // so this never throws back up to persistContent(). Version history stays localStorage-only
-    // even after the main content migration to Postgres — out of scope for that migration.
-  }
 }
 
 // Human-readable labels for CMSContent's top-level sections, used to summarize which parts of

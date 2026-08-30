@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DEFAULT_CONTENT, deepMerge, archiveHistoryEntry } from "@/store/contentStore";
+import { DEFAULT_CONTENT, deepMerge } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { saveCmsContentAction } from "@/app/actions/cms";
 import { useInitialContent } from "@/store/ContentProvider";
@@ -70,19 +70,13 @@ export function useContentStore() {
   // Returns whether the write actually landed — the caller (the Save button) needs this to
   // avoid telling the admin their edit is safe when the database write silently failed. Only
   // clears isDirty and re-fetches content on success, so a failed save correctly leaves the
-  // "unsaved changes" state in place rather than pretending nothing changed. "previous" is this
-  // hook's own last-known content rather than a fresh read (there's no cheap synchronous way to
-  // read the database) — consistent with the cross-tab tradeoff noted above.
+  // "unsaved changes" state in place rather than pretending nothing changed. Version-history
+  // archiving happens server-side inside saveCmsContentAction itself now (it reads the true
+  // current database state right before overwriting it), not here — see app/actions/cms.ts.
   async function persistContent(overrides?: Partial<CMSContent>): Promise<boolean> {
-    const previous = content;
     const toSave = overrides ? deepMerge(content, overrides) : content;
     const ok = await saveCmsContentAction(toSave);
-    if (ok) {
-      // Archive whatever was live right before this save — skipped when nothing actually
-      // changed, so re-clicking Save with no edits doesn't pad the list with duplicates.
-      if (JSON.stringify(previous) !== JSON.stringify(toSave)) archiveHistoryEntry(previous);
-      window.dispatchEvent(new Event("cms_content_updated"));
-    }
+    if (ok) window.dispatchEvent(new Event("cms_content_updated"));
     return ok;
   }
 
