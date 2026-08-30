@@ -152,16 +152,27 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                 </div>
               )}
 
+              {/* Category pill — top right, same treatment as the project detail badge
+                  (ProjectDetailBody.tsx) minus its numeric prefix */}
+              {p && (
+                <div
+                  className="absolute"
+                  style={{
+                    top: 16, right: 16, zIndex: 2,
+                    fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em",
+                    color: TEAL, background: "rgba(6,9,12,0.75)", textTransform: "uppercase",
+                    border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 999,
+                    padding: "5px 13px", backdropFilter: "blur(8px)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {p.tags.slice(0, 2).join(" · ")}
+                </div>
+              )}
+
               {/* Card text */}
               {p && (
                 <div className="absolute left-5 right-5 bottom-5" style={{ zIndex: 2, pointerEvents: "none" }}>
-                  {/* Category */}
-                  <div className="mb-2">
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em", color: TEAL, textTransform: "uppercase" }}>
-                      {p.tags.slice(0, 2).join(" · ")}
-                    </span>
-                  </div>
-
                   {/* Name — 2-line clamp so a long title can never overflow the fixed-aspect card */}
                   <div style={{
                     fontFamily: "var(--font-heading)",
@@ -185,7 +196,6 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     fontSize: 12,
                     color: "#F3F2F2",
                     lineHeight: 1.55,
-                    marginBottom: 11,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
@@ -194,9 +204,14 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     {stripHtml(p.desc)}
                   </div>
 
-                  {/* VIEW PROJECT → */}
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}>
-                    VIEW PROJECT <span>→</span>
+                  {/* VIEW PROJECT → — collapsed (zero height, invisible) by default so the name/
+                      description sit lower in the card, and smoothly expands/fades in on hover.
+                      max-height (not height:auto) so the transition has explicit start/end
+                      values to animate between. */}
+                  <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-8 group-hover:opacity-100 transition-all duration-300 ease-out">
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: TEAL, display: "flex", alignItems: "center", gap: 5, marginTop: 11 }}>
+                      VIEW PROJECT <span>→</span>
+                    </div>
                   </div>
                 </div>
               )}
