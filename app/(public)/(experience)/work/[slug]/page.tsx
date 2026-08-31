@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedProjects, getPublishedProjectBySlug, projectUrlSlug } from "@/store/contentStore";
 import { getContent } from "@/store/serverContent";
-import { stripHtml } from "@/lib/utils";
+import { stripHtml, truncateAtWord } from "@/lib/utils";
 import { ProjectPageView } from "@/components/ProjectPageView";
 
 export async function generateStaticParams() {
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const image = project.heroImageUrl ?? project.coverImageUrl ?? project.imgs[0];
   return {
     title: project.name,
-    description: stripHtml(project.desc).slice(0, 160),
+    description: truncateAtWord(stripHtml(project.desc), 160),
     alternates: { canonical: `/work/${slug}` },
     openGraph: image ? { images: [image] } : undefined,
   };
