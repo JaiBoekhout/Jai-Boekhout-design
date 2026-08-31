@@ -2078,19 +2078,48 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
   return hits;
 }
 
-// Deep-walks any value, replacing every occurrence of `oldSrc` inside every string found no
-// matter how deeply nested. Used by replaceMediaUsage below instead of a hand-enumerated field
-// list — a plain substring replace correctly handles both a dedicated image field (the whole
-// string equals oldSrc, so the "replace" is really a full swap) and a rich-text field with an
-// inline <img src="oldSrc"> embedded in the middle of other HTML, with one rule instead of two
-// (the old swap/swapRich split). The real point isn't the code size, it's that this can't go
-// stale the way the old per-field list did: an entire category of fields (every Homepage field,
-// every *Mobile RTE variant, the 404 page's image) silently went unswapped for a long time simply
-// because nobody remembered to add them here when they were added to CMSContent — a generic walk
-// covers every field that exists today *and* any added later, automatically.
+// A relative path like "/imports/foo.png" is, character for character, a literal suffix of its
+// own absolute URL after migration ("https://xxx.blob.vercel-storage.com" + that same path) — so
+// once a reference has already been migrated once, oldSrc still "matches" inside it (as the tail
+// end of the new URL). Re-running the swap (re-migrating after a partial-then-full run, or any
+// repeated call with the same pair) would then prepend newSrc a second time on top of the URL
+// that's already correct. A real embedded reference is always preceded by a quote, tag bracket,
+// whitespace, or nothing at all (start of string) — never by a character that could itself be
+// part of a continuing domain/URL — so skip a match when the character right before it looks
+// like it's already mid-URL, rather than blindly replacing every occurrence.
+const URL_CONTINUATION_CHAR = /[A-Za-z0-9.\-_:~]/;
+function replaceSrcInString(value: string, oldSrc: string, newSrc: string): string {
+  let result = "";
+  let cursor = 0;
+  for (;;) {
+    const idx = value.indexOf(oldSrc, cursor);
+    if (idx === -1) {
+      result += value.slice(cursor);
+      return result;
+    }
+    const precedingChar = idx > 0 ? value[idx - 1] : "";
+    if (precedingChar && URL_CONTINUATION_CHAR.test(precedingChar)) {
+      result += value.slice(cursor, idx + oldSrc.length); // leave this occurrence untouched
+    } else {
+      result += value.slice(cursor, idx) + newSrc;
+    }
+    cursor = idx + oldSrc.length;
+  }
+}
+
+// Deep-walks any value, replacing every genuine occurrence of `oldSrc` inside every string found
+// no matter how deeply nested (see replaceSrcInString above for what "genuine" excludes). Used by
+// replaceMediaUsage below instead of a hand-enumerated field list — one rule correctly handles
+// both a dedicated image field (the whole string equals oldSrc, so the "replace" is really a full
+// swap) and a rich-text field with an inline <img src="oldSrc"> embedded in the middle of other
+// HTML, instead of the old swap/swapRich split. The real point isn't the code size, it's that
+// this can't go stale the way the old per-field list did: an entire category of fields (every
+// Homepage field, every *Mobile RTE variant, the 404 page's image) silently went unswapped for a
+// long time simply because nobody remembered to add them here when they were added to
+// CMSContent — a generic walk covers every field that exists today *and* any added later.
 function deepReplaceSrc<T>(value: T, oldSrc: string, newSrc: string): T {
   if (typeof value === "string") {
-    return (value.includes(oldSrc) ? value.split(oldSrc).join(newSrc) : value) as T;
+    return (value.includes(oldSrc) ? replaceSrcInString(value, oldSrc, newSrc) : value) as T;
   }
   if (Array.isArray(value)) {
     return value.map((v) => deepReplaceSrc(v, oldSrc, newSrc)) as T;
