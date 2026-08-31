@@ -443,15 +443,23 @@ export function MediaSection() {
       const updated = replaceMediaUsage(content, oldFile.src, newSrc);
       updateContent(updated);
       await persistContent(updated);
-      await fetch("/api/media", {
+      // Every reference already points at the new file regardless of what happens below — a
+      // pre-existing local old file just can't actually be removed on the deployed site's
+      // read-only filesystem, which is worth surfacing but shouldn't block the rest of this.
+      const delRes = await fetch("/api/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: oldFile.path, type: "file" }),
       });
+      if (!delRes.ok) {
+        const data = await delRes.json().catch(() => ({}));
+        setUploadMsg(data.error ? `Replaced, but couldn't remove the old file — ${data.error}` : "Replaced, but couldn't remove the old file");
+      } else {
+        setUploadMsg("✓ Replaced everywhere and removed the old file");
+        setTimeout(() => setUploadMsg(""), 4000);
+      }
       setSelected(null);
       setShowReplacePicker(false);
-      setUploadMsg("✓ Replaced everywhere and removed the old file");
-      setTimeout(() => setUploadMsg(""), 4000);
       await fetchTree();
     } finally { setIsReplacing(false); }
   }

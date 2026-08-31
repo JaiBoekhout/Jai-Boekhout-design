@@ -2020,21 +2020,52 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
   if (branding.faviconSvgUrl === src) hits.push("Branding — Favicon (SVG)");
   if (branding.appleTouchIconUrl === src) hits.push("Branding — Apple Touch Icon");
 
+  if (content.notFound?.imageUrl === src) hits.push("404 Page — Image");
+
   const richTextFields: { label: string; value: string | undefined }[] = [
+    { label: "Homepage — Headline", value: content.homepage.headline },
+    { label: "Homepage — Headline (Mobile)", value: content.homepage.headlineMobile },
+    { label: "Homepage — Sub-headline", value: content.homepage.subheadline },
+    { label: "Homepage — Sub-headline (Mobile)", value: content.homepage.subheadlineMobile },
+    { label: "Homepage — Question", value: content.homepage.question },
+    { label: "Homepage — Question (Mobile)", value: content.homepage.questionMobile },
+    { label: "Homepage — Footer Note", value: content.homepage.footerNote },
+    { label: "Homepage — Footer Note (Mobile)", value: content.homepage.footerNoteMobile },
+    ...(["work", "recruit", "process", "story"] as const).flatMap((key) => [
+      { label: `Homepage Card "${key}" — Question`, value: content.homepage.cards[key].question },
+      { label: `Homepage Card "${key}" — Description`, value: content.homepage.cards[key].description },
+    ]),
     { label: "Work — Hero Statement", value: content.work.heroStatement },
+    { label: "Work — Hero Statement (Mobile)", value: content.work.heroStatementMobile },
     { label: "Evaluate — Hero Statement", value: content.evaluate.heroStatement },
+    { label: "Evaluate — Hero Statement (Mobile)", value: content.evaluate.heroStatementMobile },
     { label: "Evaluate — Bio", value: content.evaluate.bio },
+    { label: "Evaluate — Bio (Mobile)", value: content.evaluate.bioMobile },
     { label: "Evaluate — Personal Note (Beyond Design)", value: content.evaluate.beyondDesign },
+    { label: "Evaluate — Personal Note (Beyond Design, Mobile)", value: content.evaluate.beyondDesignMobile },
+    { label: "Evaluate — CTA Heading", value: content.evaluate.ctaHeading },
+    { label: "Evaluate — CTA Heading (Mobile)", value: content.evaluate.ctaHeadingMobile },
     { label: "Evaluate — CTA Body", value: content.evaluate.ctaBody },
+    { label: "Evaluate — CTA Body (Mobile)", value: content.evaluate.ctaBodyMobile },
     ...content.evaluate.testimonials.map((t, i) => ({ label: `Evaluate — Testimonial ${i + 1} Quote ("${t.name}")`, value: t.quote })),
     ...content.evaluate.experience.map((e) => ({ label: `Evaluate — "${e.org}" Description`, value: e.description })),
     { label: "Process — Hero Statement", value: content.process.heroStatement },
+    { label: "Process — Hero Statement (Mobile)", value: content.process.heroStatementMobile },
     ...content.process.steps.map((s) => ({ label: `Process — "${s.title}" Description`, value: s.description })),
     ...content.process.steps.map((s) => ({ label: `Process — "${s.title}" Example`, value: s.example })),
     { label: "Process — Closing Quote", value: content.process.closingQuote },
+    { label: "Process — Closing Quote (Mobile)", value: content.process.closingQuoteMobile },
     { label: "Story — Hero Statement", value: content.story.heroStatement },
+    { label: "Story — Hero Statement (Mobile)", value: content.story.heroStatementMobile },
+    { label: "Story — Sub-headline", value: content.story.subheadline },
+    { label: "Story — Sub-headline (Mobile)", value: content.story.subheadlineMobile },
+    { label: "Story — Portrait Caption", value: content.story.portraitCaption },
+    { label: "Story — Portrait Caption (Mobile)", value: content.story.portraitCaptionMobile },
     ...content.story.timeline.map((t, i) => ({ label: `Story — Timeline "${t.title || `Entry ${i + 1}`}" Body`, value: t.body })),
+    ...content.story.interests.map((i) => ({ label: `Story — Interest "${i.label}" Detail`, value: i.detail })),
     { label: "Story — Closing Quote", value: content.story.closingQuote },
+    { label: "Story — Closing Quote (Mobile)", value: content.story.closingQuoteMobile },
+    { label: "404 Page — Body", value: content.notFound?.body },
     ...content.work.projects.map((p) => ({ label: `Project "${p.name}" — Description`, value: p.fullContent })),
     ...content.work.caseStudies.map((cs) => ({ label: `Case Study "${cs.title}" — Summary`, value: cs.summary })),
     ...content.work.caseStudies.map((cs) => ({ label: `Case Study "${cs.title}" — Project Detail`, value: cs.fullContent })),
@@ -2047,80 +2078,42 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
   return hits;
 }
 
-// Repoints every place findMediaUsage() above would report from oldSrc to newSrc — dedicated
-// image fields get a straight swap; rich text fields get a string replace so any inline <img
-// src="oldSrc"> embedded in the HTML is rewritten too. Mirrors findMediaUsage()'s field list
-// exactly on purpose — if a field is added to one, add it to the other.
-export function replaceMediaUsage(content: CMSContent, oldSrc: string, newSrc: string): CMSContent {
-  const swap = (v: string | undefined) => (v === oldSrc ? newSrc : v);
-  const swapArr = (arr: string[] | undefined) => (arr ? arr.map((v) => (v === oldSrc ? newSrc : v)) : arr);
-  const swapRich = (v: string | undefined) => (v && v.includes(oldSrc) ? v.split(oldSrc).join(newSrc) : v);
+// Deep-walks any value, replacing every occurrence of `oldSrc` inside every string found no
+// matter how deeply nested. Used by replaceMediaUsage below instead of a hand-enumerated field
+// list — a plain substring replace correctly handles both a dedicated image field (the whole
+// string equals oldSrc, so the "replace" is really a full swap) and a rich-text field with an
+// inline <img src="oldSrc"> embedded in the middle of other HTML, with one rule instead of two
+// (the old swap/swapRich split). The real point isn't the code size, it's that this can't go
+// stale the way the old per-field list did: an entire category of fields (every Homepage field,
+// every *Mobile RTE variant, the 404 page's image) silently went unswapped for a long time simply
+// because nobody remembered to add them here when they were added to CMSContent — a generic walk
+// covers every field that exists today *and* any added later, automatically.
+function deepReplaceSrc<T>(value: T, oldSrc: string, newSrc: string): T {
+  if (typeof value === "string") {
+    return (value.includes(oldSrc) ? value.split(oldSrc).join(newSrc) : value) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => deepReplaceSrc(v, oldSrc, newSrc)) as T;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = deepReplaceSrc(v, oldSrc, newSrc);
+    return out as T;
+  }
+  return value;
+}
 
-  return {
-    ...content,
-    companies: (content.companies ?? []).map((c) => ({ ...c, logoUrl: swap(c.logoUrl) })),
-    branding: {
-      ...content.branding,
-      logoUrl: swap(content.branding?.logoUrl),
-      faviconUrl: swap(content.branding?.faviconUrl),
-      faviconPngUrl: swap(content.branding?.faviconPngUrl),
-      faviconSvgUrl: swap(content.branding?.faviconSvgUrl),
-      appleTouchIconUrl: swap(content.branding?.appleTouchIconUrl),
-    },
-    evaluate: {
-      ...content.evaluate,
-      heroStatement: swapRich(content.evaluate.heroStatement) ?? content.evaluate.heroStatement,
-      bio: swapRich(content.evaluate.bio) ?? content.evaluate.bio,
-      beyondDesign: swapRich(content.evaluate.beyondDesign) ?? content.evaluate.beyondDesign,
-      ctaBody: swapRich(content.evaluate.ctaBody) ?? content.evaluate.ctaBody,
-      clients: (content.evaluate.clients ?? []).map((c) => ({ ...c, logoUrl: swap(c.logoUrl) })),
-      testimonials: content.evaluate.testimonials.map((t) => ({ ...t, quote: swapRich(t.quote) ?? t.quote })),
-      experience: content.evaluate.experience.map((e) => ({ ...e, description: swapRich(e.description) ?? e.description })),
-    },
-    process: {
-      ...content.process,
-      heroStatement: swapRich(content.process.heroStatement) ?? content.process.heroStatement,
-      steps: content.process.steps.map((s) => ({
-        ...s,
-        description: swapRich(s.description) ?? s.description,
-        example: swapRich(s.example) ?? s.example,
-      })),
-      closingQuote: swapRich(content.process.closingQuote) ?? content.process.closingQuote,
-    },
-    story: {
-      ...content.story,
-      heroStatement: swapRich(content.story.heroStatement) ?? content.story.heroStatement,
-      portraitImageUrl: swap(content.story.portraitImageUrl),
-      timeline: content.story.timeline.map((t) => ({ ...t, body: swapRich(t.body) ?? t.body })),
-      closingQuote: swapRich(content.story.closingQuote) ?? content.story.closingQuote,
-    },
-    work: {
-      ...content.work,
-      heroStatement: swapRich(content.work.heroStatement) ?? content.work.heroStatement,
-      projects: content.work.projects.map((p) => ({
-        ...p,
-        coverImageUrl: swap(p.coverImageUrl),
-        coverImageHoverUrl: swap(p.coverImageHoverUrl),
-        heroImageUrl: swap(p.heroImageUrl),
-        fullCaseStudyBannerUrl: swap(p.fullCaseStudyBannerUrl),
-        imgs: swapArr(p.imgs) ?? p.imgs,
-        fullContent: swapRich(p.fullContent) ?? p.fullContent,
-      })),
-      caseStudies: content.work.caseStudies.map((cs) => ({
-        ...cs,
-        coverImageUrl: swap(cs.coverImageUrl),
-        coverImageHoverUrl: swap(cs.coverImageHoverUrl),
-        heroImageUrl: swap(cs.heroImageUrl),
-        fullCaseStudyBannerUrl: swap(cs.fullCaseStudyBannerUrl),
-        img1Url: swap(cs.img1Url),
-        img2Url: swap(cs.img2Url),
-        img3Url: swap(cs.img3Url),
-        summary: swapRich(cs.summary) ?? cs.summary,
-        fullContent: swapRich(cs.fullContent) ?? cs.fullContent,
-        fullCaseStudyContent: swapRich(cs.fullCaseStudyContent) ?? cs.fullCaseStudyContent,
-      })),
-    },
-  };
+// Repoints every place findMediaUsage() above would report from oldSrc to newSrc (see
+// deepReplaceSrc for how). mediaMeta needs its own explicit handling on top: it's a dictionary
+// keyed BY the src string itself (alt text/captions), so a generic value-replace walk can't
+// rekey it — only moving the entry to its new key can.
+export function replaceMediaUsage(content: CMSContent, oldSrc: string, newSrc: string): CMSContent {
+  const updated = deepReplaceSrc(content, oldSrc, newSrc);
+  if (Object.prototype.hasOwnProperty.call(updated.mediaMeta, oldSrc)) {
+    const { [oldSrc]: movedMeta, ...restMeta } = updated.mediaMeta;
+    updated.mediaMeta = { ...restMeta, [newSrc]: movedMeta };
+  }
+  return updated;
 }
 
 // Inverse of findMediaUsage — runs the same check across a whole file list and returns the
