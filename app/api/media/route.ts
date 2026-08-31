@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { list, put, del, head, rename, createFolder, type ListBlobResultBlob } from "@vercel/blob";
+import { list, put, del, rename, createFolder, type ListBlobResultBlob } from "@vercel/blob";
 import { getSession } from "@/lib/auth";
 import { MEDIA_EXTS, VIDEO_EXTS, maxBytesFor, uniqueFilename } from "@/lib/media";
+import { getDeletedPaths, markPathDeleted, isPathDeleted, type DeletedPath } from "@/lib/deletedMedia";
 
 // Every media/resume admin operation lives in this one route file — GET for listing, POST for
 // upload/move/folder-create (dispatched by ?action=), DELETE for removal — rather than each in
@@ -190,15 +191,26 @@ function mergeTrees(a: (MediaFile | MediaFolder)[], b: (MediaFile | MediaFolder)
   return sortEntries([...folderOrder, ...files]);
 }
 
+// Applied to the local scan only, before merging with Blob — a path can only ever be tombstoned
+// by deleting it through this route, and a genuinely re-uploaded Blob file at that same path
+// should still show up (it comes through untouched on the Blob side of the merge either way).
+function filterDeletedFromTree(items: (MediaFile | MediaFolder)[], deleted: DeletedPath[]): (MediaFile | MediaFolder)[] {
+  return items
+    .filter((item) => !isPathDeleted(item.path, deleted))
+    .map((item) => (item.type === "folder" ? { ...item, children: filterDeletedFromTree(item.children, deleted) } : item));
+}
+
 export async function GET() {
   if (!(await getSession())) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const [localTree, blobTree] = await Promise.all([
+  const [localTree, blobTree, deletedPaths] = await Promise.all([
     Promise.resolve(scanDir(IMPORTS_DIR)),
     scanBlob(),
+    getDeletedPaths(),
   ]);
-  return Response.json({ tree: mergeTrees(localTree, blobTree) });
+  const filteredLocalTree = filterDeletedFromTree(localTree, deletedPaths);
+  return Response.json({ tree: mergeTrees(filteredLocalTree, blobTree) });
 }
 
 function formatBytes(bytes: number): string {
@@ -389,10 +401,12 @@ export async function DELETE(request: Request) {
       return Response.json({ error: "Invalid path" }, { status: 400 });
     }
 
-    // Local: best-effort. A real permission/read-only failure (as opposed to "not found here,
-    // it's blob-only") is worth surfacing rather than silently reporting success on a file nothing
-    // actually removed — pre-existing git-committed files can't be deleted on the deployed site's
-    // read-only filesystem at all, and pretending otherwise would just have it reappear on refresh.
+    // Local: best-effort. A real permission/read-only failure means this is a pre-existing,
+    // git-committed file — Vercel's serverless functions have a read-only filesystem, so it can
+    // never actually be unlinked in production, no matter what happens to any Blob copy. That
+    // used to make the route report success while the identical file was still sitting on disk,
+    // silently reappearing in the listing on refresh (scanDir() rediscovers it every time). The
+    // tombstone below is what actually makes delete stick for those — see lib/deletedMedia.ts.
     let localFailure: unknown = null;
     try {
       if (type === "folder") fs.rmSync(fullPath, { recursive: true, force: true });
@@ -401,32 +415,19 @@ export async function DELETE(request: Request) {
       if ((e as NodeJS.ErrnoException)?.code !== "ENOENT") localFailure = e;
     }
 
+    // del() is a no-op (doesn't throw) for a pathname that doesn't exist, so no need to check
+    // first — nothing left here to brach on now that success no longer depends on it.
     const blobPrefix = `${BLOB_PREFIX}/${itemPath}`;
-    let blobDeleted = false;
     try {
       if (type === "folder") {
         const { blobs } = await list({ prefix: `${blobPrefix}/` });
-        if (blobs.length) {
-          await del(blobs.map((b) => b.pathname));
-          blobDeleted = true;
-        }
+        if (blobs.length) await del(blobs.map((b) => b.pathname));
       } else {
-        // del() doesn't throw for a pathname that doesn't exist — it's a no-op, not an
-        // error — so head() first to know whether anything was actually there to delete.
-        // Without this check, a local-only file's failed fs.unlinkSync above would be
-        // masked: del() on the (never-existent) blob path would "succeed" doing nothing,
-        // and blobDeleted would wrongly end up true.
-        await head(blobPrefix);
         await del(blobPrefix);
-        blobDeleted = true;
       }
-    } catch { /* nothing at that path in blob storage either — fine if local succeeded */ }
+    } catch { /* fine either way — local tombstoning below is what actually matters */ }
 
-    if (localFailure && !blobDeleted) {
-      return Response.json({
-        error: "This is one of the site's built-in files and can't be deleted from the live site — remove it from the project repository instead.",
-      }, { status: 500 });
-    }
+    if (localFailure) await markPathDeleted(itemPath, type === "folder");
 
     return Response.json({ success: true });
   } catch (e) {
