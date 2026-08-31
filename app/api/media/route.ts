@@ -160,15 +160,21 @@ async function scanBlob(): Promise<(MediaFile | MediaFolder)[]> {
 }
 
 // Combines the local (pre-existing, git-committed) tree with the blob (newly uploaded) tree
-// into one — folders present in both are merged by name/path rather than shown twice.
+// into one — folders present in both are merged by name/path rather than shown twice. A file
+// migrated to Blob still has its original sitting in public/imports/ (kept there deliberately —
+// see the migration notes) — that local copy is now pure legacy fallback data, not something to
+// browse or manage, so a file present in both at the same relative path shows only its Blob
+// entry (the real, deletable one going forward), never both.
 function mergeTrees(a: (MediaFile | MediaFolder)[], b: (MediaFile | MediaFolder)[]): (MediaFile | MediaFolder)[] {
   const folders = new Map<string, MediaFolder>();
-  const files: MediaFile[] = [];
-  const order: (MediaFile | MediaFolder)[] = [];
+  const folderOrder: MediaFolder[] = [];
+  const filesByPath = new Map<string, MediaFile>();
+  const filePathOrder: string[] = [];
 
   for (const item of [...a, ...b]) {
     if (item.type === "file") {
-      files.push(item);
+      if (!filesByPath.has(item.path)) filePathOrder.push(item.path);
+      filesByPath.set(item.path, item); // last write wins — b (Blob) is processed after a (local)
       continue;
     }
     const existing = folders.get(item.name);
@@ -177,11 +183,11 @@ function mergeTrees(a: (MediaFile | MediaFolder)[], b: (MediaFile | MediaFolder)
     } else {
       const copy: MediaFolder = { type: "folder", name: item.name, path: item.path, children: item.children };
       folders.set(item.name, copy);
-      order.push(copy);
+      folderOrder.push(copy);
     }
   }
-  order.push(...files);
-  return sortEntries(order);
+  const files = filePathOrder.map((p) => filesByPath.get(p)!);
+  return sortEntries([...folderOrder, ...files]);
 }
 
 export async function GET() {
