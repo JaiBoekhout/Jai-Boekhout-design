@@ -320,9 +320,11 @@ function ButtonDialog({ onConfirm, onClose }: { onConfirm: (text: string, url: s
 }
 
 // ── Resizable Image NodeView ───────────────────────────────────────────────
+const IMAGE_ALIGN_MARGIN: Record<string, string> = { left: "12px 0", center: "12px auto", right: "12px 0 12px auto" };
+
 function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewProps) {
-  const { src, alt, width, height } = node.attrs as {
-    src: string; alt?: string; width?: number | null; height?: number | null;
+  const { src, alt, width, height, align } = node.attrs as {
+    src: string; alt?: string; width?: number | null; height?: number | null; align?: string;
   };
 
   const [showPopup, setShowPopup]       = useState(false);
@@ -377,7 +379,7 @@ function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewP
   );
 
   return (
-    <NodeViewWrapper as="div" style={{ display: "inline-block", position: "relative", lineHeight: 0, maxWidth: "100%", margin: "12px 0" }}>
+    <NodeViewWrapper as="div" style={{ display: "inline-block", position: "relative", lineHeight: 0, maxWidth: "100%", margin: IMAGE_ALIGN_MARGIN[align || "left"] || IMAGE_ALIGN_MARGIN.left }}>
       <img
         ref={imgRef}
         src={src}
@@ -446,6 +448,15 @@ function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewP
   );
 }
 
+// Margin baked directly onto the saved <img>'s style attribute (not a class), so the public
+// site's dangerouslySetInnerHTML render needs zero changes to respect it — it just overrides
+// .rte-content img's default symmetric "margin: 12px 0" for whichever side should collapse to 0.
+const IMAGE_ALIGN_STYLE: Record<string, string> = {
+  left: "display:block;margin:12px 0",
+  center: "display:block;margin:12px auto",
+  right: "display:block;margin:12px 0 12px auto",
+};
+
 const ResizableImage = Image.extend({
   addAttributes() {
     return {
@@ -459,6 +470,11 @@ const ResizableImage = Image.extend({
         default: null,
         parseHTML: (el) => { const v = el.getAttribute("height"); return v ? parseInt(v) : null; },
         renderHTML: (attrs) => (attrs.height ? { height: String(attrs.height) } : {}),
+      },
+      align: {
+        default: "left",
+        parseHTML: (el) => el.getAttribute("data-align") || "left",
+        renderHTML: (attrs) => ({ "data-align": attrs.align, style: IMAGE_ALIGN_STYLE[attrs.align as string] || IMAGE_ALIGN_STYLE.left }),
       },
     };
   },
@@ -996,10 +1012,27 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
 
         {/* Row 2 — insert */}
         <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1, paddingTop: 3, borderTop: "1px solid rgba(237,232,223,0.05)" }}>
-          {/* Alignment */}
-          <ToolbarBtn onClick={() => editor.chain().focus().setTextAlign("left").run()} active={editor.isActive({ textAlign: "left" })} title="Align left"><AlignLeft size={12} /></ToolbarBtn>
-          <ToolbarBtn onClick={() => editor.chain().focus().setTextAlign("center").run()} active={editor.isActive({ textAlign: "center" })} title="Align center"><AlignCenter size={12} /></ToolbarBtn>
-          <ToolbarBtn onClick={() => editor.chain().focus().setTextAlign("right").run()} active={editor.isActive({ textAlign: "right" })} title="Align right"><AlignRight size={12} /></ToolbarBtn>
+          {/* Alignment — when an image is selected these align the image itself (updates its own
+              "align" attribute, baked into the saved <img>'s style) instead of the surrounding
+              text, since an image is a block node on its own and setTextAlign has no text block
+              to apply to. */}
+          {(["left", "center", "right"] as const).map((dir) => {
+            const Icon = dir === "left" ? AlignLeft : dir === "center" ? AlignCenter : AlignRight;
+            const isImage = editor.isActive("image");
+            return (
+              <ToolbarBtn
+                key={dir}
+                onClick={() => {
+                  if (isImage) editor.chain().focus().updateAttributes("image", { align: dir }).run();
+                  else editor.chain().focus().setTextAlign(dir).run();
+                }}
+                active={isImage ? editor.isActive("image", { align: dir }) : editor.isActive({ textAlign: dir })}
+                title={isImage ? `Align image ${dir}` : `Align ${dir}`}
+              >
+                <Icon size={12} />
+              </ToolbarBtn>
+            );
+          })}
           <Divider />
 
           {/* Mobile-width preview — constrains the content column to a phone-width viewport so
