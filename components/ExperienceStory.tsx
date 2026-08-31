@@ -313,13 +313,13 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               />
             )}
             {/* Desktop-only: nested directly under the photo (in normal document flow, not a
-                separate grid row) so it sits flush against the photo/caption regardless of how
-                tall the Timeline column happens to be — a sibling grid item in its own row-gap'd
-                row can only ever start after the *entire* row (sized by Timeline) finishes, which
-                left a large gap here whenever Timeline was taller than the photo, empty-caption
-                or not. Mobile keeps its own copy below instead, since there Timeline still needs
-                to sit between the photo and this sidebar. */}
-            <div className={`hidden md:block${cms.portraitCaption ? " mt-10" : ""}`}>{interestsSidebar}</div>
+                separate grid row) so it sits a fixed 60px below the photo/caption regardless of
+                how tall the Timeline column happens to be — a sibling grid item in its own
+                row-gap'd row can only ever start after the *entire* row (sized by Timeline)
+                finishes, which left a large gap here whenever Timeline was taller than the photo.
+                Mobile keeps its own copy below instead, since there Timeline still needs to sit
+                between the photo and this sidebar. */}
+            <div className="hidden md:block mt-[60px]">{interestsSidebar}</div>
           </div>
         )}
 
