@@ -73,7 +73,10 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
     >
       {/* Hero */}
       <div className="px-8 md:px-16 pt-20 pb-16 border-b" style={{ borderColor: "var(--c-border-soft)" }}>
-        <motion.h1
+        {/* Wayfinding label, not a heading — the real page heading is the statement below.
+            (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
+            actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -88,8 +91,8 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           }}
         >
           Path 03 — Process
-        </motion.h1>
-        <motion.h2
+        </motion.p>
+        <motion.h1
           className={content.process.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -105,7 +108,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           dangerouslySetInnerHTML={{ __html: content.process.heroStatement }}
         />
         {content.process.heroStatementMobile && (
-          <motion.h2
+          <motion.h1
             className="block md:hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

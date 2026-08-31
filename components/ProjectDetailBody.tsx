@@ -377,10 +377,12 @@ export function ProjectDetailBody({
           </button>
         </div>
 
-        {/* Title */}
-        <h3 className="lg:pr-[180px] hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
+        {/* Title — the page's real heading (className is a Design-System font-size TIER name,
+            unrelated to the tag itself; see the comment on buildDesignSystemCss in
+            store/contentStore.ts). */}
+        <h1 className="lg:pr-[180px] hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
           {project.name}
-        </h3>
+        </h1>
 
         {/* Client */}
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>
@@ -448,7 +450,7 @@ export function ProjectDetailBody({
               >
                 <FadeInImage
                   src={item.src!}
-                  alt=""
+                  alt={content.mediaMeta?.[item.src!]?.alt || `${project.name} — highlight photo ${k + 1}`}
                   sizes="(min-width: 1024px) 20vw, 33vw"
                   objectPosition={item.pos || "center"}
                   scale={item.scale ?? 1}
