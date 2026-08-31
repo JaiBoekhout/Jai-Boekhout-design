@@ -8,6 +8,77 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
   const { content } = useContentStore();
   const cms = content.story;
 
+  // Rendered in two different spots depending on viewport (see the Profile Image / Sidebar
+  // grid items below) — extracted once so both stay in sync.
+  const interestsSidebar = (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "10px",
+            color: "var(--c-teal)",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            marginBottom: "16px",
+          }}
+        >
+          {cms.interestsHeading || "Outside of Design"}
+        </p>
+        {cms.interests.map((interest, i) => (
+          <div
+            key={interest.label}
+            className="flex flex-col mb-5 pb-5"
+            style={{ borderBottom: i < cms.interests.length - 1 ? "1px solid rgba(237,232,223,0.05)" : "none" }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "17px",
+                color: "var(--c-text)",
+                fontWeight: 400,
+                marginBottom: "4px",
+              }}
+            >
+              {interest.label}
+            </span>
+            <div
+              className="rte-content"
+              style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
+              dangerouslySetInnerHTML={{ __html: interest.detail }}
+            />
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Quote */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.9 }}
+        className="mt-6 p-5 rounded-xl"
+        style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
+      >
+        <div
+          className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
+          style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
+          dangerouslySetInnerHTML={{ __html: cms.closingQuote }}
+        />
+        {cms.closingQuoteMobile && (
+          <div
+            className="rte-content rte-quote block md:hidden"
+            style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
+            dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
+          />
+        )}
+      </motion.div>
+    </>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -203,12 +274,9 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         {/* Profile Image — a separate grid item (not nested in the Interests sidebar below) so
             it can be independently reordered: order-first puts it above the Timeline/"The
             Journey" section on mobile, while md:order-none + explicit column/row placement
-            restores its normal spot above Interests in the desktop sidebar column. Only on
-            desktop is Interests actually positioned directly below this (on mobile Timeline
-            sits between them regardless) — with no caption to fill the gap, tighten that
-            md:mb-10 down to 30px so Interests doesn't look disconnected from the photo. */}
+            restores its normal spot above Interests in the desktop sidebar column. */}
         {cms.portraitImageUrl && (
-          <div className={`order-first md:order-none md:col-start-4 md:col-span-2 md:row-start-1 mb-10${cms.portraitCaption ? "" : " md:mb-[30px]"}`}>
+          <div className="order-first md:order-none md:col-start-4 md:col-span-2 md:row-start-1 mb-10">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -244,76 +312,20 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                 dangerouslySetInnerHTML={{ __html: cms.portraitCaptionMobile }}
               />
             )}
+            {/* Desktop-only: nested directly under the photo (in normal document flow, not a
+                separate grid row) so it sits flush against the photo/caption regardless of how
+                tall the Timeline column happens to be — a sibling grid item in its own row-gap'd
+                row can only ever start after the *entire* row (sized by Timeline) finishes, which
+                left a large gap here whenever Timeline was taller than the photo, empty-caption
+                or not. Mobile keeps its own copy below instead, since there Timeline still needs
+                to sit between the photo and this sidebar. */}
+            <div className={`hidden md:block${cms.portraitCaption ? " mt-10" : ""}`}>{interestsSidebar}</div>
           </div>
         )}
 
-        {/* Sidebar: Interests */}
-        <div className="md:col-start-4 md:col-span-2">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-          >
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: "var(--c-teal)",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                marginBottom: "16px",
-              }}
-            >
-              {cms.interestsHeading || "Outside of Design"}
-            </p>
-            {cms.interests.map((interest, i) => (
-              <div
-                key={interest.label}
-                className="flex flex-col mb-5 pb-5"
-                style={{ borderBottom: i < cms.interests.length - 1 ? "1px solid rgba(237,232,223,0.05)" : "none" }}
-              >
-                <span
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "17px",
-                    color: "var(--c-text)",
-                    fontWeight: 400,
-                    marginBottom: "4px",
-                  }}
-                >
-                  {interest.label}
-                </span>
-                <div
-                  className="rte-content"
-                  style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
-                  dangerouslySetInnerHTML={{ __html: interest.detail }}
-                />
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Quote */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="mt-6 p-5 rounded-xl"
-            style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
-          >
-            <div
-              className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
-              style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
-              dangerouslySetInnerHTML={{ __html: cms.closingQuote }}
-            />
-            {cms.closingQuoteMobile && (
-              <div
-                className="rte-content rte-quote block md:hidden"
-                style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
-                dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
-              />
-            )}
-          </motion.div>
-        </div>
+        {/* Sidebar: Interests — mobile-only when a portrait exists (desktop copy lives nested
+            under the photo above); the only copy at all when there's no portrait. */}
+        <div className={`md:col-start-4 md:col-span-2${cms.portraitImageUrl ? " md:hidden" : ""}`}>{interestsSidebar}</div>
       </div>
       <PathCTA currentPath="story" onNavigate={onNavigate} />
     </motion.div>
