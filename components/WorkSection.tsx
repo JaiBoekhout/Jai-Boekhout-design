@@ -1289,6 +1289,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
               })()}
 
               <RichTextEditor label="Summary" value={cs.summary} onChange={(v) => updateCase(cs.id, { summary: v })} />
+              <CMSTextarea
+                label="SEO Meta Description (optional — under ~155 characters; falls back to the linked project's own description if left blank)"
+                value={cs.metaDescription || ""}
+                onChange={(v) => updateCase(cs.id, { metaDescription: v || undefined })}
+                rows={2}
+              />
 
               <LinkedProjectField cs={cs} allCaseStudies={data.caseStudies} projects={data.projects} onLink={(projectId) => setLinkedProject(cs.id, projectId)} />
 
@@ -1648,6 +1654,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                 })()}
 
                 <RichTextEditor label="Summary" value={cs.summary} onChange={(v) => updateCase(cs.id, { summary: v })} />
+                <CMSTextarea
+                  label="SEO Meta Description (optional — under ~155 characters; falls back to the linked project's own description if left blank)"
+                  value={cs.metaDescription || ""}
+                  onChange={(v) => updateCase(cs.id, { metaDescription: v || undefined })}
+                  rows={2}
+                />
 
                 <LinkedProjectField cs={cs} allCaseStudies={data.caseStudies} projects={data.projects} onLink={(projectId) => setLinkedProject(cs.id, projectId)} />
 
@@ -1917,6 +1929,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                 </div>
                 <CMSSlugInput label="URL Path" value={p.slug || ""} fallback={p.id} onChange={(v) => updateProject(p.id, { slug: v || undefined })} />
                 <RichTextEditor label="Description" value={p.desc} onChange={(v) => updateProject(p.id, { desc: v })} />
+                <CMSTextarea
+                  label="SEO Meta Description (optional — under ~155 characters, complete sentence; falls back to an auto-truncated Description above if left blank)"
+                  value={p.metaDescription || ""}
+                  onChange={(v) => updateProject(p.id, { metaDescription: v || undefined })}
+                  rows={2}
+                />
 
                 {(() => {
                   const autoMatch = resolveLinkedCaseStudy({ ...p, linkedCaseStudyId: undefined }, data.caseStudies);

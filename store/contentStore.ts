@@ -133,6 +133,10 @@ export interface CMSCaseStudy {
   // employer/agency (as opposed to `client`, which is that company's own client).
   companyId?: string;
   summary: string;
+  // Optional — the case-study page's <meta name="description"> falls back to the linked
+  // project's own metaDescription/desc when unset. Set this whenever the case-study page should
+  // read differently from its parent project page rather than duplicating it word-for-word.
+  metaDescription?: string;
   status?: "published" | "saved" | "updated" | "unpublished";
   createdAt?: string;
   updatedAt?: string;
@@ -194,6 +198,10 @@ export interface CMSProject {
   linkedCaseStudyId?: number;
   tags: string[];
   desc: string;
+  // Optional — the project detail page's <meta name="description"> falls back to an
+  // auto-truncated `desc` when unset. Lets a hand-written, complete-sentence description be set
+  // per project instead of relying on truncation always landing at a clean word boundary.
+  metaDescription?: string;
   outcomes: string[];
   imgs: string[];
   coverImageUrl?: string;
@@ -1513,6 +1521,7 @@ function caseStudyToProject(cs: CMSCaseStudy): CMSProject {
     companyId: cs.companyId,
     tags: cs.tags || [],
     desc: cs.summary || "",
+    metaDescription: cs.metaDescription,
     outcomes: cs.outcomes || [],
     imgs: ["", cs.img1Url || "", cs.img2Url || "", cs.img3Url || ""],
     coverImageUrl: cs.coverImageUrl,

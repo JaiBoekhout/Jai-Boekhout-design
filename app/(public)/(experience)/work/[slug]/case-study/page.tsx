@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getPublishedProjects, getPublishedProjectBySlug,
-  projectHasLiveCaseStudy, projectUrlSlug,
+  projectHasLiveCaseStudy, projectUrlSlug, resolveLinkedCaseStudy,
 } from "@/store/contentStore";
 import { getContent } from "@/store/serverContent";
-import { stripHtml, truncateAtWord } from "@/lib/utils";
+import { stripHtml, truncateAtWord, breadcrumbJsonLd } from "@/lib/utils";
 import { CaseStudyPageView } from "@/components/CaseStudyPageView";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
 
 export async function generateStaticParams() {
   const content = await getContent();
@@ -21,9 +23,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const project = getPublishedProjectBySlug(content, slug);
   if (!project || !projectHasLiveCaseStudy(project, content.work.caseStudies)) return {};
   const image = project.fullCaseStudyBannerUrl ?? project.heroImageUrl ?? project.imgs[0];
+  const linkedCaseStudy = resolveLinkedCaseStudy(project, content.work.caseStudies);
+  const description =
+    linkedCaseStudy?.metaDescription ||
+    project.metaDescription ||
+    truncateAtWord(stripHtml(project.desc), 155);
   return {
     title: `${project.name} — Case Study`,
-    description: truncateAtWord(stripHtml(project.desc), 155),
+    description,
     alternates: { canonical: `/work/${slug}/case-study` },
     openGraph: image ? { images: [image] } : undefined,
     // A locked case study still gets a real, rendering page (the password gate itself is a
@@ -38,5 +45,16 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const content = await getContent();
   const project = getPublishedProjectBySlug(content, slug);
   if (!project || !projectHasLiveCaseStudy(project, content.work.caseStudies)) notFound();
-  return <CaseStudyPageView slug={slug} />;
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Home", url: SITE_URL },
+    { name: "Work", url: `${SITE_URL}/work` },
+    { name: project.name, url: `${SITE_URL}/work/${slug}` },
+    { name: "Case Study", url: `${SITE_URL}/work/${slug}/case-study` },
+  ]);
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <CaseStudyPageView slug={slug} />
+    </>
+  );
 }
