@@ -859,6 +859,11 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             </div>
           </div>
           <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
+          <div className="grid grid-cols-2 gap-2">
+            <CMSInput label="Role (optional)" value={t.role ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], role: v }; onChange({ ...data, testimonials: ts }); }} />
+            <CMSInput label="Company (optional)" value={t.company ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], company: v }; onChange({ ...data, testimonials: ts }); }} />
+          </div>
+          <CMSInput label="LinkedIn URL (optional — shows an icon next to the name only if set)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
           <RichTextEditor label="Quote" value={t.quote} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }} />
           <CMSChipEditor label="Highlights" items={t.highlights} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], highlights: v }; onChange({ ...data, testimonials: ts }); }} />
         </CMSCard>

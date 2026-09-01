@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Download } from "lucide-react";
+import { FaLinkedin } from "react-icons/fa6";
 import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
 import type { CMSProject } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
@@ -684,8 +685,16 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   }}
                   dangerouslySetInnerHTML={{ __html: t.quote }}
                 />
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", marginBottom: "12px" }}>
-                  — {t.name}
+                <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", marginBottom: "12px" }}>
+                  <span>
+                    — {t.name}
+                    {(t.role || t.company) && `, ${[t.role, t.company && `at ${t.company}`].filter(Boolean).join(" ")}`}
+                  </span>
+                  {t.linkedInUrl && (
+                    <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
+                      <FaLinkedin size={13} />
+                    </a>
+                  )}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {t.highlights.map((h, hi) => (

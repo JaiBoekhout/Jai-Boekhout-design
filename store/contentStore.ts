@@ -318,6 +318,12 @@ export interface CMSTestimonial {
   name: string;
   quote: string;
   highlights: string[];
+  // All optional — attribution reads fine with just a name, these just make it stronger where
+  // available. linkedInUrl only ever shows an icon when actually set (see ExperienceRecruiter.tsx),
+  // never a placeholder for testimonials that don't have one.
+  role?: string;
+  company?: string;
+  linkedInUrl?: string;
 }
 
 export interface CMSClient {
