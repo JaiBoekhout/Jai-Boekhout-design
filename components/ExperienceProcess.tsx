@@ -99,7 +99,11 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           transition={{ delay: 0.3, duration: 0.6 }}
           style={{
             fontFamily: "var(--font-heading)",
-            fontSize: "clamp(32px, 5vw, 64px)",
+            // Not the actual rendered size (every span in this rich-text field carries its own
+            // explicit font-size) — small and neutral so it never inflates the invisible per-line
+            // "strut" CSS reserves for a line whose real content is smaller than this. See the
+            // matching comment in ExperienceWork.tsx for the full explanation.
+            fontSize: "16px",
             color: "var(--c-text)",
             lineHeight: 1.1,
             fontWeight: 400,

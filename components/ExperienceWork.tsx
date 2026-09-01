@@ -79,7 +79,15 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
           transition={{ delay: 0.3, duration: 0.6 }}
           style={{
             fontFamily: "var(--font-heading)",
-            fontSize: "clamp(32px, 5vw, 64px)",
+            // Not the actual rendered size — every character of this field's rich-text content
+            // always carries its own explicit font-size span, so this only sets the size of the
+            // invisible per-line "strut" CSS reserves based on the container's own font/line-
+            // height. Left at 64px, a line containing only a smaller trailing span (typed as one
+            // paragraph with a manual line break, e.g. a shorter sub-line after the headline)
+            // still reserved a 64px-tall line box, leaving a visible gap above that smaller text
+            // the CMS editor's own (much smaller-bodied) preview never reproduced. Small and
+            // neutral instead, so the strut never exceeds what any real content needs.
+            fontSize: "16px",
             color: "var(--c-text)",
             lineHeight: 1.1,
             fontWeight: 400,

@@ -167,7 +167,11 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
           style={{
             fontFamily: "var(--font-heading)",
-            fontSize: "clamp(52px, 8vw, 96px)",
+            // Not the actual rendered size (every span in this rich-text field carries its own
+            // explicit font-size) — small and neutral so it never inflates the invisible per-line
+            // "strut" CSS reserves for a line whose real content is smaller than this. See the
+            // matching comment in ExperienceWork.tsx.
+            fontSize: "16px",
             color: "var(--foreground)",
             lineHeight: 1.05,
             fontWeight: 400,

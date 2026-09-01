@@ -195,7 +195,11 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 transition={{ delay: 0.3, duration: 0.6 }}
                 style={{
                   fontFamily: "var(--font-heading)",
-                  fontSize: "clamp(28px, 4.5vw, 58px)",
+                  // Not the actual rendered size (every span in this rich-text field carries its
+                  // own explicit font-size) — small and neutral so it never inflates the
+                  // invisible per-line "strut" CSS reserves for a line whose real content is
+                  // smaller than this. See the matching comment in ExperienceWork.tsx.
+                  fontSize: "16px",
                   color: "var(--c-text)",
                   lineHeight: 1.1,
                   fontWeight: 400,
