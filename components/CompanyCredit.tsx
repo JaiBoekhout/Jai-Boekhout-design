@@ -94,7 +94,7 @@ export function CompanyCredit({
       <div style={{ display: "flex", alignItems: "center", gap: 9, fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--c-text)" }}>
         {company.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={company.logoUrl} alt="" style={{ height: 25.5, width: "auto", maxWidth: 114, objectFit: "contain" }} />
+          <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 25.5, width: "auto", maxWidth: 114, objectFit: "contain" }} />
         )}
         <span>Created while working at {company.name}</span>
         <button
