@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const image = project.heroImageUrl ?? project.coverImageUrl ?? project.imgs[0];
   return {
     title: project.name,
-    description: truncateAtWord(stripHtml(project.desc), 160),
+    description: truncateAtWord(stripHtml(project.desc), 155),
     alternates: { canonical: `/work/${slug}` },
     openGraph: image ? { images: [image] } : undefined,
   };

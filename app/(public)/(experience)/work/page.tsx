@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { getContent } from "@/store/serverContent";
-import { stripHtml, truncateAtWord } from "@/lib/utils";
 import { ExperiencePage } from "@/components/ExperiencePage";
 import { ExperienceWork } from "@/components/ExperienceWork";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const content = await getContent();
-  return {
-    title: "Work",
-    description: truncateAtWord(stripHtml(content.work.heroStatement), 160),
-    alternates: { canonical: "/work" },
-  };
-}
+export const metadata: Metadata = {
+  title: "Work",
+  description:
+    "UX and product design case studies by Jai Boekhout — spanning brand identity, UX and full-stack build, each grounded in solving the right problem first.",
+  alternates: { canonical: "/work" },
+};
 
 export default function WorkPage() {
   return <ExperiencePage Component={ExperienceWork} />;

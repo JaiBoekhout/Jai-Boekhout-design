@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const image = project.fullCaseStudyBannerUrl ?? project.heroImageUrl ?? project.imgs[0];
   return {
     title: `${project.name} — Case Study`,
-    description: truncateAtWord(stripHtml(project.desc), 160),
+    description: truncateAtWord(stripHtml(project.desc), 155),
     alternates: { canonical: `/work/${slug}/case-study` },
     openGraph: image ? { images: [image] } : undefined,
     // A locked case study still gets a real, rendering page (the password gate itself is a
