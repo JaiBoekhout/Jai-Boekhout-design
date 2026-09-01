@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { ArrowLeftRight } from "lucide-react";
 import { PATH_DISPLAY_NAMES, type PathKey } from "@/lib/paths";
+import { useHideOnScroll } from "@/store/useHideOnScroll";
 
 interface PathSwitcherProps {
   selectedPath: string;
@@ -11,13 +12,20 @@ interface PathSwitcherProps {
 
 export function PathSwitcher({ selectedPath, onSwitch }: PathSwitcherProps) {
   const label = PATH_DISPLAY_NAMES[selectedPath as PathKey] ?? "";
+  // Fixed to the viewport bottom, so with no scroll-awareness it permanently sat on top of
+  // whatever page content happened to land there — stat cards on /work, an accordion section's
+  // own heading on /process, both genuinely covered and unreadable underneath it. Same
+  // hide-on-scroll-down/show-on-scroll-up behavior the top bar already uses, so it's out of the
+  // way while actively reading and back the moment the user scrolls up to switch paths.
+  const hidden = useHideOnScroll();
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, x: "-50%" }}
-      animate={{ opacity: 1, y: 0, x: "-50%" }}
+      animate={{ opacity: hidden ? 0 : 1, y: hidden ? 40 : 0, x: "-50%" }}
       exit={{ opacity: 0, y: 20, x: "-50%" }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      style={{ pointerEvents: hidden ? "none" : "auto" }}
       className="fixed bottom-8 left-1/2 z-50"
     >
       <div
