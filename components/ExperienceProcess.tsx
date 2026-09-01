@@ -241,7 +241,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                       {"0" + (i + 1)}
                     </span>
                     <div>
-                      <h3
+                      <h2
                         style={{
                           fontFamily: "var(--font-heading)",
                           fontSize: "20px",
@@ -250,7 +250,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                         }}
                       >
                         {step.title}
-                      </h3>
+                      </h2>
                       <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                         {step.tagline}
                       </p>

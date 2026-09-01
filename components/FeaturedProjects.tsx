@@ -174,7 +174,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               {p && (
                 <div className="absolute left-5 right-5 bottom-5" style={{ zIndex: 2, pointerEvents: "none" }}>
                   {/* Name — 2-line clamp so a long title can never overflow the fixed-aspect card */}
-                  <div style={{
+                  <h2 style={{
                     fontFamily: "var(--font-heading)",
                     fontSize: 17,
                     fontWeight: 500,
@@ -188,7 +188,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     overflow: "hidden",
                   }}>
                     {p.name}
-                  </div>
+                  </h2>
 
                   {/* Description — 2-line clamp */}
                   <div style={{
@@ -326,12 +326,12 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em", color: TEAL, textTransform: "uppercase", marginBottom: 5 }}>
                           {p.tags[0]}
                         </div>
-                        <div style={{
+                        <h2 style={{
                           fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 500, color: TEAL, lineHeight: 1.25,
                           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                         }}>
                           {p.name}
-                        </div>
+                        </h2>
                       </div>
                     </div>
                     <Link href={`/work/${projectUrlSlug(p)}`} aria-label={p.name} className="absolute inset-0" style={{ zIndex: 3, borderRadius: "inherit", cursor: "pointer" }} />
@@ -378,7 +378,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", color: TEAL, marginBottom: 5 }}>
                           {p.tags[0]}
                         </div>
-                        <div style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em", marginBottom: 4, color: TEAL }}>{p.name}</div>
+                        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em", marginBottom: 4, color: TEAL }}>{p.name}</h2>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>{p.client}</div>
                       </div>
                       {/* Arrow — inline here on mobile/tablet; moves to the row's end on desktop */}

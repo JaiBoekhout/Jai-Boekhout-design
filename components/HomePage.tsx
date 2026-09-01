@@ -154,10 +154,13 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
 
       {/* Hero */}
       <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full text-center mt-16 mb-8">
-        {/* Headline — dual-rendered (desktop/mobile toggled by CSS, not JS) once a mobile
-            override exists; the mobile variant drops hero-mobile-h1 since the admin is now
-            hand-authoring this field's mobile look directly, not relying on the global scale. */}
-        <motion.h1
+        {/* Greeting kicker — not the page's heading; the descriptive tagline below it is (it's
+            the one line on this page that actually says what the site/person is about, which is
+            what search engines and screen-reader users should land on first). Dual-rendered
+            (desktop/mobile toggled by CSS, not JS) once a mobile override exists; the mobile
+            variant drops hero-mobile-h1 since the admin is now hand-authoring this field's
+            mobile look directly, not relying on the global scale. */}
+        <motion.p
           className={home.headlineMobile ? "hidden md:block hero-mobile-h1" : "hero-mobile-h1"}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -173,7 +176,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           dangerouslySetInnerHTML={{ __html: home.headline }}
         />
         {home.headlineMobile && (
-          <motion.h1
+          <motion.p
             className="block md:hidden"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -190,7 +193,9 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           />
         )}
 
-        <motion.p
+        {/* The page's one real <h1> — the descriptive tagline, not the "Hi, I'm Jai." greeting
+            above it. */}
+        <motion.h1
           className={home.subheadlineMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,7 +210,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
           dangerouslySetInnerHTML={{ __html: home.subheadline }}
         />
         {home.subheadlineMobile && (
-          <motion.p
+          <motion.h1
             className="block md:hidden"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -311,7 +316,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
               </span>
 
               {/* Question */}
-              <h3
+              <h2
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontSize: "clamp(16px, 1.5vw, 20px)",
@@ -326,7 +331,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
               />
 
               {/* Swappable: description ↔ hover label */}
-              <div style={{ position: "relative", minHeight: "44px", marginBottom: "20px" }}>
+              <div style={{ position: "relative", minHeight: "44px", marginBottom: "8px" }}>
                 <AnimatePresence mode="wait" initial={false}>
                   {isHovered ? (
                     <motion.p

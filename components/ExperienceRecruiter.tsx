@@ -234,9 +234,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           style={{ borderColor: "var(--c-border-soft)" }}
         >
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
+            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
               {cms.bioHeading || "About Me"}
-            </p>
+            </h2>
             <div
               className={cms.bioMobile ? "rte-content hidden md:block" : "rte-content"}
               style={{ fontSize: "16px", color: "var(--c-text-body)" }}
@@ -251,9 +251,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             )}
           </div>
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
+            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
               {cms.industriesHeading || "Industries"}
-            </p>
+            </h2>
             <div className="flex flex-wrap gap-2 mb-10">
               {cms.industries.map((ind) => (
                 <span
@@ -353,9 +353,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
+          <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.experienceHeading || "Professional Experience"}
-          </p>
+          </h2>
           <div className="flex flex-col gap-3">
             {cms.experience.map((job, i) => (
               <div
@@ -530,9 +530,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)" }}
         >
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
+          <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.skillsHeading || "Core Strengths"}
-          </p>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {cms.skills.map((group) => (
               <div
@@ -540,9 +540,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 className="text-left rounded-xl p-5"
                 style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
               >
-                <p style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400, marginBottom: "10px" }}>
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400, marginBottom: "10px" }}>
                   {group.title}
-                </p>
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {group.skills.map((skill, si) => (
                     <span
@@ -584,9 +584,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
+          <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.qualificationsHeading || "Education & Qualifications"}
-          </p>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {cms.qualifications.map((q, i) => (
               <div
@@ -607,9 +607,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-3" style={{ marginBottom: "6px" }}>
-                  <p style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
+                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
                     {q.title}
-                  </p>
+                  </h3>
                   {!q.org && q.year && (
                     <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {q.year}
