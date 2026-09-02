@@ -268,6 +268,10 @@ export interface CMSStat {
   // Optional icon (a key into STAT_ICON_MAP, lib/statIcons.ts) shown next to this stat
   // wherever it's rendered — the At a Glance list and the Work-page stats bar both use it.
   icon?: string;
+  // When set, the public site ignores `value` and computes a live number instead — see
+  // computeAutoStatValue/resolveStatValue below. Undefined means "custom" (use `value` as
+  // authored, the original/default behaviour).
+  autoSource?: "testimonials" | "qualifications" | "experienceYears";
 }
 
 export interface CMSSkillGroup {
@@ -286,6 +290,10 @@ export interface CMSExperienceProjectRef {
 export interface CMSExperience {
   org: string;
   period: string;
+  // Free text (not parsed from `period`, which is often a loose/overlapping range) so the admin
+  // can assign each entry whatever number of years should actually count toward the At a
+  // Glance "experienceYears" auto stat — see computeAutoStatValue below.
+  yearsOfExperience?: string;
   role: string;
   highlights: string[];
   tags: string[];
@@ -1676,6 +1684,23 @@ export function resolveViewMore<T extends ViewMoreCandidate>(
   }
 
   return result;
+}
+
+// A stat's live computed number when its Value is set to "Auto" instead of a custom string —
+// "testimonials"/"qualifications" are simple counts of those CMS lists; "experienceYears" sums
+// each Professional Experience entry's own yearsOfExperience field (deliberately NOT parsed from
+// the free-text `period` range, since those often overlap between entries — the admin assigns
+// whatever number should actually count for each one). Shared by the At a Glance section and the
+// Work-page stats bar (via resolveStatValue) so both always agree on the number.
+export function computeAutoStatValue(source: NonNullable<CMSStat["autoSource"]>, ev: CMSEvaluate): string {
+  if (source === "testimonials") return String(ev.testimonials.length);
+  if (source === "qualifications") return String(ev.qualifications.length);
+  const total = ev.experience.reduce((sum, e) => sum + (parseFloat(e.yearsOfExperience ?? "") || 0), 0);
+  return Number.isInteger(total) ? String(total) : total.toFixed(1);
+}
+
+export function resolveStatValue(stat: CMSStat, ev: CMSEvaluate): string {
+  return stat.autoSource ? computeAutoStatValue(stat.autoSource, ev) : stat.value;
 }
 
 // Resolves the Work-page stats bar's configured slots into real CMSStat objects from

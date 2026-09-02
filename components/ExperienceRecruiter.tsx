@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Download } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
-import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
+import { useContentStore, resolveExperienceProjects, projectUrlSlug, resolveStatValue } from "@/store/contentStore";
 import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { ClientsSlider } from "@/components/ClientsSlider";
@@ -317,7 +317,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {cms.statsHeading || "At a Glance"}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-              {cms.stats.map(({ id, value, label, sub, icon }) => {
+              {cms.stats.map((stat) => {
+                const { id, label, sub, icon } = stat;
+                const value = resolveStatValue(stat, cms);
                 // Keyed by the stat's stable id, not its (admin-editable) label — "countries"
                 // started life as "Countries Worked In" and is now relabeled "Testimonials" on
                 // the live site, which would have silently broken a label-based match. Every

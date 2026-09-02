@@ -8,7 +8,8 @@ import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor"
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
 import { STAT_ICON_OPTIONS } from "@/lib/statIcons";
-import type { CMSEvaluate, CMSClient, CMSCompany, CMSProject, CMSExperience } from "@/store/contentStore";
+import type { CMSEvaluate, CMSClient, CMSCompany, CMSProject, CMSExperience, CMSStat } from "@/store/contentStore";
+import { computeAutoStatValue } from "@/store/contentStore";
 
 interface Props {
   data: CMSEvaluate;
@@ -438,7 +439,53 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             </div>
           </div>
           <div className="flex flex-col">
-            <CMSInput label="Value" value={stat.value} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], value: v }; onChange({ ...data, stats: s }); }} />
+            <div className="mb-4">
+              <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
+                Value
+              </label>
+              <div className="flex gap-2 mb-2">
+                {([{ v: false, l: "Custom" }, { v: true, l: "Auto" }] as { v: boolean; l: string }[]).map((opt) => {
+                  const active = !!stat.autoSource === opt.v;
+                  return (
+                    <button
+                      key={opt.l}
+                      onClick={() => {
+                        const s = [...data.stats];
+                        s[i] = { ...s[i], autoSource: opt.v ? (s[i].autoSource ?? "testimonials") : undefined };
+                        onChange({ ...data, stats: s });
+                      }}
+                      style={{
+                        fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.04em",
+                        padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                        background: active ? "#14ADB5" : "rgba(237,232,223,0.04)",
+                        border: `1px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.1)"}`,
+                        color: active ? "#0C1119" : "#EDE8DF",
+                      }}
+                    >
+                      {opt.l}
+                    </button>
+                  );
+                })}
+              </div>
+              {stat.autoSource ? (
+                <>
+                  <select
+                    value={stat.autoSource}
+                    onChange={(e) => { const s = [...data.stats]; s[i] = { ...s[i], autoSource: e.target.value as CMSStat["autoSource"] }; onChange({ ...data, stats: s }); }}
+                    style={{ width: "100%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 8, padding: "10px 14px", fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#EDE8DF", fontWeight: 300, outline: "none", ...selectArrowStyle }}
+                  >
+                    <option value="testimonials">Testimonials (count)</option>
+                    <option value="qualifications">Qualifications (count)</option>
+                    <option value="experienceYears">Professional Experience (years, summed)</option>
+                  </select>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#6B7E8A", marginTop: "8px" }}>
+                    Currently shows <span style={{ color: "#14ADB5" }}>{computeAutoStatValue(stat.autoSource, data)}</span> — updates automatically as {stat.autoSource === "testimonials" ? "testimonials are added or removed" : stat.autoSource === "qualifications" ? "qualifications are added or removed" : "Years of Experience values change below"}.
+                  </p>
+                </>
+              ) : (
+                <CMSInput label="" value={stat.value} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], value: v }; onChange({ ...data, stats: s }); }} />
+              )}
+            </div>
             <CMSInput label="Label" value={stat.label} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], label: v }; onChange({ ...data, stats: s }); }} />
             <CMSInput label="Sub-label (opt)" value={stat.sub || ""} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], sub: v || undefined }; onChange({ ...data, stats: s }); }} />
           </div>
@@ -708,6 +755,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
               <CMSInput label="Organisation" value={exp.org} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], org: v }; onChange({ ...data, experience: e }); }} />
               <CMSInput label="Period" value={exp.period} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], period: v }; onChange({ ...data, experience: e }); }} />
+              <CMSInput label="Years of Experience (optional — used by At a Glance's Auto value, summed across every entry)" value={exp.yearsOfExperience ?? ""} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], yearsOfExperience: v || undefined }; onChange({ ...data, experience: e }); }} />
               <CMSInput label="Role" value={exp.role} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], role: v }; onChange({ ...data, experience: e }); }} />
               <RichTextEditor label="Description (optional)" value={exp.description ?? ""} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], description: v || undefined }; onChange({ ...data, experience: e }); }} />
               <CMSArrayEditor label="Highlights" items={exp.highlights} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], highlights: v }; onChange({ ...data, experience: e }); }} />

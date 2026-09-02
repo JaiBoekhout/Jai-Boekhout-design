@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { PathCTA } from "@/components/PathCTA";
 import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { ClientsSlider } from "@/components/ClientsSlider";
-import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy } from "@/store/contentStore";
+import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy, resolveStatValue } from "@/store/contentStore";
 import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
 // Same 3 stat ids Evaluate's own "At a Glance" cards make clickable there (the rest are purely
@@ -157,7 +157,9 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
           transition={{ delay: 0.65, duration: 0.5 }}
           className={`mx-8 md:mx-16 mt-14 grid grid-cols-2 md:grid-cols-3 gap-2.5 ${STATS_LG_COLS[homeStats.length] ?? STATS_LG_COLS[3]}`}
         >
-          {homeStats.map(({ id, value, label, sub, icon }) => {
+          {homeStats.map((stat) => {
+            const { id, label, sub, icon } = stat;
+            const value = resolveStatValue(stat, content.evaluate);
             const anchor = STAT_ID_TO_EVALUATE_ANCHOR[id];
             const isClickable = !!anchor;
             const handleActivate = () => onNavigate("recruit", undefined, anchor);
