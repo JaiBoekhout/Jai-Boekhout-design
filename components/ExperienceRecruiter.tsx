@@ -716,6 +716,44 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </div>
               </div>
             ))}
+
+            {/* A fact about what Jai was trusted to do, not a quote from someone else — same
+                card treatment as the testimonials above for visual consistency, but deliberately
+                without the "— Name" attribution line so it never reads as a quote from a named
+                person. One-off/hardcoded rather than a CMS field: a single credential, not a
+                repeating content type. */}
+            <div
+              className="rounded-xl p-6"
+              style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
+            >
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
+                Guest Research Lead — Annosky College Tour
+              </p>
+              <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
+                500+ students. Multiple colleges across the Netherlands. Real behaviour, not internal assumptions.
+              </p>
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}>
+                I was the one Annosky sent out to run usability testing and present the apps directly to the people using them — advocating for that testing before launch changed several of the team&apos;s core design decisions.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["Research", "Public Speaking", "Field Testing"].map((h) => (
+                  <span
+                    key={h}
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: "11px",
+                      color: "var(--c-teal)",
+                      border: "1px solid rgba(20,173,181,0.2)",
+                      borderRadius: "8px",
+                      padding: "3px 10px",
+                      background: "rgba(20,173,181,0.05)",
+                    }}
+                  >
+                    {h}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </motion.div>
 
