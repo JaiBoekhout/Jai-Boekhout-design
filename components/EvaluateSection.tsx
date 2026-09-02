@@ -819,7 +819,8 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
 
       <CMSSectionHeading>Testimonials</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.testimonialsHeading ?? "Why Teams Like Working With Me"} onChange={(v) => onChange({ ...data, testimonialsHeading: v })} />
-      {data.testimonials.map((t, i) => (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
+        {data.testimonials.map((t, i) => (
         <CMSCard key={i} style={testimonialsDrag.cardStyle(i)} {...testimonialsDrag.dropTargetProps(i)}>
           <div className="flex items-center justify-between gap-1 mb-2">
             <DragHandle {...testimonialsDrag.dragHandleProps(i)} />
@@ -859,18 +860,26 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
-            <CMSInput label="LinkedIn URL (optional — shows an icon next to the name only if set)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <CMSInput label="Role (optional)" value={t.role ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], role: v }; onChange({ ...data, testimonials: ts }); }} />
-            <CMSInput label="Company (optional)" value={t.company ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], company: v }; onChange({ ...data, testimonials: ts }); }} />
-          </div>
-          <RichTextEditor label="Quote" value={t.quote} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }} />
+          <CMSInput label="Eyebrow (optional — set this for a credential-style card, e.g. a research or speaking credit, instead of a quote)" value={t.eyebrow ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], eyebrow: v }; onChange({ ...data, testimonials: ts }); }} />
+          {t.eyebrow ? (
+            <CMSInput label="Headline" value={t.headline ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], headline: v }; onChange({ ...data, testimonials: ts }); }} />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
+                <CMSInput label="LinkedIn URL (optional — shows an icon next to the name only if set)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <CMSInput label="Role (optional)" value={t.role ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], role: v }; onChange({ ...data, testimonials: ts }); }} />
+                <CMSInput label="Company (optional)" value={t.company ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], company: v }; onChange({ ...data, testimonials: ts }); }} />
+              </div>
+            </>
+          )}
+          <RichTextEditor label={t.eyebrow ? "Body" : "Quote"} value={t.quote} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }} />
           <CMSChipEditor label="Highlights" items={t.highlights} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], highlights: v }; onChange({ ...data, testimonials: ts }); }} />
         </CMSCard>
-      ))}
+        ))}
+      </div>
       <button
         onClick={() => onChange({ ...data, testimonials: [...data.testimonials, { name: "New Testimonial", quote: "", highlights: [] }] })}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
@@ -892,6 +901,47 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       </div>
 
       <CMSInput label="Section Heading (public page)" value={data.faqHeading ?? "Frequently Asked Questions"} onChange={(v) => onChange({ ...data, faqHeading: v })} />
+
+      <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
+        <div>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Columns (larger screens)</p>
+          <div className="flex gap-2">
+            {[1, 2].map((n) => {
+              const active = (data.faqColumns ?? 2) === n;
+              return (
+                <button
+                  key={n}
+                  onClick={() => onChange({ ...data, faqColumns: n })}
+                  style={{
+                    fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.04em",
+                    padding: "8px 14px", borderRadius: 8, cursor: "pointer",
+                    background: active ? "#14ADB5" : "rgba(237,232,223,0.04)",
+                    border: `1px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.1)"}`,
+                    color: active ? "#0C1117" : "#EDE8DF",
+                  }}
+                >
+                  {n} column{n > 1 ? "s" : ""}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Rows to show</p>
+          <select
+            value={data.faqRows ?? 3}
+            onChange={(e) => onChange({ ...data, faqRows: parseInt(e.target.value) })}
+            style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 8, padding: "8px 10px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none", cursor: "pointer", ...selectArrowStyle }}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>{n} row{n > 1 ? "s" : ""}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#6B7E8A", marginTop: "-2px", marginBottom: "20px", lineHeight: 1.5 }}>
+        Shows {(data.faqColumns ?? 2) * (data.faqRows ?? 3)} question{(data.faqColumns ?? 2) * (data.faqRows ?? 3) > 1 ? "s" : ""} at a time ({data.faqRows ?? 3} row{(data.faqRows ?? 3) > 1 ? "s" : ""} × {data.faqColumns ?? 2} column{(data.faqColumns ?? 2) > 1 ? "s" : ""}). If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
+      </p>
 
       {(data.faqItems ?? []).map((item, i) => (
         <CMSCard key={item.id} style={faqDrag.cardStyle(i)} {...faqDrag.dropTargetProps(i)}>

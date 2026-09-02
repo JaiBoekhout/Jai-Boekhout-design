@@ -16,7 +16,7 @@ import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
 import { Node, Extension, mergeAttributes } from "@tiptap/core";
 import DOMPurify from "dompurify";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Bold, Italic, UnderlineIcon, Strikethrough, Link2, Image as ImageIcon,
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Minus, Undo, Redo,
@@ -25,8 +25,20 @@ import {
   Smartphone,
 } from "lucide-react";
 import { MediaLibraryModal } from "@/components/MediaLibraryModal";
+import { Switch } from "@/components/SiteKit";
+import { useContentStore, getPublishedProjects, projectUrlSlug } from "@/store/contentStore";
 
 const ACCENT = "#14ADB5";
+// Quick-pick shortcuts for the Link/Button dialogs' "internal page" dropdown — the site's fixed
+// top-level routes. Project pages are appended separately at render time (they're CMS content,
+// not static routes, so they can't live in this constant).
+const INTERNAL_PAGES: { path: string; label: string }[] = [
+  { path: "/", label: "Home" },
+  { path: "/work", label: "Work (all projects)" },
+  { path: "/story", label: "Story" },
+  { path: "/process", label: "Process" },
+  { path: "/evaluate", label: "Evaluate" },
+];
 // Steps stay tight (+1) at small sizes where a single px is noticeable, then widen (+2, +4, +8,
 // +16) as sizes grow, since a fixed +1 step would take forever to reach the largest headings —
 // the site's biggest live heading (the homepage hero) renders at up to 96px.
@@ -233,16 +245,58 @@ function Stepper({
 }
 
 // ── Dialogs ────────────────────────────────────────────────────────────────
-function LinkDialog({ onConfirm, onClose }: { onConfirm: (url: string) => void; onClose: () => void }) {
-  const [url, setUrl] = useState("https://");
+// Shared by LinkDialog and ButtonDialog: a dropdown of the site's own pages/projects that fills
+// in the URL field on selection, so linking internally doesn't require knowing/typing the exact
+// path. Purely a convenience on top of the free-text field below it — picking nothing (or an
+// external URL) works exactly as before.
+function InternalPagePicker({ projects, onPick }: { projects: { path: string; label: string }[]; onPick: (path: string) => void }) {
   return (
-    <div className="flex items-center gap-2 p-2 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)" }}>
+    <select
+      value=""
+      onChange={(e) => { if (e.target.value) onPick(e.target.value); e.target.value = ""; }}
+      style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "6px", padding: "6px 8px", color: "#8C9AA3", fontFamily: "'DM Sans', sans-serif", fontSize: "12px", outline: "none", width: "100%" }}
+    >
+      <option value="">Or link to a page on this site…</option>
+      <optgroup label="Pages">
+        {INTERNAL_PAGES.map((p) => <option key={p.path} value={p.path}>{p.label}</option>)}
+      </optgroup>
+      {projects.length > 0 && (
+        <optgroup label="Projects">
+          {projects.map((p) => <option key={p.path} value={p.path}>{p.label}</option>)}
+        </optgroup>
+      )}
+    </select>
+  );
+}
+
+function LinkDialog({
+  initialUrl = "https://",
+  initialNewWindow = false,
+  projects,
+  onConfirm,
+  onClose,
+}: {
+  initialUrl?: string;
+  initialNewWindow?: boolean;
+  projects: { path: string; label: string }[];
+  onConfirm: (url: string, openInNewWindow: boolean) => void;
+  onClose: () => void;
+}) {
+  const [url, setUrl] = useState(initialUrl);
+  const [openInNewWindow, setOpenInNewWindow] = useState(initialNewWindow);
+  return (
+    <div className="flex flex-col gap-2 p-3 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", minWidth: "300px" }}>
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>INSERT LINK</p>
       <input autoFocus value={url} onChange={(e) => setUrl(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") onConfirm(url); if (e.key === "Escape") onClose(); }}
+        onKeyDown={(e) => { if (e.key === "Enter") onConfirm(url, openInNewWindow); if (e.key === "Escape") onClose(); }}
         placeholder="https://..."
-        style={{ background: "none", border: "none", outline: "none", color: "#EDE8DF", fontFamily: "'DM Mono', monospace", fontSize: "12px", minWidth: "220px" }} />
-      <button onClick={() => onConfirm(url)} style={{ ...btnBase, color: ACCENT }}>Set</button>
-      <button onClick={onClose} style={btnBase}><X size={12} /></button>
+        style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "6px", padding: "7px 10px", color: "#EDE8DF", fontFamily: "'DM Mono', monospace", fontSize: "12px", outline: "none" }} />
+      <InternalPagePicker projects={projects} onPick={setUrl} />
+      <Switch checked={openInNewWindow} onChange={setOpenInNewWindow} label="Open in new window" />
+      <div className="flex gap-2 justify-end">
+        <button onClick={onClose} style={{ ...btnBase, color: "#EDE8DF", padding: "5px 10px" }}>Cancel</button>
+        <button onClick={() => onConfirm(url, openInNewWindow)} style={{ background: ACCENT, border: "none", borderRadius: "6px", color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: "11px", padding: "6px 14px", cursor: "pointer" }}>Set link</button>
+      </div>
     </div>
   );
 }
@@ -281,10 +335,22 @@ function PDFDialog({ onConfirm, onClose }: { onConfirm: (url: string, label: str
 }
 
 type BtnVariant = "primary" | "secondary" | "ghost";
-function ButtonDialog({ onConfirm, onClose }: { onConfirm: (text: string, url: string, variant: BtnVariant) => void; onClose: () => void }) {
+function ButtonDialog({
+  projects,
+  onConfirm,
+  onClose,
+}: {
+  projects: { path: string; label: string }[];
+  onConfirm: (text: string, url: string, variant: BtnVariant, openInNewWindow: boolean) => void;
+  onClose: () => void;
+}) {
   const [text, setText] = useState("Click here");
   const [url, setUrl] = useState("https://");
   const [variant, setVariant] = useState<BtnVariant>("primary");
+  // Buttons have always opened in a new tab (previously hardcoded); default stays on so existing
+  // habits don't silently change, but it's now a real per-button choice — e.g. a button linking
+  // to an internal page usually reads better staying in the same tab.
+  const [openInNewWindow, setOpenInNewWindow] = useState(true);
 
   const VARIANTS: { key: BtnVariant; label: string; preview: React.CSSProperties }[] = [
     { key: "primary", label: "Primary", preview: { background: "#14ADB5", color: "#0C1117", border: "1.5px solid #14ADB5" } },
@@ -299,6 +365,7 @@ function ButtonDialog({ onConfirm, onClose }: { onConfirm: (text: string, url: s
         style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "6px", padding: "7px 10px", color: "#EDE8DF", fontFamily: "'DM Sans', sans-serif", fontSize: "13px", outline: "none" }} />
       <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..."
         style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "6px", padding: "7px 10px", color: "#EDE8DF", fontFamily: "'DM Sans', sans-serif", fontSize: "13px", outline: "none" }} />
+      <InternalPagePicker projects={projects} onPick={setUrl} />
       {/* Style picker */}
       <div style={{ display: "flex", gap: 6 }}>
         {VARIANTS.map((v) => (
@@ -308,9 +375,10 @@ function ButtonDialog({ onConfirm, onClose }: { onConfirm: (text: string, url: s
           </button>
         ))}
       </div>
+      <Switch checked={openInNewWindow} onChange={setOpenInNewWindow} label="Open in new window" />
       <div className="flex gap-2 justify-end">
         <button onClick={onClose} style={{ ...btnBase, color: "#EDE8DF", padding: "5px 10px" }}>Cancel</button>
-        <button onClick={() => { if (text && url) onConfirm(text, url, variant); }}
+        <button onClick={() => { if (text && url) onConfirm(text, url, variant, openInNewWindow); }}
           style={{ background: ACCENT, border: "none", borderRadius: "6px", color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: "11px", padding: "6px 14px", cursor: "pointer" }}>
           Insert
         </button>
@@ -717,6 +785,14 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
   const [mobilePreview, setMobilePreview] = useState(false);
   const [, forceUpdate] = useState(0);
 
+  // Powers the Link/Button dialogs' "internal page" picker — every published project, alongside
+  // the fixed top-level routes in INTERNAL_PAGES.
+  const { content } = useContentStore();
+  const internalProjectPages = useMemo(
+    () => getPublishedProjects(content).map((p) => ({ path: `/work/${projectUrlSlug(p)}`, label: p.name })),
+    [content]
+  );
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5] } }),
@@ -731,7 +807,13 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       Color,
       Underline,
       ResizableImage.configure({ inline: false, allowBase64: false }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: "rte-link" } }),
+      // Tiptap's Link extension defaults HTMLAttributes to { target: "_blank", rel: "noopener
+      // noreferrer nofollow" } internally, and .configure() deep-merges rather than replacing —
+      // so leaving target/rel unset here would silently inherit "always open in a new tab" for
+      // every link (including autolinked/pasted URLs) regardless of what the insert-link dialog
+      // asks for. Setting both to null makes "same tab" the real default; the dialog then passes
+      // explicit target/rel on every setLink() call based on its own switch.
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: "rte-link", target: null, rel: null } }),
       Youtube.configure({ width: 640, height: 360 }),
       TextAlign.configure({ types: ["heading", "paragraph", "captionBlock"] }),
       Table.configure({ resizable: true }),
@@ -850,9 +932,10 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
     editor.chain().focus().setLetterSpacing(`${LETTER_SPACINGS[nextIdx]}em`).run();
   }
 
-  function insertButton(text: string, url: string, variant: BtnVariant) {
+  function insertButton(text: string, url: string, variant: BtnVariant, openInNewWindow: boolean) {
+    const targetAttrs = openInNewWindow ? ' target="_blank" rel="noopener noreferrer"' : "";
     editor.chain().focus().insertContent(
-      `<a href="${url}" target="_blank" rel="noopener noreferrer" class="rte-btn rte-btn-${variant}">${text}</a> `
+      `<a href="${url}"${targetAttrs} class="rte-btn rte-btn-${variant}">${text}</a> `
     ).run();
     setDialog(null);
   }
@@ -1105,7 +1188,17 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           <div className="absolute left-0 top-0 shadow-xl" style={{ zIndex: 20 }}>
             {dialog === "link" && (
               <LinkDialog
-                onConfirm={(url) => { editor.chain().focus().setLink({ href: url }).run(); setDialog(null); }}
+                initialUrl={editor.getAttributes("link").href || "https://"}
+                initialNewWindow={editor.getAttributes("link").target === "_blank"}
+                projects={internalProjectPages}
+                onConfirm={(url, openInNewWindow) => {
+                  editor.chain().focus().extendMarkRange("link").setLink({
+                    href: url,
+                    target: openInNewWindow ? "_blank" : null,
+                    rel: openInNewWindow ? "noopener noreferrer" : null,
+                  }).run();
+                  setDialog(null);
+                }}
                 onClose={() => setDialog(null)}
               />
             )}
@@ -1126,6 +1219,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
             )}
             {dialog === "button" && (
               <ButtonDialog
+                projects={internalProjectPages}
                 onConfirm={insertButton}
                 onClose={() => setDialog(null)}
               />

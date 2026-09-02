@@ -109,6 +109,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   // entry (and everything below it) upward as the space above it disappeared.
   const [openJobs, setOpenJobs] = useState<Set<number>>(() => new Set([0]));
   const [openFaqs, setOpenFaqs] = useState<Set<number>>(() => new Set());
+  const [showAllFaqs, setShowAllFaqs] = useState(false);
   function toggleFaq(i: number) {
     setOpenFaqs((prev) => {
       const next = new Set(prev);
@@ -128,6 +129,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const { content } = useContentStore();
   const cms = content.evaluate;
   const publishedFaqs = [...(cms.faqItems ?? [])].filter((f) => f.published).sort((a, b) => a.order - b.order);
+  const faqColumns = cms.faqColumns ?? 2;
+  const faqVisibleCount = faqColumns * (cms.faqRows ?? 3);
+  const visibleFaqs = showAllFaqs ? publishedFaqs : publishedFaqs.slice(0, faqVisibleCount);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -684,28 +688,55 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 className="rounded-xl p-6"
                 style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
               >
-                <div
-                  className="rte-content quote-color-fix"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontStyle: "italic",
-                    fontSize: "16px",
-                    color: "var(--c-quote-emphasis)",
-                    marginBottom: "16px",
-                  }}
-                  dangerouslySetInnerHTML={{ __html: t.quote }}
-                />
-                <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", marginBottom: "12px" }}>
-                  <span>
-                    — {t.name}
-                    {(t.role || t.company) && `, ${[t.role, t.company && `at ${t.company}`].filter(Boolean).join(" ")}`}
-                  </span>
-                  {t.linkedInUrl && (
-                    <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
-                      <FaLinkedin size={13} />
-                    </a>
-                  )}
-                </p>
+                {t.eyebrow ? (
+                  // A fact about what Jai was trusted to do, not a quote from someone else — no
+                  // name attribution, so it never reads as a quote from a named person.
+                  <>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
+                      {t.eyebrow}
+                    </p>
+                    {t.headline && (
+                      <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
+                        {t.headline}
+                      </p>
+                    )}
+                    <div
+                      className="rte-content"
+                      style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
+                      dangerouslySetInnerHTML={{ __html: t.quote }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: t.company ? "4px" : "12px" }}>
+                      <span>
+                        {t.name}
+                        {t.role && `, ${t.role}`}
+                      </span>
+                      {t.linkedInUrl && (
+                        <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
+                          <FaLinkedin size={13} />
+                        </a>
+                      )}
+                    </p>
+                    {t.company && (
+                      <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
+                        {t.company}
+                      </p>
+                    )}
+                    <div
+                      className="rte-content quote-color-fix"
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: "13px",
+                        color: "var(--c-quote-emphasis)",
+                        lineHeight: 1.6,
+                        marginBottom: "16px",
+                      }}
+                      dangerouslySetInnerHTML={{ __html: t.quote }}
+                    />
+                  </>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {t.highlights.map((h, hi) => (
                     <span
@@ -726,44 +757,6 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </div>
               </div>
             ))}
-
-            {/* A fact about what Jai was trusted to do, not a quote from someone else — same
-                card treatment as the testimonials above for visual consistency, but deliberately
-                without the "— Name" attribution line so it never reads as a quote from a named
-                person. One-off/hardcoded rather than a CMS field: a single credential, not a
-                repeating content type. */}
-            <div
-              className="rounded-xl p-6"
-              style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
-            >
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
-                Guest Research Lead — Annosky College Tour
-              </p>
-              <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
-                500+ students. Multiple colleges across the Netherlands. Real behaviour, not internal assumptions.
-              </p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}>
-                I was the one Annosky sent out to run usability testing and present the apps directly to the people using them — advocating for that testing before launch changed several of the team&apos;s core design decisions.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["Research", "Public Speaking", "Field Testing"].map((h) => (
-                  <span
-                    key={h}
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "11px",
-                      color: "var(--c-teal)",
-                      border: "1px solid rgba(20,173,181,0.2)",
-                      borderRadius: "8px",
-                      padding: "3px 10px",
-                      background: "rgba(20,173,181,0.05)",
-                    }}
-                  >
-                    {h}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
         </motion.div>
 
@@ -783,8 +776,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
               {cms.faqHeading || "Frequently Asked Questions"}
             </p>
-            <div className="flex flex-col gap-3">
-              {publishedFaqs.map((faq, i) => (
+            <div className={`grid grid-cols-1 gap-3 items-start ${faqColumns >= 2 ? "md:grid-cols-2" : ""}`}>
+              {visibleFaqs.map((faq, i) => (
                 <div
                   key={faq.id}
                   className="rounded-xl border overflow-hidden"
@@ -825,6 +818,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </div>
               ))}
             </div>
+            {!showAllFaqs && publishedFaqs.length > faqVisibleCount && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
+                <button
+                  onClick={() => setShowAllFaqs(true)}
+                  className="hover:opacity-70 transition-opacity"
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 999, padding: "11px 24px", cursor: "pointer" }}
+                >
+                  Show All
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 

@@ -332,6 +332,13 @@ export interface CMSTestimonial {
   role?: string;
   company?: string;
   linkedInUrl?: string;
+  // Setting eyebrow switches this card from a quote (name attribution below the quote) to a
+  // "credential" card — a fact about Jai rather than someone else's words, e.g. a research/
+  // speaking credit. headline is the bold line under the eyebrow; quote doubles as the body
+  // paragraph and highlights as the tag pills for both card kinds. Leave eyebrow blank for a
+  // normal quote testimonial.
+  eyebrow?: string;
+  headline?: string;
 }
 
 export interface CMSClient {
@@ -404,6 +411,12 @@ export interface CMSEvaluate {
   // treats schema for content that isn't actually visible as cloaking, so both need to check
   // this same flag, not just whether faqItems has entries.
   faqSectionEnabled?: boolean;
+  // Same "columns + rows, then reveal the rest" idea as CMSWork's projectListColumns/Rows, but
+  // simpler: only 1 or 2 columns (no card/list layout choice), and the reveal is a one-shot
+  // "Show All" rather than Projects' repeatable "Load more" — there's no realistic case for
+  // paging through FAQs in batches.
+  faqColumns?: number;
+  faqRows?: number;
 }
 
 export interface CMSProcessStep {
@@ -1186,6 +1199,7 @@ export const DEFAULT_CONTENT: CMSContent = {
     testimonials: [
       {"name":"Benjamin Simmer","quote":"<p><span style=\"color: rgb(255, 255, 255);\">Jai's core strength is being able to focus on the smallest of details while still maintaining a clear overview of any design-related challenge.</span></p>","highlights":["Detail-oriented","Strategic thinker","Problem solver"]},
       {"name":"Donny Verduijn","quote":"<p><span style=\"color: rgb(237, 232, 223);\">I know Jai as a hard-working person, a reliable team player and an important pivot within multidisciplinary teams.</span></p>","highlights":["Reliable","Collaborative","Hands-on"]},
+      {"name":"","eyebrow":"Guest Research Lead — Annosky College Tour","headline":"500+ students. Multiple colleges across the Netherlands. Real behaviour, not internal assumptions.","quote":"<p>I was the one Annosky sent out to run usability testing and present the apps directly to the people using them — advocating for that testing before launch changed several of the team's core design decisions.</p>","highlights":["Research","Public Speaking","Field Testing"]},
     ],
     beyondDesign: "<p></p>",
     ctaHeading: "Interested in working together?",
@@ -1196,6 +1210,8 @@ export const DEFAULT_CONTENT: CMSContent = {
     beyondDesignHidden: true,
     faqItems: [],
     faqSectionEnabled: false,
+    faqColumns: 2,
+    faqRows: 3,
   },
   process: {
     heroStatement: "<h1><span style=\"font-size: 64px; line-height: 1;\">Design is more than creating screens.</span><br>My design process is structured but not rigid. Each project shapes how I apply these principles. Select any stage to explore how I work.</h1><h1></h1><p></p>",
