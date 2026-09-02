@@ -58,6 +58,11 @@ function nearestWeightOption(weight: number): number {
 const BLOCK_BASE_WEIGHTS: Record<string, number> = { h1: 500, h2: 400, h3: 400, h4: 500, h5: 400, caption: 300, body: 300 };
 const LETTER_SPACINGS = [-0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.15, 0.2];
 const DEFAULT_LETTER_SPACING = 0;
+const MAX_WIDTHS = [200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 900, 1000, 1100, 1200, 1400, 1600];
+// Starting point for the first step when no override exists yet — matches this editor's own
+// field width, so the first click nudges narrower from something close to how the text already
+// looks rather than jumping straight to the preset list's smallest/largest value.
+const DEFAULT_MAX_WIDTH = 800;
 
 // Stored content is rendered back out via dangerouslySetInnerHTML in every place a case study
 // or project reads it — a defense-in-depth pass against script tags, event handler attributes,
@@ -89,6 +94,10 @@ declare module "@tiptap/core" {
     letterSpacing: {
       setLetterSpacing: (letterSpacing: string) => ReturnType;
       unsetLetterSpacing: () => ReturnType;
+    };
+    maxWidth: {
+      setMaxWidth: (maxWidth: string) => ReturnType;
+      unsetMaxWidth: () => ReturnType;
     };
   }
 }
@@ -149,6 +158,49 @@ const LetterSpacing = Extension.create({
     return {
       setLetterSpacing: (letterSpacing: string) => ({ chain }) => chain().setMark("textStyle", { letterSpacing }).run(),
       unsetLetterSpacing: () => ({ chain }) => chain().setMark("textStyle", { letterSpacing: null }).removeEmptyTextStyle().run(),
+    };
+  },
+});
+
+// Unlike the marks above, max-width has no visual effect on inline text — it only does anything
+// on the block element itself, so this is a node attribute (on paragraph/heading/captionBlock,
+// same set TextAlign already targets) rather than another textStyle mark. Rendered with
+// margin-left/right: auto so a narrowed block centers itself in whatever space it has, matching
+// how every "max-width content column" on the web behaves, rather than sitting flush left.
+const MaxWidth = Extension.create({
+  name: "maxWidth",
+  addOptions() {
+    return { types: ["heading", "paragraph", "captionBlock"] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          maxWidth: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.style.maxWidth || null,
+            renderHTML: (attributes: { maxWidth?: string }) => {
+              if (!attributes.maxWidth) return {};
+              return { style: `max-width: ${attributes.maxWidth}; margin-left: auto; margin-right: auto;` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    // Targets every block type unconditionally rather than detecting "the" active one — a
+    // selection spanning more than one type (e.g. select-all across a heading and a trailing
+    // paragraph) isn't isActive("heading") for the whole range, so a single-type guess would
+    // silently miss part of the selection. updateAttributes on a type with no match in the
+    // selection just returns false without touching the transaction, so chaining all three is
+    // harmless when only one type is actually present.
+    return {
+      setMaxWidth: (maxWidth: string) => ({ chain }) =>
+        chain().updateAttributes("heading", { maxWidth }).updateAttributes("paragraph", { maxWidth }).updateAttributes("captionBlock", { maxWidth }).run(),
+      unsetMaxWidth: () => ({ chain }) =>
+        chain().updateAttributes("heading", { maxWidth: null }).updateAttributes("paragraph", { maxWidth: null }).updateAttributes("captionBlock", { maxWidth: null }).run(),
     };
   },
 });
@@ -804,6 +856,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       LineHeight,
       FontWeight,
       LetterSpacing,
+      MaxWidth,
       Color,
       Underline,
       ResizableImage.configure({ inline: false, allowBase64: false }),
@@ -895,6 +948,14 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
   const currentWeight = rawWeight ? parseInt(rawWeight) : null;
   const rawLetterSpacing = editor.getAttributes("textStyle").letterSpacing as string | undefined;
   const currentLetterSpacing = rawLetterSpacing ? parseFloat(rawLetterSpacing) : null;
+  // maxWidth lives on the block node itself (paragraph/heading/captionBlock), not the textStyle
+  // mark the controls above read from — see the MaxWidth extension for why.
+  // Checked across all 3 possible types rather than picking one via isActive() — a selection
+  // spanning more than one block type isn't isActive("heading") for the whole range, so a single
+  // guess could read the wrong node's (unset) attribute even though the block actually being
+  // edited has a real value.
+  const rawMaxWidth = (editor.getAttributes("heading").maxWidth ?? editor.getAttributes("paragraph").maxWidth ?? editor.getAttributes("captionBlock").maxWidth) as string | undefined;
+  const currentMaxWidth = rawMaxWidth ? parseInt(rawMaxWidth) : null;
 
   // Weight has no equivalent of "Auto" being a fine answer — headings and body text land on
   // genuinely different numbers, and the point of this control is letting you see and move
@@ -930,6 +991,13 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
     const base = idx === -1 ? LETTER_SPACINGS.indexOf(DEFAULT_LETTER_SPACING) : idx;
     const nextIdx = Math.max(0, Math.min(LETTER_SPACINGS.length - 1, base + dir));
     editor.chain().focus().setLetterSpacing(`${LETTER_SPACINGS[nextIdx]}em`).run();
+  }
+
+  function stepMaxWidth(dir: 1 | -1) {
+    const idx = currentMaxWidth === null ? MAX_WIDTHS.indexOf(DEFAULT_MAX_WIDTH) : MAX_WIDTHS.indexOf(currentMaxWidth);
+    const base = idx === -1 ? MAX_WIDTHS.indexOf(DEFAULT_MAX_WIDTH) : idx;
+    const nextIdx = Math.max(0, Math.min(MAX_WIDTHS.length - 1, base + dir));
+    editor.chain().focus().setMaxWidth(`${MAX_WIDTHS[nextIdx]}px`).run();
   }
 
   function insertButton(text: string, url: string, variant: BtnVariant, openInNewWindow: boolean) {
@@ -1090,6 +1158,14 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
             onDec={() => stepLetterSpacing(-1)}
             onInc={() => stepLetterSpacing(1)}
             onClear={currentLetterSpacing !== null ? () => editor.chain().focus().unsetLetterSpacing().run() : undefined}
+          />
+          <Stepper
+            label="MW"
+            title="max width — caps how wide this block renders on the live page; narrower still wraps and reflows normally on small screens"
+            display={currentMaxWidth === null ? "Auto" : `${currentMaxWidth}px`}
+            onDec={() => stepMaxWidth(-1)}
+            onInc={() => stepMaxWidth(1)}
+            onClear={currentMaxWidth !== null ? () => editor.chain().focus().unsetMaxWidth().run() : undefined}
           />
         </div>
 
