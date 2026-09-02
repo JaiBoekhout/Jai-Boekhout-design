@@ -341,6 +341,21 @@ export interface CMSClient {
   row?: 1 | 2;
 }
 
+export interface CMSFaqItem {
+  id: string;
+  question: string;
+  answer: string; // rich text
+  order: number;
+  // Per-item visibility, checked in addition to the section-wide faqSectionEnabled master
+  // switch — lets items be staged/reviewed individually before (or even after) the section as a
+  // whole goes live, rather than every drafted question appearing the moment the switch flips.
+  published: boolean;
+  // Admin-only — never rendered on the public site. For leaving a note to self on an item that
+  // isn't ready (e.g. still has an unresolved detail to fill in) so it doesn't get published by
+  // mistake.
+  internalNote?: string;
+}
+
 export interface CMSEvaluate {
   // Single rich-text field for the whole hero — the big heading and the smaller paragraph
   // underneath it are both typed and styled in here (per-run font-size), the same pattern as
@@ -382,6 +397,13 @@ export interface CMSEvaluate {
   testimonialsHeading?: string;
   beyondDesignHeading?: string;
   beyondDesignHidden?: boolean;
+  faqItems?: CMSFaqItem[];
+  faqHeading?: string;
+  // Master switch — while false, the FAQ section must not render anywhere on the live site,
+  // and the FAQPage structured data must not be emitted either (see evaluate/page.tsx). Google
+  // treats schema for content that isn't actually visible as cloaking, so both need to check
+  // this same flag, not just whether faqItems has entries.
+  faqSectionEnabled?: boolean;
 }
 
 export interface CMSProcessStep {
@@ -1172,6 +1194,8 @@ export const DEFAULT_CONTENT: CMSContent = {
     resumeUrl: "/resume/resume.pdf?v=1785930579765",
     beyondDesignHeading: "",
     beyondDesignHidden: true,
+    faqItems: [],
+    faqSectionEnabled: false,
   },
   process: {
     heroStatement: "<h1><span style=\"font-size: 64px; line-height: 1;\">Design is more than creating screens.</span><br>My design process is structured but not rigid. Each project shapes how I apply these principles. Select any stage to explore how I work.</h1><h1></h1><p></p>",

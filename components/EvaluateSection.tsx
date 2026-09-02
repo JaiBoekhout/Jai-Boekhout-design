@@ -369,6 +369,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
   const experienceDrag = useDragReorder(data.experience, (v) => onChange({ ...data, experience: v }));
   const qualificationsDrag = useDragReorder(data.qualifications, (v) => onChange({ ...data, qualifications: v }));
   const testimonialsDrag = useDragReorder(data.testimonials, (v) => onChange({ ...data, testimonials: v }));
+  const faqDrag = useDragReorder(data.faqItems ?? [], (v) => onChange({ ...data, faqItems: v }));
 
   return (
     <div>
@@ -858,12 +859,14 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             </button>
             </div>
           </div>
-          <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
+          <div className="grid grid-cols-2 gap-2">
+            <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
+            <CMSInput label="LinkedIn URL (optional — shows an icon next to the name only if set)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <CMSInput label="Role (optional)" value={t.role ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], role: v }; onChange({ ...data, testimonials: ts }); }} />
             <CMSInput label="Company (optional)" value={t.company ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], company: v }; onChange({ ...data, testimonials: ts }); }} />
           </div>
-          <CMSInput label="LinkedIn URL (optional — shows an icon next to the name only if set)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
           <RichTextEditor label="Quote" value={t.quote} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }} />
           <CMSChipEditor label="Highlights" items={t.highlights} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], highlights: v }; onChange({ ...data, testimonials: ts }); }} />
         </CMSCard>
@@ -874,6 +877,95 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
         style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
       >
         <Plus size={13} /> Add Testimonial
+      </button>
+
+      <CMSSectionHeading>FAQ</CMSSectionHeading>
+
+      <div className="flex items-center gap-3 mb-4">
+        <Switch
+          checked={!!data.faqSectionEnabled}
+          onChange={(v) => onChange({ ...data, faqSectionEnabled: v })}
+        />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
+          Show FAQ section on the live site (master switch — while off, nothing here renders publicly and no FAQ structured data is emitted, regardless of individual items below)
+        </span>
+      </div>
+
+      <CMSInput label="Section Heading (public page)" value={data.faqHeading ?? "Frequently Asked Questions"} onChange={(v) => onChange({ ...data, faqHeading: v })} />
+
+      {(data.faqItems ?? []).map((item, i) => (
+        <CMSCard key={item.id} style={faqDrag.cardStyle(i)} {...faqDrag.dropTargetProps(i)}>
+          <div className="flex items-center justify-between gap-1 mb-2">
+            <DragHandle {...faqDrag.dragHandleProps(i)} />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  const items = [...(data.faqItems ?? [])];
+                  items[i] = { ...items[i], published: !items[i].published };
+                  onChange({ ...data, faqItems: items });
+                }}
+                title={item.published ? "Published — visible once the master switch is on" : "Not published — hidden even if the master switch is on"}
+                className="hover:opacity-70 transition-opacity flex items-center gap-1"
+                style={{ background: "none", border: "none", cursor: "pointer", color: item.published ? "#14ADB5" : "#6B7E8A", padding: "2px", fontFamily: "'DM Mono', monospace", fontSize: "10px" }}
+              >
+                {item.published ? <Eye size={13} /> : <EyeOff size={13} />}
+                {item.published ? "Published" : "Draft"}
+              </button>
+              <button
+                onClick={() => {
+                  const items = (data.faqItems ?? []).filter((_, idx) => idx !== i);
+                  onChange({ ...data, faqItems: items });
+                }}
+                className="hover:opacity-60 transition-opacity"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#EDE8DF", padding: "2px", marginLeft: "2px" }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+          <CMSInput
+            label="Question"
+            value={item.question}
+            onChange={(v) => {
+              const items = [...(data.faqItems ?? [])];
+              items[i] = { ...items[i], question: v };
+              onChange({ ...data, faqItems: items });
+            }}
+          />
+          <RichTextEditor
+            label="Answer"
+            value={item.answer}
+            onChange={(v) => {
+              const items = [...(data.faqItems ?? [])];
+              items[i] = { ...items[i], answer: v };
+              onChange({ ...data, faqItems: items });
+            }}
+          />
+          <CMSTextarea
+            label="Internal note (admin only — never shown on the public site)"
+            value={item.internalNote ?? ""}
+            onChange={(v) => {
+              const items = [...(data.faqItems ?? [])];
+              items[i] = { ...items[i], internalNote: v || undefined };
+              onChange({ ...data, faqItems: items });
+            }}
+            rows={2}
+          />
+        </CMSCard>
+      ))}
+      <button
+        onClick={() => {
+          const items = data.faqItems ?? [];
+          const nextOrder = items.length ? Math.max(...items.map((f) => f.order)) + 1 : 1;
+          onChange({
+            ...data,
+            faqItems: [...items, { id: `faq-${Date.now()}`, question: "New question", answer: "", order: nextOrder, published: false }],
+          });
+        }}
+        className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
+      >
+        <Plus size={13} /> Add Question
       </button>
 
       <CMSSectionHeading>Beyond Design</CMSSectionHeading>

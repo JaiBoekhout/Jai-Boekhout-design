@@ -108,6 +108,15 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   // already-open one collapsed that other entry at the same instant, yanking the just-clicked
   // entry (and everything below it) upward as the space above it disappeared.
   const [openJobs, setOpenJobs] = useState<Set<number>>(() => new Set([0]));
+  const [openFaqs, setOpenFaqs] = useState<Set<number>>(() => new Set());
+  function toggleFaq(i: number) {
+    setOpenFaqs((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
   function toggleJob(i: number) {
     setOpenJobs((prev) => {
       const next = new Set(prev);
@@ -118,6 +127,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   }
   const { content } = useContentStore();
   const cms = content.evaluate;
+  const publishedFaqs = [...(cms.faqItems ?? [])].filter((f) => f.published).sort((a, b) => a.order - b.order);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -756,6 +766,67 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             </div>
           </div>
         </motion.div>
+
+        {/* Section 6.5 — FAQ. Gated on the faqSectionEnabled master switch (not just "are there
+            any published items") — matches the same gate the FAQPage JSON-LD in
+            evaluate/page.tsx checks, so the section and its structured data can never disagree
+            about whether this content is actually live. Individually-published items only, so
+            drafted questions don't appear the moment the master switch flips. */}
+        {cms.faqSectionEnabled && publishedFaqs.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.68 }}
+            className="mb-14 pb-14 border-b"
+            style={{ borderColor: "var(--c-border-soft)" }}
+          >
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
+              {cms.faqHeading || "Frequently Asked Questions"}
+            </p>
+            <div className="flex flex-col gap-3">
+              {publishedFaqs.map((faq, i) => (
+                <div
+                  key={faq.id}
+                  className="rounded-xl border overflow-hidden"
+                  style={{
+                    background: "var(--c-bg-card)",
+                    borderColor: openFaqs.has(i) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
+                    transition: "border-color 0.3s",
+                  }}
+                >
+                  <button
+                    className="w-full text-left flex items-center justify-between gap-4 p-5"
+                    onClick={() => toggleFaq(i)}
+                  >
+                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
+                      {faq.question}
+                    </span>
+                    <motion.div animate={{ rotate: openFaqs.has(i) ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ flexShrink: 0 }}>
+                      <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
+                    </motion.div>
+                  </button>
+                  <AnimatePresence>
+                    {openFaqs.has(i) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div
+                          className="rte-content"
+                          style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                          dangerouslySetInnerHTML={{ __html: faq.answer }}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Section 7 — Beyond Design */}
         {!cms.beyondDesignHidden && (
