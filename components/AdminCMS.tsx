@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, Download, Upload, History as HistoryIcon } from "lucide-react";
+import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, Download, Upload, History as HistoryIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useContentStore, getAllLinkableProjects } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { WorkSection } from "@/components/WorkSection";
@@ -85,6 +85,21 @@ export function AdminCMS({ isOpen, onClose }: Props) {
   // expands into a full-label overlay above the content when true, closing again once a tab is
   // picked or the backdrop is tapped.
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Desktop-only equivalent — an explicit collapse toggle (rather than mobile's "collapsed by
+  // default" behaviour) that shrinks the always-static desktop sidebar to the same icon-only rail
+  // width. Persisted the same way theme/font-scale prefs are (store/themeStore.tsx,
+  // store/fontScaleStore.tsx) — read on mount, written on toggle — so it survives a reload.
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  useEffect(() => {
+    const stored = localStorage.getItem("cms_sidebar_collapsed");
+    if (stored === "true") setDesktopCollapsed(true);
+  }, []);
+  function toggleDesktopCollapsed() {
+    setDesktopCollapsed((v) => {
+      localStorage.setItem("cms_sidebar_collapsed", String(!v));
+      return !v;
+    });
+  }
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [pendingPersist, setPendingPersist] = useState(false);
@@ -237,6 +252,13 @@ export function AdminCMS({ isOpen, onClose }: Props) {
     onClose();
   }
 
+  // Shows sidebar content that only makes sense in the "expanded" state — the mobile flyout
+  // (mobileNavOpen) or the normal desktop width (desktopCollapsed false) — and hides it in
+  // either icon-only rail state (mobile's default collapsed rail, or desktop once collapsed).
+  function railClass(showClass: string) {
+    return `${mobileNavOpen ? showClass : "hidden"} ${desktopCollapsed ? "md:hidden" : `md:${showClass}`}`;
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -264,11 +286,11 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                 the content's own md:ml-0/ml-16 offset (below) only ever reserves space for the
                 collapsed rail width, so the expanded width genuinely overlaps it. */}
             <div
-              className={`flex flex-col h-full flex-shrink-0 fixed inset-y-0 left-0 z-30 md:static md:inset-auto overflow-hidden transition-[width] duration-300 ease-out ${mobileNavOpen ? "w-64" : "w-16"} md:w-[220px]`}
+              className={`flex flex-col h-full flex-shrink-0 fixed inset-y-0 left-0 z-30 md:static md:inset-auto overflow-hidden transition-[width] duration-300 ease-out ${mobileNavOpen ? "w-64" : "w-16"} ${desktopCollapsed ? "md:w-16" : "md:w-[220px]"}`}
               style={{ background: "#0C1117", borderRight: "1px solid rgba(237,232,223,0.06)" }}
             >
               {/* Header */}
-              <div className="px-4 md:px-5 py-6 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(237,232,223,0.06)" }}>
+              <div className={`px-4 md:px-5 py-6 flex items-center gap-3 ${desktopCollapsed ? "md:justify-center" : ""}`} style={{ borderBottom: "1px solid rgba(237,232,223,0.06)" }}>
                 <button
                   onClick={() => setMobileNavOpen((v) => !v)}
                   aria-label={mobileNavOpen ? "Collapse menu" : "Expand menu"}
@@ -277,12 +299,24 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                 >
                   {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
                 </button>
-                <div className={mobileNavOpen ? "block" : "hidden md:block"}>
+                <div className={railClass("block")}>
                   <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: "15px", color: "#EDE8DF", fontWeight: 400, whiteSpace: "nowrap" }}>CMS</p>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", letterSpacing: "0.06em", marginTop: "2px", whiteSpace: "nowrap" }}>
                     Jai Boekhout · Portfolio
                   </p>
                 </div>
+                {/* Desktop-only collapse toggle — mobile relies on the hamburger above instead,
+                    since it already has an "expand over the content" model that a persistent
+                    collapse state doesn't fit as naturally. */}
+                <button
+                  onClick={toggleDesktopCollapsed}
+                  title={desktopCollapsed ? "Expand menu" : "Collapse menu"}
+                  aria-label={desktopCollapsed ? "Expand menu" : "Collapse menu"}
+                  className="hidden md:flex flex-shrink-0"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#8C9AA3", padding: 0, marginLeft: desktopCollapsed ? 0 : "auto" }}
+                >
+                  {desktopCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                </button>
               </div>
 
               {/* Nav */}
@@ -294,16 +328,19 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                     <div key={tab.id}>
                       <button
                         onClick={() => { setActiveTab(tab.id); setMobileNavOpen(false); }}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors w-full ${mobileNavOpen ? "" : "justify-center md:justify-start"}`}
+                        title={tab.label}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors w-full ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
                         style={{
-                          background: active ? "rgba(20,173,181,0.1)" : "transparent",
-                          border: "none",
+                          background: active ? "rgba(20,173,181,0.16)" : "transparent",
+                          borderStyle: "solid",
+                          borderWidth: "0 0 0 3px",
+                          borderColor: active ? "#14ADB5" : "transparent",
                           cursor: "pointer",
                         }}
                       >
                         <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
                         <span
-                          className={mobileNavOpen ? "inline" : "hidden md:inline"}
+                          className={railClass("inline")}
                           style={{
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: "13px",
@@ -316,7 +353,10 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                         </span>
                       </button>
                       {tab.id === "design" && active && (
-                        <div className={`${mobileNavOpen ? "flex" : "hidden md:flex"} flex-col gap-0.5 mt-1 mb-1`} style={{ paddingLeft: "29px" }}>
+                        <div
+                          className={`${railClass("flex")} flex-col gap-0.5 mt-0.5 mb-1`}
+                          style={{ marginLeft: "20px", paddingLeft: "12px", borderLeft: "1px solid rgba(20,173,181,0.2)" }}
+                        >
                           {DESIGN_SYSTEM_SECTIONS.map((section) => (
                             <button
                               key={section.id}
@@ -327,7 +367,7 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                                   document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
                                 });
                               }}
-                              className="text-left rounded-md px-2 py-1.5 transition-colors hover:opacity-80"
+                              className="text-left rounded-md px-2 py-1 transition-colors hover:opacity-80"
                               style={{ background: "none", border: "none", cursor: "pointer" }}
                             >
                               <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#8C9AA3", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
@@ -359,7 +399,7 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                       ? "Some projects are saved but not published yet"
                       : undefined
                   }
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-all ${mobileNavOpen ? "" : "justify-center md:justify-start"}`}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-all ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
                   style={{
                     background: saveError ? "#C0392B" : saved ? "rgba(20,173,181,0.15)" : (isDirty || hasUnpublishedDraft) ? "#F59E0B" : "#14ADB5",
                     border: "none",
@@ -367,14 +407,14 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                   }}
                 >
                   {saveError ? <X size={13} style={{ color: "#EDE8DF" }} /> : saved ? <Check size={13} style={{ color: "#14ADB5" }} /> : <Save size={13} style={{ color: "#0C1117" }} />}
-                  <span className={mobileNavOpen ? "inline" : "hidden md:inline"} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: saveError ? "#EDE8DF" : saved ? "#14ADB5" : "#0C1117", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: saveError ? "#EDE8DF" : saved ? "#14ADB5" : "#0C1117", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                     {saveError ? "Save failed" : saved ? "Saved!" : "Save Changes"}
                   </span>
                 </button>
                 {saveError && (
                   <div
                     role="alert"
-                    className={mobileNavOpen ? "block" : "hidden md:block"}
+                    className={railClass("block")}
                     style={{ background: "rgba(192,57,43,0.1)", border: "1px solid rgba(192,57,43,0.3)", borderRadius: "8px", padding: "10px 12px" }}
                   >
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11.5px", color: "#EDE8DF", lineHeight: 1.5, margin: 0 }}>
@@ -385,9 +425,9 @@ export function AdminCMS({ isOpen, onClose }: Props) {
 
                 {/* Content lives in Postgres now — Backup/Restore is just the admin's own
                     disaster-recovery safety net, not the primary persistence path anymore.
-                    Stacked vertically when the rail is collapsed (side by side has no room at
-                    64px wide); back to a row once expanded or at desktop widths. */}
-                <div className={mobileNavOpen ? "flex gap-2" : "flex flex-col gap-2 md:flex-row"}>
+                    Stacked vertically in either icon-only rail (mobile default, or desktop once
+                    collapsed) since side by side has no room at 64px wide; a row otherwise. */}
+                <div className={`flex gap-2 ${mobileNavOpen ? "flex-row" : "flex-col"} ${desktopCollapsed ? "md:flex-col" : "md:flex-row"}`}>
                   <button
                     onClick={handleDownloadBackup}
                     title="Download everything in this CMS as a JSON backup file"
@@ -395,7 +435,7 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                     style={{ flex: 1, background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
                   >
                     <Download size={12} style={{ color: "#EDE8DF" }} />
-                    <span className={mobileNavOpen ? "inline" : "hidden md:inline"} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Backup</span>
+                    <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Backup</span>
                   </button>
                   <button
                     onClick={() => restoreInputRef.current?.click()}
@@ -404,7 +444,7 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                     style={{ flex: 1, background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
                   >
                     <Upload size={12} style={{ color: "#EDE8DF" }} />
-                    <span className={mobileNavOpen ? "inline" : "hidden md:inline"} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Restore</span>
+                    <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Restore</span>
                   </button>
                   <input
                     ref={restoreInputRef}
@@ -415,34 +455,38 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                   />
                 </div>
                 {restoreError && (
-                  <p role="alert" className={mobileNavOpen ? "block" : "hidden md:block"} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#E05252", lineHeight: 1.5, margin: 0 }}>
+                  <p role="alert" className={railClass("block")} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#E05252", lineHeight: 1.5, margin: 0 }}>
                     {restoreError}
                   </p>
                 )}
                 {restored && (
-                  <p className={mobileNavOpen ? "block" : "hidden md:block"} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#14ADB5", lineHeight: 1.5, margin: 0 }}>
+                  <p className={railClass("block")} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#14ADB5", lineHeight: 1.5, margin: 0 }}>
                     ✓ Restored and saved
                   </p>
                 )}
 
                 <button
                   onClick={handleLogout}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-opacity hover:opacity-70 ${mobileNavOpen ? "" : "justify-center md:justify-start"}`}
+                  title="Log out"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-opacity hover:opacity-70 ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
                   style={{ background: "transparent", border: "none", cursor: "pointer" }}
                 >
                   <LogOut size={13} style={{ color: "#EDE8DF" }} />
-                  <span className={mobileNavOpen ? "inline" : "hidden md:inline"} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#EDE8DF", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#EDE8DF", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                     Log Out
                   </span>
                 </button>
               </div>
             </div>
 
-            {/* Backdrop — mobile only, closes the expanded drawer without changing tab */}
+            {/* Backdrop — mobile only, closes the expanded drawer without changing tab. The dark
+                overlay alone barely reads as "dimmed" against a theme this dark already; the
+                blur is what actually makes the drawer feel like it's floating above the content
+                rather than just an oddly-narrow content column next to it. */}
             {mobileNavOpen && (
               <div
                 className="md:hidden fixed inset-0 z-20"
-                style={{ background: "rgba(6, 9, 12, 0.6)" }}
+                style={{ background: "rgba(6, 9, 12, 0.75)", backdropFilter: "blur(2px)" }}
                 onClick={() => setMobileNavOpen(false)}
               />
             )}

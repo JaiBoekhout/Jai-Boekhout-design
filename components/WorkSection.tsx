@@ -961,7 +961,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
             <button
               onClick={() => setAddPickerOpen((v) => !v)}
               className="flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px", width: "100%" }}
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "10px 16px" }}
             >
               <Plus size={12} /> Add New Highlighted Project {slotsLeft > 0 && `(${slotsLeft} slot${slotsLeft !== 1 ? "s" : ""} free)`}
             </button>
