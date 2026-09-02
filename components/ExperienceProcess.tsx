@@ -289,10 +289,17 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                             the taller of the two columns finishes. */}
                         <div className="md:col-span-3">
                           <div
-                            className="rte-content"
+                            className={`rte-content ${step.descriptionMobile ? "hidden md:block" : ""}`}
                             style={{ color: "var(--c-text-body)", marginBottom: "30px" }}
                             dangerouslySetInnerHTML={{ __html: step.description }}
                           />
+                          {step.descriptionMobile && (
+                            <div
+                              className="rte-content block md:hidden"
+                              style={{ color: "var(--c-text-body)", marginBottom: "30px" }}
+                              dangerouslySetInnerHTML={{ __html: step.descriptionMobile }}
+                            />
+                          )}
                           <p
                             style={{
                               fontFamily: "var(--font-mono)",
@@ -331,10 +338,17 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                             Example
                           </p>
                           <div
-                            className="rte-content"
+                            className={`rte-content ${step.exampleMobile ? "hidden md:block" : ""}`}
                             style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
                             dangerouslySetInnerHTML={{ __html: step.example }}
                           />
+                          {step.exampleMobile && (
+                            <div
+                              className="rte-content block md:hidden"
+                              style={{ fontSize: "13px", color: "var(--c-text-muted)", fontStyle: "italic" }}
+                              dangerouslySetInnerHTML={{ __html: step.exampleMobile }}
+                            />
+                          )}
                         </div>
                       </div>
                     </motion.div>

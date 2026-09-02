@@ -416,10 +416,17 @@ export function ProjectDetailBody({
               Summary
             </div>
             <div
-              className="rte-content"
+              className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
               dangerouslySetInnerHTML={{ __html: project.desc }}
               style={{ marginBottom: 22 }}
             />
+            {project.descMobile && (
+              <div
+                className="rte-content block md:hidden"
+                dangerouslySetInnerHTML={{ __html: project.descMobile }}
+                style={{ marginBottom: 22 }}
+              />
+            )}
           </>
         )}
 
@@ -467,10 +474,17 @@ export function ProjectDetailBody({
               Project Description
             </div>
             <div
-              className="rte-content"
+              className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
               dangerouslySetInnerHTML={{ __html: project.fullContent }}
               style={{ marginBottom: 22 }}
             />
+            {project.fullContentMobile && (
+              <div
+                className="rte-content block md:hidden"
+                dangerouslySetInnerHTML={{ __html: project.fullContentMobile }}
+                style={{ marginBottom: 22 }}
+              />
+            )}
           </>
         )}
 

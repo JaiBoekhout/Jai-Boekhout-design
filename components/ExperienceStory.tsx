@@ -47,10 +47,17 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               {interest.label}
             </span>
             <div
-              className="rte-content"
+              className={`rte-content ${interest.detailMobile ? "hidden md:block" : ""}`}
               style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
               dangerouslySetInnerHTML={{ __html: interest.detail }}
             />
+            {interest.detailMobile && (
+              <div
+                className="rte-content block md:hidden"
+                style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
+                dangerouslySetInnerHTML={{ __html: interest.detailMobile }}
+              />
+            )}
           </div>
         ))}
       </motion.div>
@@ -268,10 +275,17 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                     {item.title}
                   </h3>
                   <div
-                    className="rte-content"
+                    className={`rte-content ${item.bodyMobile ? "hidden md:block" : ""}`}
                     style={{ fontSize: "14px", color: "var(--c-text-muted)" }}
                     dangerouslySetInnerHTML={{ __html: item.body }}
                   />
+                  {item.bodyMobile && (
+                    <div
+                      className="rte-content block md:hidden"
+                      style={{ fontSize: "14px", color: "var(--c-text-muted)" }}
+                      dangerouslySetInnerHTML={{ __html: item.bodyMobile }}
+                    />
+                  )}
                 </div>
               </motion.div>
             ))}

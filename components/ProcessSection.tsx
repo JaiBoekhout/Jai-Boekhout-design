@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSArrayEditor, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
-import { RichTextEditor } from "@/components/RichTextEditor";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import type { CMSProcess, CMSProcessStep } from "@/store/contentStore";
 
@@ -94,9 +93,21 @@ export function ProcessSection({ data, onChange }: Props) {
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
               <CMSInput label="Title" value={step.title} onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], title: v }; onChange({ ...data, steps: s }); }} />
               <CMSInput label="Tagline" value={step.tagline} onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], tagline: v }; onChange({ ...data, steps: s }); }} />
-              <RichTextEditor label="Description" value={step.description} onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], description: v }; onChange({ ...data, steps: s }); }} />
+              <ResponsiveRichTextEditor
+                label="Description"
+                value={step.description}
+                onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], description: v }; onChange({ ...data, steps: s }); }}
+                mobileValue={step.descriptionMobile}
+                onMobileChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], descriptionMobile: v }; onChange({ ...data, steps: s }); }}
+              />
               <CMSArrayEditor label="Activities & Methods" items={step.activities} onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], activities: v }; onChange({ ...data, steps: s }); }} />
-              <RichTextEditor label="Example" value={step.example} onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], example: v }; onChange({ ...data, steps: s }); }} />
+              <ResponsiveRichTextEditor
+                label="Example"
+                value={step.example}
+                onChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], example: v }; onChange({ ...data, steps: s }); }}
+                mobileValue={step.exampleMobile}
+                onMobileChange={(v) => { const s = [...data.steps]; s[i] = { ...s[i], exampleMobile: v }; onChange({ ...data, steps: s }); }}
+              />
             </div>
           )}
         </CMSCard>

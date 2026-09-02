@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown, X, Eye, EyeOff, Upload, FileText, Loader2 } from "lucide-react";
 import { CMSInput, CMSUrlInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
-import { RichTextEditor } from "@/components/RichTextEditor";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
@@ -757,7 +756,13 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
               <CMSInput label="Period" value={exp.period} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], period: v }; onChange({ ...data, experience: e }); }} />
               <CMSInput label="Years of Experience (optional — used by At a Glance's Auto value, summed across every entry)" value={exp.yearsOfExperience ?? ""} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], yearsOfExperience: v || undefined }; onChange({ ...data, experience: e }); }} />
               <CMSInput label="Role" value={exp.role} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], role: v }; onChange({ ...data, experience: e }); }} />
-              <RichTextEditor label="Description (optional)" value={exp.description ?? ""} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], description: v || undefined }; onChange({ ...data, experience: e }); }} />
+              <ResponsiveRichTextEditor
+                label="Description (optional)"
+                value={exp.description ?? ""}
+                onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], description: v || undefined }; onChange({ ...data, experience: e }); }}
+                mobileValue={exp.descriptionMobile}
+                onMobileChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], descriptionMobile: v }; onChange({ ...data, experience: e }); }}
+              />
               <CMSArrayEditor label="Highlights" items={exp.highlights} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], highlights: v }; onChange({ ...data, experience: e }); }} />
               <CMSChipEditor label="Key Skills" items={exp.tags} onChange={(v) => { const e = [...data.experience]; e[i] = { ...e[i], tags: v }; onChange({ ...data, experience: e }); }} />
 
@@ -923,7 +928,13 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
               </div>
             </>
           )}
-          <RichTextEditor label={t.eyebrow ? "Body" : "Quote"} value={t.quote} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }} />
+          <ResponsiveRichTextEditor
+            label={t.eyebrow ? "Body" : "Quote"}
+            value={t.quote}
+            onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }}
+            mobileValue={t.quoteMobile}
+            onMobileChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quoteMobile: v }; onChange({ ...data, testimonials: ts }); }}
+          />
           <CMSChipEditor label="Highlights" items={t.highlights} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], highlights: v }; onChange({ ...data, testimonials: ts }); }} />
         </CMSCard>
         ))}
@@ -1030,12 +1041,18 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
               onChange({ ...data, faqItems: items });
             }}
           />
-          <RichTextEditor
+          <ResponsiveRichTextEditor
             label="Answer"
             value={item.answer}
             onChange={(v) => {
               const items = [...(data.faqItems ?? [])];
               items[i] = { ...items[i], answer: v };
+              onChange({ ...data, faqItems: items });
+            }}
+            mobileValue={item.answerMobile}
+            onMobileChange={(v) => {
+              const items = [...(data.faqItems ?? [])];
+              items[i] = { ...items[i], answerMobile: v };
               onChange({ ...data, faqItems: items });
             }}
           />

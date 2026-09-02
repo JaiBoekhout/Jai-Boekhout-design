@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, Fragment } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, LayoutGrid, Image as ImageIcon, X, Trash2, Copy, Search, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { CMSInput, CMSUrlInput, CMSSlugInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
-import { RichTextEditor } from "@/components/RichTextEditor";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
@@ -1288,7 +1287,13 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                 );
               })()}
 
-              <RichTextEditor label="Summary" value={cs.summary} onChange={(v) => updateCase(cs.id, { summary: v })} />
+              <ResponsiveRichTextEditor
+                label="Summary"
+                value={cs.summary}
+                onChange={(v) => updateCase(cs.id, { summary: v })}
+                mobileValue={cs.summaryMobile}
+                onMobileChange={(v) => updateCase(cs.id, { summaryMobile: v })}
+              />
               <CMSTextarea
                 label="SEO Meta Description (optional — under ~155 characters; falls back to the linked project's own description if left blank)"
                 value={cs.metaDescription || ""}
@@ -1387,10 +1392,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                 />
               </div>
 
-              <RichTextEditor
+              <ResponsiveRichTextEditor
                 label="Project Detail (rich text — shown between summary and outcomes)"
                 value={cs.fullContent || ""}
                 onChange={(v) => updateCase(cs.id, { fullContent: v })}
+                mobileValue={cs.fullContentMobile}
+                onMobileChange={(v) => updateCase(cs.id, { fullContentMobile: v })}
               />
 
               {cs.fullCaseStudy && (
@@ -1401,10 +1408,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                     value={cs.fullCaseStudyBannerUrl}
                     onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
                   />
-                  <RichTextEditor
+                  <ResponsiveRichTextEditor
                     label="Full Case Study content (additional detail shown on the full case study page)"
                     value={cs.fullCaseStudyContent || ""}
                     onChange={(v) => updateCase(cs.id, { fullCaseStudyContent: v })}
+                    mobileValue={cs.fullCaseStudyContentMobile}
+                    onMobileChange={(v) => updateCase(cs.id, { fullCaseStudyContentMobile: v })}
                   />
                 </div>
               )}
@@ -1653,7 +1662,13 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                   );
                 })()}
 
-                <RichTextEditor label="Summary" value={cs.summary} onChange={(v) => updateCase(cs.id, { summary: v })} />
+                <ResponsiveRichTextEditor
+                label="Summary"
+                value={cs.summary}
+                onChange={(v) => updateCase(cs.id, { summary: v })}
+                mobileValue={cs.summaryMobile}
+                onMobileChange={(v) => updateCase(cs.id, { summaryMobile: v })}
+              />
                 <CMSTextarea
                   label="SEO Meta Description (optional — under ~155 characters; falls back to the linked project's own description if left blank)"
                   value={cs.metaDescription || ""}
@@ -1752,10 +1767,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                   />
                 </div>
 
-                <RichTextEditor
+                <ResponsiveRichTextEditor
                   label="Project Detail (rich text — shown between summary and outcomes)"
                   value={cs.fullContent || ""}
                   onChange={(v) => updateCase(cs.id, { fullContent: v })}
+                  mobileValue={cs.fullContentMobile}
+                  onMobileChange={(v) => updateCase(cs.id, { fullContentMobile: v })}
                 />
 
                 {cs.fullCaseStudy && (
@@ -1766,10 +1783,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                       value={cs.fullCaseStudyBannerUrl}
                       onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Full Case Study content (additional detail shown on the full case study page)"
                       value={cs.fullCaseStudyContent || ""}
                       onChange={(v) => updateCase(cs.id, { fullCaseStudyContent: v })}
+                      mobileValue={cs.fullCaseStudyContentMobile}
+                      onMobileChange={(v) => updateCase(cs.id, { fullCaseStudyContentMobile: v })}
                     />
                   </div>
                 )}
@@ -1928,7 +1947,13 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                   <CMSUrlInput label="Live URL (optional)" value={p.live || ""} onChange={(v) => updateProject(p.id, { live: v || null })} />
                 </div>
                 <CMSSlugInput label="URL Path" value={p.slug || ""} fallback={p.id} onChange={(v) => updateProject(p.id, { slug: v || undefined })} />
-                <RichTextEditor label="Description" value={p.desc} onChange={(v) => updateProject(p.id, { desc: v })} />
+                <ResponsiveRichTextEditor
+                  label="Description"
+                  value={p.desc}
+                  onChange={(v) => updateProject(p.id, { desc: v })}
+                  mobileValue={p.descMobile}
+                  onMobileChange={(v) => updateProject(p.id, { descMobile: v })}
+                />
                 <CMSTextarea
                   label="SEO Meta Description (optional — under ~155 characters, complete sentence; falls back to an auto-truncated Description above if left blank)"
                   value={p.metaDescription || ""}
@@ -2053,10 +2078,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                   />
                 </div>
 
-                <RichTextEditor
+                <ResponsiveRichTextEditor
                   label="Project Detail (rich text — shown between summary and outcomes)"
                   value={p.fullContent || ""}
                   onChange={(v) => updateProject(p.id, { fullContent: v })}
+                  mobileValue={p.fullContentMobile}
+                  onMobileChange={(v) => updateProject(p.id, { fullContentMobile: v })}
                 />
 
                 {p.fullCaseStudy && (
@@ -2067,10 +2094,12 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
                       value={p.fullCaseStudyBannerUrl}
                       onChange={(src) => updateProject(p.id, { fullCaseStudyBannerUrl: src || undefined })}
                     />
-                    <RichTextEditor
+                    <ResponsiveRichTextEditor
                       label="Full Case Study content (additional detail shown on the full case study page)"
                       value={p.fullCaseStudyContent || ""}
                       onChange={(v) => updateProject(p.id, { fullCaseStudyContent: v })}
+                      mobileValue={p.fullCaseStudyContentMobile}
+                      onMobileChange={(v) => updateProject(p.id, { fullCaseStudyContentMobile: v })}
                     />
                   </div>
                 )}

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
-import { RichTextEditor } from "@/components/RichTextEditor";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import type { CMSStory } from "@/store/contentStore";
@@ -172,7 +171,13 @@ export function StorySection({ data, onChange }: Props) {
                 <CMSInput label="Tag / Era" value={item.tag} onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], tag: v }; onChange({ ...data, timeline: t }); }} />
               </div>
               <CMSInput label="Title" value={item.title} onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], title: v }; onChange({ ...data, timeline: t }); }} />
-              <RichTextEditor label="Body" value={item.body} onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], body: v }; onChange({ ...data, timeline: t }); }} />
+              <ResponsiveRichTextEditor
+                label="Body"
+                value={item.body}
+                onChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], body: v }; onChange({ ...data, timeline: t }); }}
+                mobileValue={item.bodyMobile}
+                onMobileChange={(v) => { const t = [...data.timeline]; t[i] = { ...t[i], bodyMobile: v }; onChange({ ...data, timeline: t }); }}
+              />
             </div>
           )}
         </CMSCard>
@@ -235,7 +240,13 @@ export function StorySection({ data, onChange }: Props) {
             </div>
           </div>
           <CMSInput label="Label" value={interest.label} onChange={(v) => { const ins = [...data.interests]; ins[i] = { ...ins[i], label: v }; onChange({ ...data, interests: ins }); }} />
-          <RichTextEditor label="Detail" value={interest.detail} onChange={(v) => { const ins = [...data.interests]; ins[i] = { ...ins[i], detail: v }; onChange({ ...data, interests: ins }); }} />
+          <ResponsiveRichTextEditor
+            label="Detail"
+            value={interest.detail}
+            onChange={(v) => { const ins = [...data.interests]; ins[i] = { ...ins[i], detail: v }; onChange({ ...data, interests: ins }); }}
+            mobileValue={interest.detailMobile}
+            onMobileChange={(v) => { const ins = [...data.interests]; ins[i] = { ...ins[i], detailMobile: v }; onChange({ ...data, interests: ins }); }}
+          />
         </CMSCard>
       ))}
       <button

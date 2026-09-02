@@ -63,7 +63,10 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: "0.5px solid rgba(237,232,223,0.06)" }}>
           <div>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: TEAL, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14 }}>Overview</p>
-            <div className="rte-content" dangerouslySetInnerHTML={{ __html: project.desc }} />
+            <div className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`} dangerouslySetInnerHTML={{ __html: project.desc }} />
+            {project.descMobile && (
+              <div className="rte-content block md:hidden" dangerouslySetInnerHTML={{ __html: project.descMobile }} />
+            )}
           </div>
           <div>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: TEAL, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14, fontWeight: 700 }}>Key Outcomes</p>
@@ -78,7 +81,10 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
 
         {/* Project Detail rich text */}
         {project.fullContent && (
-          <div className="rte-content" dangerouslySetInnerHTML={{ __html: project.fullContent }} style={{ marginBottom: 32 }} />
+          <div className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`} dangerouslySetInnerHTML={{ __html: project.fullContent }} style={{ marginBottom: 32 }} />
+        )}
+        {project.fullContentMobile && (
+          <div className="rte-content block md:hidden" dangerouslySetInnerHTML={{ __html: project.fullContentMobile }} style={{ marginBottom: 32 }} />
         )}
 
         {/* Gallery */}
@@ -95,7 +101,10 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
         {/* Full case study rich text — maxWidth overridden to fill the column (matches the
             gallery above) instead of the .rte-content default 60ch reading-width cap */}
         {project.fullCaseStudyContent && (
-          <div className="rte-content" dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent }} style={{ marginBottom: 32, maxWidth: "none" }} />
+          <div className={`rte-content ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`} dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent }} style={{ marginBottom: 32, maxWidth: "none" }} />
+        )}
+        {project.fullCaseStudyContentMobile && (
+          <div className="rte-content block md:hidden" dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContentMobile }} style={{ marginBottom: 32, maxWidth: "none" }} />
         )}
 
         {/* Footer links */}

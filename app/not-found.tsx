@@ -61,7 +61,7 @@ export default function NotFound() {
         </h1>
 
         <div
-          className="rte-content"
+          className={`rte-content ${nf.bodyMobile ? "hidden md:block" : ""}`}
           style={{
             fontFamily: "var(--font-body)",
             fontSize: "16px",
@@ -75,6 +75,21 @@ export default function NotFound() {
             __html: nf.body || "The page you're looking for doesn't exist or may have moved.",
           }}
         />
+        {nf.bodyMobile && (
+          <div
+            className="rte-content block md:hidden"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "16px",
+              color: "var(--c-text-muted)",
+              fontWeight: 300,
+              maxWidth: "440px",
+              lineHeight: 1.6,
+              marginBottom: "36px",
+            }}
+            dangerouslySetInnerHTML={{ __html: nf.bodyMobile }}
+          />
+        )}
 
         <Link href="/">
           <Button icon={<ArrowLeft size={13} />}>{nf.buttonLabel || "Back to home"}</Button>

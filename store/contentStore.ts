@@ -21,7 +21,9 @@ export interface CMSGlobal {
 // hover-swap label stay hardcoded (not CMS-editable), only these two are.
 export interface CMSHomeCard {
   question: string;
+  questionMobile?: string;
   description: string;
+  descriptionMobile?: string;
 }
 
 // The `*Mobile` fields below are optional, independent overrides for what renders below the
@@ -84,6 +86,7 @@ export interface CMSNotFound {
   eyebrow?: string;
   heading?: string;
   body?: string;
+  bodyMobile?: string;
   buttonLabel?: string;
   imageUrl?: string;
 }
@@ -133,6 +136,7 @@ export interface CMSCaseStudy {
   // employer/agency (as opposed to `client`, which is that company's own client).
   companyId?: string;
   summary: string;
+  summaryMobile?: string;
   // Optional — the case-study page's <meta name="description"> falls back to the linked
   // project's own metaDescription/desc when unset. Set this whenever the case-study page should
   // read differently from its parent project page rather than duplicating it word-for-word.
@@ -145,11 +149,13 @@ export interface CMSCaseStudy {
   viewMoreCategory?: string;
   viewMoreSort?: ViewMoreSort;
   fullContent?: string;
+  fullContentMobile?: string;
   fullCaseStudy?: boolean;
   fullCaseStudyLocked?: boolean;
   fullCaseStudyPassword?: string;
   fullCaseStudyBannerUrl?: string;
   fullCaseStudyContent?: string;
+  fullCaseStudyContentMobile?: string;
   coverImageUrl?: string;
   coverImagePosition?: string;
   coverImageScale?: number;
@@ -198,6 +204,7 @@ export interface CMSProject {
   linkedCaseStudyId?: number;
   tags: string[];
   desc: string;
+  descMobile?: string;
   // Optional — the project detail page's <meta name="description"> falls back to an
   // auto-truncated `desc` when unset. Lets a hand-written, complete-sentence description be set
   // per project instead of relying on truncation always landing at a clean word boundary.
@@ -221,11 +228,13 @@ export interface CMSProject {
   img3Position?: string;
   img3Scale?: number;
   fullContent?: string;
+  fullContentMobile?: string;
   fullCaseStudy?: boolean;
   fullCaseStudyLocked?: boolean;
   fullCaseStudyPassword?: string;
   fullCaseStudyBannerUrl?: string;
   fullCaseStudyContent?: string;
+  fullCaseStudyContentMobile?: string;
   status?: "published" | "saved" | "updated" | "unpublished";
   createdAt?: string;
   updatedAt?: string;
@@ -300,6 +309,7 @@ export interface CMSExperience {
   /** Optional rich-text elaboration shown above the highlight bullets — for entries that
       need more than a bullet list can carry (context, links, formatting). */
   description?: string;
+  descriptionMobile?: string;
   // References CMSCompany.id — when set, the public Evaluate page shows a "Projects" list
   // under this experience entry's Key Skills, auto-populated from every CMSProject whose own
   // companyId matches this one (ordered/hidden per projectOrder below).
@@ -333,6 +343,7 @@ export interface CMSQualification {
 export interface CMSTestimonial {
   name: string;
   quote: string;
+  quoteMobile?: string;
   highlights: string[];
   // All optional — attribution reads fine with just a name, these just make it stronger where
   // available. linkedInUrl only ever shows an icon when actually set (see ExperienceRecruiter.tsx),
@@ -360,6 +371,7 @@ export interface CMSFaqItem {
   id: string;
   question: string;
   answer: string; // rich text
+  answerMobile?: string;
   order: number;
   // Per-item visibility, checked in addition to the section-wide faqSectionEnabled master
   // switch — lets items be staged/reviewed individually before (or even after) the section as a
@@ -432,8 +444,10 @@ export interface CMSProcessStep {
   title: string;
   tagline: string;
   description: string;
+  descriptionMobile?: string;
   activities: string[];
   example: string;
+  exampleMobile?: string;
 }
 
 export interface CMSProcess {
@@ -453,12 +467,14 @@ export interface CMSTimelineItem {
   year: string;
   title: string;
   body: string;
+  bodyMobile?: string;
   tag: string;
 }
 
 export interface CMSInterest {
   label: string;
   detail: string;
+  detailMobile?: string;
 }
 
 export interface CMSStory {
@@ -1768,6 +1784,7 @@ export function enrichProjectWithCaseStudy(project: CMSProject, caseStudies: CMS
     companyId: project.companyId || cs.companyId,
     clientMode: project.clientMode || cs.clientMode,
     desc: cs.summary || project.desc,
+    descMobile: cs.summaryMobile || project.descMobile || undefined,
     tags: cs.tags?.length ? cs.tags : project.tags,
     outcomes: cs.outcomes?.length ? cs.outcomes : project.outcomes,
     // Case study wins over the project's own value everywhere here, matching name/client/desc
@@ -1792,11 +1809,13 @@ export function enrichProjectWithCaseStudy(project: CMSProject, caseStudies: CMS
     img3Scale: cs.img3Scale ?? project.img3Scale,
     imgs,
     fullContent: project.fullContent || cs.fullContent || undefined,
+    fullContentMobile: project.fullContentMobile || cs.fullContentMobile || undefined,
     fullCaseStudy: project.fullCaseStudy || cs.fullCaseStudy || undefined,
     fullCaseStudyLocked: project.fullCaseStudyLocked ?? cs.fullCaseStudyLocked ?? undefined,
     fullCaseStudyPassword: project.fullCaseStudyPassword || cs.fullCaseStudyPassword || undefined,
     fullCaseStudyBannerUrl: project.fullCaseStudyBannerUrl || cs.fullCaseStudyBannerUrl || undefined,
     fullCaseStudyContent: project.fullCaseStudyContent || cs.fullCaseStudyContent || undefined,
+    fullCaseStudyContentMobile: project.fullCaseStudyContentMobile || cs.fullCaseStudyContentMobile || undefined,
     live: project.live || cs.liveUrl || null,
     createdAt: project.createdAt || cs.createdAt || undefined,
     updatedAt: project.updatedAt || cs.updatedAt || undefined,

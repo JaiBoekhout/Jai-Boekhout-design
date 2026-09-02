@@ -451,10 +451,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                 Overview
                               </p>
                               <div
-                                className="rte-content"
+                                className={`rte-content ${job.descriptionMobile ? "hidden md:block" : ""}`}
                                 style={{ fontSize: "16px", color: "var(--c-text-body)", marginBottom: "20px", maxWidth: "none" }}
                                 dangerouslySetInnerHTML={{ __html: job.description }}
                               />
+                              {job.descriptionMobile && (
+                                <div
+                                  className="rte-content block md:hidden"
+                                  style={{ fontSize: "16px", color: "var(--c-text-body)", marginBottom: "20px", maxWidth: "none" }}
+                                  dangerouslySetInnerHTML={{ __html: job.descriptionMobile }}
+                                />
+                              )}
                             </>
                           )}
                           {job.highlights.length > 0 && (
@@ -724,10 +731,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       </p>
                     )}
                     <div
-                      className="rte-content"
+                      className={`rte-content ${t.quoteMobile ? "hidden md:block" : ""}`}
                       style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
                       dangerouslySetInnerHTML={{ __html: t.quote }}
                     />
+                    {t.quoteMobile && (
+                      <div
+                        className="rte-content block md:hidden"
+                        style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
+                        dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
+                      />
+                    )}
                   </>
                 ) : (
                   <>
@@ -745,7 +759,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       )}
                     </p>
                     <div
-                      className="rte-content quote-color-fix"
+                      className={`rte-content quote-color-fix ${t.quoteMobile ? "hidden md:block" : ""}`}
                       style={{
                         fontFamily: "var(--font-body)",
                         fontSize: "13px",
@@ -755,6 +769,19 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       }}
                       dangerouslySetInnerHTML={{ __html: t.quote }}
                     />
+                    {t.quoteMobile && (
+                      <div
+                        className="rte-content quote-color-fix block md:hidden"
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontSize: "13px",
+                          color: "var(--c-quote-emphasis)",
+                          lineHeight: 1.6,
+                          marginBottom: "16px",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
+                      />
+                    )}
                   </>
                 )}
                 <div className="flex flex-wrap gap-2">
@@ -830,10 +857,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                             className="overflow-hidden"
                           >
                             <div
-                              className="rte-content"
+                              className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
                               style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
                               dangerouslySetInnerHTML={{ __html: faq.answer }}
                             />
+                            {faq.answerMobile && (
+                              <div
+                                className="rte-content block md:hidden"
+                                style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                                dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
+                              />
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>

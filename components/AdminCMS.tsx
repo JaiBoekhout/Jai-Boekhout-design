@@ -13,7 +13,6 @@ import { MediaSection } from "@/components/MediaSection";
 import { HistorySection } from "@/components/HistorySection";
 import { DesignSystemSection, DESIGN_SYSTEM_SECTIONS } from "@/components/DesignSystemSection";
 import { CMSInput, CMSSectionHeading, CMSCard } from "@/components/CMSFields";
-import { RichTextEditor } from "@/components/RichTextEditor";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { deleteEnquiryAction, clearEnquiriesAction } from "@/app/actions/contact";
 import type { Enquiry } from "@/app/actions/contact";
@@ -537,16 +536,20 @@ export function AdminCMS({ isOpen, onClose }: Props) {
                           <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: "14px", color: "var(--c-heading)", fontWeight: 400, marginBottom: 14 }}>
                             {label}
                           </p>
-                          <RichTextEditor
+                          <ResponsiveRichTextEditor
                             label="Question"
                             value={content.homepage.cards[id].question}
                             onChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], question: v } } } })}
+                            mobileValue={content.homepage.cards[id].questionMobile}
+                            onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], questionMobile: v } } } })}
                             previewStyle="font-family: var(--font-heading); font-size: clamp(16px, 1.5vw, 20px); color: var(--foreground); line-height: 1.3; font-weight: 400;"
                           />
-                          <RichTextEditor
+                          <ResponsiveRichTextEditor
                             label="Description"
                             value={content.homepage.cards[id].description}
                             onChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], description: v } } } })}
+                            mobileValue={content.homepage.cards[id].descriptionMobile}
+                            onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], descriptionMobile: v } } } })}
                             previewStyle="font-family: var(--font-body); font-size: 13px; color: var(--muted-foreground); line-height: 1.6; font-weight: 300;"
                           />
                         </CMSCard>

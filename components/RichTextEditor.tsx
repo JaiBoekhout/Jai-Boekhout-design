@@ -1167,45 +1167,6 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           </button>
           <Divider />
 
-          {/* Per-selection overrides — each defaults to "Auto" (follows the Design System's
-              configured value) until stepped, at which point a × appears to clear it again. */}
-          <Stepper
-            label="LH"
-            title="line height"
-            display={currentLineHeight === null ? "Auto" : String(currentLineHeight)}
-            onDec={() => stepLineHeight(-1)}
-            onInc={() => stepLineHeight(1)}
-            onClear={currentLineHeight !== null ? () => editor.chain().focus().unsetLineHeight().run() : undefined}
-          />
-          <Stepper
-            label="WT"
-            title="font weight"
-            display={currentWeight === null ? String(effectiveWeight) : String(currentWeight)}
-            onDec={() => stepWeight(-1)}
-            onInc={() => stepWeight(1)}
-            onClear={currentWeight !== null ? () => editor.chain().focus().unsetFontWeight().run() : undefined}
-          />
-          <Stepper
-            label="LS"
-            title="letter spacing"
-            display={currentLetterSpacing === null ? "Auto" : `${currentLetterSpacing}em`}
-            onDec={() => stepLetterSpacing(-1)}
-            onInc={() => stepLetterSpacing(1)}
-            onClear={currentLetterSpacing !== null ? () => editor.chain().focus().unsetLetterSpacing().run() : undefined}
-          />
-          <Stepper
-            label="MW"
-            title="max width — caps how wide this block renders on the live page; narrower still wraps and reflows normally on small screens"
-            display={currentMaxWidth === null ? "Auto" : `${currentMaxWidth}px`}
-            onDec={() => stepMaxWidth(-1)}
-            onInc={() => stepMaxWidth(1)}
-            onClear={currentMaxWidth !== null ? () => editor.chain().focus().unsetMaxWidth().run() : undefined}
-            onSetValue={(n) => editor.chain().focus().setMaxWidth(`${Math.max(50, n)}px`).run()}
-          />
-        </div>
-
-        {/* Row 2 — insert */}
-        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1, paddingTop: 3, borderTop: "1px solid rgba(237,232,223,0.05)" }}>
           {/* Alignment — when an image is selected these align the image itself (updates its own
               "align" attribute, baked into the saved <img>'s style) instead of the surrounding
               text, since an image is a block node on its own and setTextAlign has no text block
@@ -1241,8 +1202,10 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           <ToolbarBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet list"><List size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Numbered list"><ListOrdered size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal rule"><Minus size={12} /></ToolbarBtn>
-          <Divider />
+        </div>
 
+        {/* Row 2 — insert, then per-selection overrides */}
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1, paddingTop: 3, borderTop: "1px solid rgba(237,232,223,0.05)" }}>
           {/* Media */}
           <ToolbarBtn onClick={() => setDialog(dialog === "link" ? null : "link")} active={editor.isActive("link") || dialog === "link"} title="Insert link"><Link2 size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => { setDialog(null); setShowLibrary(true); }} active={showLibrary} title="Insert image from library"><ImageIcon size={12} /></ToolbarBtn>
@@ -1290,6 +1253,43 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           >
             Button
           </button>
+          <Divider />
+
+          {/* Per-selection overrides — each defaults to "Auto" (follows the Design System's
+              configured value) until stepped, at which point a × appears to clear it again. */}
+          <Stepper
+            label="LH"
+            title="line height"
+            display={currentLineHeight === null ? "Auto" : String(currentLineHeight)}
+            onDec={() => stepLineHeight(-1)}
+            onInc={() => stepLineHeight(1)}
+            onClear={currentLineHeight !== null ? () => editor.chain().focus().unsetLineHeight().run() : undefined}
+          />
+          <Stepper
+            label="WT"
+            title="font weight"
+            display={currentWeight === null ? String(effectiveWeight) : String(currentWeight)}
+            onDec={() => stepWeight(-1)}
+            onInc={() => stepWeight(1)}
+            onClear={currentWeight !== null ? () => editor.chain().focus().unsetFontWeight().run() : undefined}
+          />
+          <Stepper
+            label="LS"
+            title="letter spacing"
+            display={currentLetterSpacing === null ? "Auto" : `${currentLetterSpacing}em`}
+            onDec={() => stepLetterSpacing(-1)}
+            onInc={() => stepLetterSpacing(1)}
+            onClear={currentLetterSpacing !== null ? () => editor.chain().focus().unsetLetterSpacing().run() : undefined}
+          />
+          <Stepper
+            label="MW"
+            title="max width — caps how wide this block renders on the live page; narrower still wraps and reflows normally on small screens"
+            display={currentMaxWidth === null ? "Auto" : `${currentMaxWidth}px`}
+            onDec={() => stepMaxWidth(-1)}
+            onInc={() => stepMaxWidth(1)}
+            onClear={currentMaxWidth !== null ? () => editor.chain().focus().unsetMaxWidth().run() : undefined}
+            onSetValue={(n) => editor.chain().focus().setMaxWidth(`${Math.max(50, n)}px`).run()}
+          />
         </div>
       </div>
 

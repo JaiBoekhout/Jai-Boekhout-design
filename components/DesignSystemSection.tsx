@@ -5,7 +5,7 @@ import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
-import { RichTextEditor } from "@/components/RichTextEditor";
+import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import {
   FONT_PAIRINGS, DEFAULT_DESIGN_SYSTEM, DEFAULT_LOGO_URL, DEFAULT_FAVICON_URL,
   DEFAULT_FAVICON_PNG_URL, DEFAULT_FAVICON_SVG_URL, DEFAULT_APPLE_TOUCH_ICON_URL,
@@ -1555,7 +1555,13 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         </p>
         <CMSInput label="Eyebrow (small label above the heading)" value={notFound.eyebrow ?? "404"} onChange={(v) => onNotFoundChange({ ...notFound, eyebrow: v })} />
         <CMSInput label="Heading" value={notFound.heading ?? "Page not found"} onChange={(v) => onNotFoundChange({ ...notFound, heading: v })} />
-        <RichTextEditor label="Body text" value={notFound.body ?? "The page you're looking for doesn't exist or may have moved."} onChange={(v) => onNotFoundChange({ ...notFound, body: v })} />
+        <ResponsiveRichTextEditor
+          label="Body text"
+          value={notFound.body ?? "The page you're looking for doesn't exist or may have moved."}
+          onChange={(v) => onNotFoundChange({ ...notFound, body: v })}
+          mobileValue={notFound.bodyMobile}
+          onMobileChange={(v) => onNotFoundChange({ ...notFound, bodyMobile: v })}
+        />
         <CMSInput label="Button Label" value={notFound.buttonLabel ?? "Back to home"} onChange={(v) => onNotFoundChange({ ...notFound, buttonLabel: v })} />
         <ImagePicker
           label="Illustration (optional)"

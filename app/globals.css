@@ -248,6 +248,12 @@
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
      Tiptap sometimes outputs a single paragraph as a bare text node with no wrapping tag. */
   .rte-content { max-width: 60ch; }
+  /* The rich text editor's per-block "MW" (max width) control sets an inline max-width directly
+     on a paragraph/heading — but a child's max-width can never make it wider than its own
+     parent, so the 60ch cap above silently overrode every MW override wider than ~60ch. Once a
+     block opts into an explicit width, trust it and lift the container's own cap entirely rather
+     than trying to guess a number that matches. */
+  .rte-content:has([style*="max-width"]) { max-width: none; }
   /* Short, intentionally-centered blocks (pull quotes) shouldn't inherit the reading-width cap
      above — a quote well under 60ch shrinks its box to fit the text, which then sits flush
      against the LEFT edge of its (much wider) card rather than actually centered, no matter

@@ -321,6 +321,7 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
 
               {/* Question */}
               <h2
+                className={cardText.questionMobile ? "hidden md:block" : undefined}
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontSize: "clamp(16px, 1.5vw, 20px)",
@@ -333,6 +334,22 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
                 }}
                 dangerouslySetInnerHTML={{ __html: cardText.question }}
               />
+              {cardText.questionMobile && (
+                <h2
+                  className="block md:hidden"
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "clamp(16px, 1.5vw, 20px)",
+                    color: "var(--foreground)",
+                    lineHeight: 1.3,
+                    fontWeight: 400,
+                    marginBottom: "10px",
+                    transition: "opacity 0.2s ease",
+                    opacity: isHovered ? 0.5 : 1,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: cardText.questionMobile }}
+                />
+              )}
 
               {/* Swappable: description ↔ hover label */}
               <div style={{ position: "relative", minHeight: "44px", marginBottom: "8px" }}>
@@ -361,25 +378,41 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
                       <ArrowRight size={16} />
                     </motion.p>
                   ) : (
-                    <motion.p
+                    <motion.div
                       key="description"
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.16, ease: "easeOut" }}
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "13px",
-                        color: "var(--muted-foreground)",
-                        lineHeight: 1.6,
-                        fontWeight: 300,
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        margin: 0,
-                      }}
-                      dangerouslySetInnerHTML={{ __html: cardText.description }}
-                    />
+                      style={{ position: "absolute", top: 0, left: 0 }}
+                    >
+                      <p
+                        className={cardText.descriptionMobile ? "hidden md:block" : undefined}
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontSize: "13px",
+                          color: "var(--muted-foreground)",
+                          lineHeight: 1.6,
+                          fontWeight: 300,
+                          margin: 0,
+                        }}
+                        dangerouslySetInnerHTML={{ __html: cardText.description }}
+                      />
+                      {cardText.descriptionMobile && (
+                        <p
+                          className="block md:hidden"
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: "13px",
+                            color: "var(--muted-foreground)",
+                            lineHeight: 1.6,
+                            fontWeight: 300,
+                            margin: 0,
+                          }}
+                          dangerouslySetInnerHTML={{ __html: cardText.descriptionMobile }}
+                        />
+                      )}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
