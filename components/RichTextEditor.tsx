@@ -271,10 +271,23 @@ function Divider() {
 // still follows the Design System's default, and a clear (×) button appears only once a real
 // override has been set, to make it obvious how to go back to following the default again.
 function Stepper({
-  label, display, onDec, onInc, onClear, title,
+  label, display, onDec, onInc, onClear, title, onSetValue,
 }: {
   label: string; display: string; onDec: () => void; onInc: () => void; onClear?: () => void; title: string;
+  // Optional — lets the number itself be clicked and typed over instead of only reachable via
+  // +/-. Receives the raw digits the user typed (unitless); the caller applies whatever unit it
+  // needs (px, em, plain number, ...).
+  onSetValue?: (raw: number) => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  function commit() {
+    setEditing(false);
+    const n = parseInt(draft, 10);
+    if (!Number.isNaN(n)) onSetValue?.(n);
+  }
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
       <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#8C9AA3", letterSpacing: "0.06em" }}>{label}</span>
@@ -282,7 +295,28 @@ function Stepper({
         <button type="button" onClick={onDec} onMouseDown={(e) => e.preventDefault()} title={`Decrease ${title}`} style={{ ...btnBase, padding: "2px 5px", color: "#EDE8DF" }}>
           <span style={{ fontSize: 13, lineHeight: 1, fontWeight: 300 }}>−</span>
         </button>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", minWidth: 34, textAlign: "center" }}>{display}</span>
+        {editing ? (
+          <input
+            autoFocus
+            inputMode="numeric"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ""))}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              if (e.key === "Escape") setEditing(false);
+            }}
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", background: "none", border: "none", outline: "none", width: 34, textAlign: "center" }}
+          />
+        ) : (
+          <span
+            onClick={onSetValue ? () => { setDraft(display.replace(/\D/g, "")); setEditing(true); } : undefined}
+            title={onSetValue ? `Click to type an exact ${title}` : undefined}
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", minWidth: 34, textAlign: "center", cursor: onSetValue ? "pointer" : "default" }}
+          >
+            {display}
+          </span>
+        )}
         <button type="button" onClick={onInc} onMouseDown={(e) => e.preventDefault()} title={`Increase ${title}`} style={{ ...btnBase, padding: "2px 5px", color: "#EDE8DF" }}>
           <span style={{ fontSize: 13, lineHeight: 1, fontWeight: 300 }}>+</span>
         </button>
@@ -1166,6 +1200,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
             onDec={() => stepMaxWidth(-1)}
             onInc={() => stepMaxWidth(1)}
             onClear={currentMaxWidth !== null ? () => editor.chain().focus().unsetMaxWidth().run() : undefined}
+            onSetValue={(n) => editor.chain().focus().setMaxWidth(`${Math.max(50, n)}px`).run()}
           />
         </div>
 
