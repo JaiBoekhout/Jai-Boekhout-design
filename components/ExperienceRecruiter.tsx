@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, Download } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
 import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
-import type { CMSProject } from "@/store/contentStore";
+import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
@@ -110,6 +110,18 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const [openJobs, setOpenJobs] = useState<Set<number>>(() => new Set([0]));
   const [openFaqs, setOpenFaqs] = useState<Set<number>>(() => new Set());
   const [showAllFaqs, setShowAllFaqs] = useState(false);
+  // Tracked in JS (not left to a CSS breakpoint) so the FAQ column split below can collapse to a
+  // single column on mobile — otherwise "2 columns" would still split items into two arrays that
+  // then just stack in the wrong order (all of column 1, then all of column 2) once the layout
+  // goes single-column.
+  const [faqDesktop, setFaqDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setFaqDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   function toggleFaq(i: number) {
     setOpenFaqs((prev) => {
       const next = new Set(prev);
@@ -132,6 +144,15 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const faqColumns = cms.faqColumns ?? 2;
   const faqVisibleCount = faqColumns * (cms.faqRows ?? 3);
   const visibleFaqs = showAllFaqs ? publishedFaqs : publishedFaqs.slice(0, faqVisibleCount);
+  // Independent columns rather than a CSS grid: a grid's rows are shared across both columns, so
+  // opening a card on the left grows that whole row and shoves every card to its right down too.
+  // Splitting into separate arrays up front (one flex column each) means each column's own
+  // content height is all that ever moves it — the other column never reflows. The split itself
+  // is fixed by array position (i % columns), not by current open/closed height, so cards never
+  // jump between columns as they expand.
+  const effectiveFaqColumns = faqDesktop ? faqColumns : 1;
+  const faqColumnGroups: { faq: CMSFaqItem; idx: number }[][] = Array.from({ length: effectiveFaqColumns }, () => []);
+  visibleFaqs.forEach((faq, i) => faqColumnGroups[i % effectiveFaqColumns].push({ faq, idx: i }));
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -708,22 +729,19 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   </>
                 ) : (
                   <>
-                    <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: t.company ? "4px" : "12px" }}>
-                      <span>
-                        {t.name}
-                        {t.role && `, ${t.role}`}
-                      </span>
+                    {(t.role || t.company) && (
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>
+                        {t.role && t.company ? `${t.role} at ${t.company}` : t.role || t.company}
+                      </p>
+                    )}
+                    <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
+                      <span>{t.name}</span>
                       {t.linkedInUrl && (
                         <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
                           <FaLinkedin size={13} />
                         </a>
                       )}
                     </p>
-                    {t.company && (
-                      <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
-                        {t.company}
-                      </p>
-                    )}
                     <div
                       className="rte-content quote-color-fix"
                       style={{
@@ -776,45 +794,49 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
               {cms.faqHeading || "Frequently Asked Questions"}
             </p>
-            <div className={`grid grid-cols-1 gap-3 items-start ${faqColumns >= 2 ? "md:grid-cols-2" : ""}`}>
-              {visibleFaqs.map((faq, i) => (
-                <div
-                  key={faq.id}
-                  className="rounded-xl border overflow-hidden"
-                  style={{
-                    background: "var(--c-bg-card)",
-                    borderColor: openFaqs.has(i) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
-                    transition: "border-color 0.3s",
-                  }}
-                >
-                  <button
-                    className="w-full text-left flex items-center justify-between gap-4 p-5"
-                    onClick={() => toggleFaq(i)}
-                  >
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
-                      {faq.question}
-                    </span>
-                    <motion.div animate={{ rotate: openFaqs.has(i) ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ flexShrink: 0 }}>
-                      <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
-                    </motion.div>
-                  </button>
-                  <AnimatePresence>
-                    {openFaqs.has(i) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
+            <div className="flex gap-3 items-start">
+              {faqColumnGroups.map((col, ci) => (
+                <div key={ci} className="flex flex-col gap-3" style={{ flex: 1, minWidth: 0 }}>
+                  {col.map(({ faq, idx }) => (
+                    <div
+                      key={faq.id}
+                      className="rounded-xl border overflow-hidden"
+                      style={{
+                        background: "var(--c-bg-card)",
+                        borderColor: openFaqs.has(idx) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
+                        transition: "border-color 0.3s",
+                      }}
+                    >
+                      <button
+                        className="w-full text-left flex items-center justify-between gap-4 p-5"
+                        onClick={() => toggleFaq(idx)}
                       >
-                        <div
-                          className="rte-content"
-                          style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
+                          {faq.question}
+                        </span>
+                        <motion.div animate={{ rotate: openFaqs.has(idx) ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ flexShrink: 0 }}>
+                          <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
+                        </motion.div>
+                      </button>
+                      <AnimatePresence>
+                        {openFaqs.has(idx) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div
+                              className="rte-content"
+                              style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                              dangerouslySetInnerHTML={{ __html: faq.answer }}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
