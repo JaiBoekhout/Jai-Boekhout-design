@@ -1059,16 +1059,14 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         Shows {data.projectListRows ?? 3} row{(data.projectListRows ?? 3) > 1 ? "s" : ""} at a time, with a &quot;Load more Projects&quot; button to reveal the next {data.projectListRows ?? 3}.
       </p>
 
-      <div className="flex items-center justify-between mb-2">
-        <CMSSectionHeading>Case Studies</CMSSectionHeading>
-        <button
-          onClick={addCase}
-          className="flex items-center gap-2 transition-opacity hover:opacity-80"
-          style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "8px 14px", flexShrink: 0 }}
-        >
-          <Plus size={12} /> Add New
-        </button>
-      </div>
+      <CMSSectionHeading>Case Studies</CMSSectionHeading>
+      <button
+        onClick={addCase}
+        className="flex items-center gap-2 mb-4 transition-opacity hover:opacity-80"
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "8px 14px" }}
+      >
+        <Plus size={12} /> Add New Case Study
+      </button>
 
       <ListToolbar
         search={csSearch}
