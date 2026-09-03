@@ -111,7 +111,16 @@ const charCountStyle: React.CSSProperties = {
   marginTop: "4px",
 };
 
-export function CMSInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+// Shared "this differs from what's in Postgres" treatment — every field below takes an
+// optional `dirty` prop and falls back to this same border/glow so an admin scanning a long
+// page can spot every unsaved field at a glance, not just the one they're currently in.
+const DIRTY_BORDER_COLOR = "rgba(245,158,11,0.6)";
+const DIRTY_GLOW = "0 0 0 3px rgba(245,158,11,0.12)";
+function restBorderColor(dirty: boolean | undefined) {
+  return dirty ? DIRTY_BORDER_COLOR : "rgba(237,232,223,0.08)";
+}
+
+export function CMSInput({ label, value, onChange, dirty }: { label: string; value: string; onChange: (v: string) => void; dirty?: boolean }) {
   return (
     <div className="flex flex-col mb-4">
       <label style={labelStyle}>{label}</label>
@@ -119,9 +128,9 @@ export function CMSInput({ label, value, onChange }: { label: string; value: str
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={inputBase}
+        style={{ ...inputBase, borderColor: restBorderColor(dirty), boxShadow: dirty ? DIRTY_GLOW : undefined }}
         onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
-        onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.08)")}
+        onBlur={(e) => (e.target.style.borderColor = restBorderColor(dirty))}
       />
       <span style={charCountStyle}>{value.length} characters</span>
     </div>
@@ -145,7 +154,7 @@ function looksLikeValidUrl(raw: string): boolean {
 // Same as CMSInput, but flags text that doesn't look like a URL and auto-prepends
 // "https://" on blur for bare domains (e.g. "example.com") so links don't silently
 // end up relative to the current page.
-export function CMSUrlInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+export function CMSUrlInput({ label, value, onChange, dirty }: { label: string; value: string; onChange: (v: string) => void; dirty?: boolean }) {
   const [touched, setTouched] = useState(false);
   const valid = looksLikeValidUrl(value);
   const showError = touched && !valid;
@@ -157,7 +166,7 @@ export function CMSUrlInput({ label, value, onChange }: { label: string; value: 
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        style={{ ...inputBase, borderColor: showError ? "rgba(192,57,43,0.5)" : undefined }}
+        style={{ ...inputBase, borderColor: showError ? "rgba(192,57,43,0.5)" : restBorderColor(dirty), boxShadow: !showError && dirty ? DIRTY_GLOW : undefined }}
         onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
         onBlur={(e) => {
           setTouched(true);
@@ -165,7 +174,7 @@ export function CMSUrlInput({ label, value, onChange }: { label: string; value: 
           if (trimmed && !URL_SCHEME_RE.test(trimmed) && looksLikeValidUrl(trimmed)) {
             onChange(`https://${trimmed}`);
           }
-          e.target.style.borderColor = trimmed && !looksLikeValidUrl(trimmed) ? "rgba(192,57,43,0.5)" : "rgba(237,232,223,0.08)";
+          e.target.style.borderColor = trimmed && !looksLikeValidUrl(trimmed) ? "rgba(192,57,43,0.5)" : restBorderColor(dirty);
         }}
       />
       {showError ? (
@@ -187,7 +196,7 @@ function slugify(input: string): string {
 // contentStore.ts, which is what every href on the site actually resolves through. `fallback`
 // is whatever this entry resolves to today with the field left empty (its internal id), shown
 // as both the placeholder and the live preview so the admin always sees the real current URL.
-export function CMSSlugInput({ label, value, fallback, onChange }: { label: string; value: string; fallback: string; onChange: (v: string) => void }) {
+export function CMSSlugInput({ label, value, fallback, onChange, dirty }: { label: string; value: string; fallback: string; onChange: (v: string) => void; dirty?: boolean }) {
   const preview = (value && value.trim()) || fallback;
   return (
     <div className="flex flex-col mb-4">
@@ -200,9 +209,9 @@ export function CMSSlugInput({ label, value, fallback, onChange }: { label: stri
         onBlur={(e) => {
           const cleaned = slugify(e.target.value);
           if (cleaned !== e.target.value) onChange(cleaned);
-          e.target.style.borderColor = "rgba(237,232,223,0.08)";
+          e.target.style.borderColor = restBorderColor(dirty);
         }}
-        style={inputBase}
+        style={{ ...inputBase, borderColor: restBorderColor(dirty), boxShadow: dirty ? DIRTY_GLOW : undefined }}
         onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
       />
       <span style={charCountStyle}>yoursite.com/work/{preview}</span>
@@ -210,7 +219,7 @@ export function CMSSlugInput({ label, value, fallback, onChange }: { label: stri
   );
 }
 
-export function CMSTextarea({ label, value, onChange, rows = 4 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
+export function CMSTextarea({ label, value, onChange, rows = 4, dirty }: { label: string; value: string; onChange: (v: string) => void; rows?: number; dirty?: boolean }) {
   return (
     <div className="flex flex-col mb-4">
       <label style={labelStyle}>{label}</label>
@@ -218,16 +227,16 @@ export function CMSTextarea({ label, value, onChange, rows = 4 }: { label: strin
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        style={{ ...inputBase, resize: "vertical" }}
+        style={{ ...inputBase, resize: "vertical", borderColor: restBorderColor(dirty), boxShadow: dirty ? DIRTY_GLOW : undefined }}
         onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
-        onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.08)")}
+        onBlur={(e) => (e.target.style.borderColor = restBorderColor(dirty))}
       />
       <span style={charCountStyle}>{value.length} characters</span>
     </div>
   );
 }
 
-export function CMSArrayEditor({ label, items, onChange }: { label: string; items: string[]; onChange: (items: string[]) => void }) {
+export function CMSArrayEditor({ label, items, onChange, dirty }: { label: string; items: string[]; onChange: (items: string[]) => void; dirty?: boolean }) {
   const [newItem, setNewItem] = useState("");
   const { dragHandleProps, dropTargetProps, cardStyle } = useDragReorder(items, onChange);
 
@@ -255,7 +264,7 @@ export function CMSArrayEditor({ label, items, onChange }: { label: string; item
   }
 
   return (
-    <div className="flex flex-col mb-4">
+    <div className="flex flex-col mb-4" style={dirty ? { borderLeft: `2px solid ${DIRTY_BORDER_COLOR}`, paddingLeft: 10 } : undefined}>
       <label style={labelStyle}>{label}</label>
       <div className="flex flex-col gap-2 mb-2">
         {items.map((item, i) => (
@@ -321,7 +330,7 @@ export function CMSArrayEditor({ label, items, onChange }: { label: string; item
   );
 }
 
-export function CMSChipEditor({ label, items, onChange }: { label: string; items: string[]; onChange: (items: string[]) => void }) {
+export function CMSChipEditor({ label, items, onChange, dirty }: { label: string; items: string[]; onChange: (items: string[]) => void; dirty?: boolean }) {
   const [newItem, setNewItem] = useState("");
   const { dragIndex, overIndex, dragHandleProps, dropTargetProps } = useDragReorder(items, onChange);
 
@@ -363,7 +372,7 @@ export function CMSChipEditor({ label, items, onChange }: { label: string; items
   }
 
   return (
-    <div className="flex flex-col mb-4">
+    <div className="flex flex-col mb-4" style={dirty ? { borderLeft: `2px solid ${DIRTY_BORDER_COLOR}`, paddingLeft: 10 } : undefined}>
       <label style={labelStyle}>{label}</label>
       <div className="flex flex-wrap gap-2 mb-2">
         {items.map((item, i) => (

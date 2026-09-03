@@ -104,10 +104,9 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
       return !v;
     });
   }
-  const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [pendingPersist, setPendingPersist] = useState(false);
-  const { content, updateContent, persistContent, isDirty } = useContentStore();
+  const { content, updateContent, persistContent, isDirty, savedContent } = useContentStore();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [enquiriesLoading, setEnquiriesLoading] = useState(false);
   const [confirmDeleteEnquiryId, setConfirmDeleteEnquiryId] = useState<string | null>(null);
@@ -122,6 +121,39 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   const hasUnpublishedDraft = [...content.work.projects, ...content.work.caseStudies].some(
     (item) => item.status === "saved"
   );
+
+  // Which sidebar tabs hold edits that haven't made it into Postgres yet — same "differs from
+  // savedContent" comparison the individual fields use (see CMSFields.tsx's `dirty` prop), just
+  // rolled up to whole content slices so it survives a tab switch unmounting the fields
+  // themselves. Evaluate's CTA copy is a special case: it's stored under content.evaluate but
+  // edited from the Home tab (see the "Contact CTA" heading below), so it's split out of
+  // Evaluate's own dirty check and folded into Home's instead.
+  const evaluateCtaDirty =
+    content.evaluate.ctaHeading !== savedContent.evaluate.ctaHeading ||
+    content.evaluate.ctaHeadingMobile !== savedContent.evaluate.ctaHeadingMobile ||
+    content.evaluate.ctaBody !== savedContent.evaluate.ctaBody ||
+    content.evaluate.ctaBodyMobile !== savedContent.evaluate.ctaBodyMobile;
+  function evaluateSansCta(e: CMSContent["evaluate"]) {
+    const { ctaHeading, ctaHeadingMobile, ctaBody, ctaBodyMobile, ...rest } = e;
+    return rest;
+  }
+  const tabDirty: Partial<Record<Tab, boolean>> = {
+    home:
+      JSON.stringify(content.global) !== JSON.stringify(savedContent.global) ||
+      JSON.stringify(content.homepage) !== JSON.stringify(savedContent.homepage) ||
+      evaluateCtaDirty,
+    work: JSON.stringify(content.work) !== JSON.stringify(savedContent.work),
+    evaluate: JSON.stringify(evaluateSansCta(content.evaluate)) !== JSON.stringify(evaluateSansCta(savedContent.evaluate)),
+    process: JSON.stringify(content.process) !== JSON.stringify(savedContent.process),
+    story: JSON.stringify(content.story) !== JSON.stringify(savedContent.story),
+    design:
+      JSON.stringify(content.designSystem) !== JSON.stringify(savedContent.designSystem) ||
+      JSON.stringify(content.branding) !== JSON.stringify(savedContent.branding) ||
+      JSON.stringify(content.socials) !== JSON.stringify(savedContent.socials) ||
+      JSON.stringify(content.notFound) !== JSON.stringify(savedContent.notFound) ||
+      JSON.stringify(content.companies) !== JSON.stringify(savedContent.companies) ||
+      content.companyCreditCopy !== savedContent.companyCreditCopy,
+  };
 
   const fetchEnquiries = useCallback(async () => {
     setEnquiriesLoading(true);
@@ -176,10 +208,10 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
     const ok = await persistContent();
     if (ok) {
       setSaveError(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      // No separate "just saved" flash state needed — isDirty (and hasUnpublishedDraft) flip
+      // to false as soon as the post-save refetch lands, which is what actually drives the
+      // button back to its resting "Saved!" look below.
     } else {
-      setSaved(false);
       setSaveError(true);
       setTimeout(() => setSaveError(false), 5000);
     }
@@ -343,7 +375,24 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                           cursor: "pointer",
                         }}
                       >
-                        <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
+                        <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+                          <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
+                          {tabDirty[tab.id] && (
+                            <span
+                              title="Unsaved changes"
+                              style={{
+                                position: "absolute",
+                                top: -3,
+                                right: -4,
+                                width: 6,
+                                height: 6,
+                                borderRadius: "50%",
+                                background: "#F59E0B",
+                                border: "1.5px solid #0C1117",
+                              }}
+                            />
+                          )}
+                        </span>
                         <span
                           className={railClass("inline")}
                           style={{
@@ -356,6 +405,19 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                         >
                           {tab.label}
                         </span>
+                        {tabDirty[tab.id] && (
+                          <span
+                            className={railClass("inline-block")}
+                            style={{
+                              width: 5,
+                              height: 5,
+                              borderRadius: "50%",
+                              background: "#F59E0B",
+                              flexShrink: 0,
+                              marginLeft: -4,
+                            }}
+                          />
+                        )}
                       </button>
                       {tab.id === "design" && active && (
                         <div
@@ -394,26 +456,24 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                   title={
                     saveError
                       ? "Save failed — see the error below"
-                      : saved
-                      ? undefined
                       : isDirty && hasUnpublishedDraft
                       ? "You have unsaved changes, and some projects are saved but not published yet"
                       : isDirty
                       ? "You have unsaved changes"
                       : hasUnpublishedDraft
                       ? "Some projects are saved but not published yet"
-                      : undefined
+                      : "Everything is saved"
                   }
                   className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-all ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
                   style={{
-                    background: saveError ? "#C0392B" : saved ? "rgba(20,173,181,0.15)" : (isDirty || hasUnpublishedDraft) ? "#F59E0B" : "#14ADB5",
+                    background: saveError ? "#C0392B" : (isDirty || hasUnpublishedDraft) ? "#F59E0B" : "rgba(20,173,181,0.15)",
                     border: "none",
                     cursor: "pointer",
                   }}
                 >
-                  {saveError ? <X size={13} style={{ color: "#EDE8DF" }} /> : saved ? <Check size={13} style={{ color: "#14ADB5" }} /> : <Save size={13} style={{ color: "#0C1117" }} />}
-                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: saveError ? "#EDE8DF" : saved ? "#14ADB5" : "#0C1117", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-                    {saveError ? "Save failed" : saved ? "Saved!" : "Save Changes"}
+                  {saveError ? <X size={13} style={{ color: "#EDE8DF" }} /> : (isDirty || hasUnpublishedDraft) ? <Save size={13} style={{ color: "#0C1117" }} /> : <Check size={13} style={{ color: "#14ADB5" }} />}
+                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: saveError ? "#EDE8DF" : (isDirty || hasUnpublishedDraft) ? "#0C1117" : "#14ADB5", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    {saveError ? "Save failed" : (isDirty || hasUnpublishedDraft) ? "Save Changes" : "Saved!"}
                   </span>
                 </button>
                 {saveError && (
@@ -536,10 +596,10 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                   <>
                     <CMSSectionHeading>Global Settings</CMSSectionHeading>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <CMSInput label="Email" value={content.global.email} onChange={(v) => updateContent({ global: { ...content.global, email: v } })} />
-                      <CMSInput label="Phone" value={content.global.phone} onChange={(v) => updateContent({ global: { ...content.global, phone: v } })} />
-                      <CMSInput label="Location" value={content.global.location} onChange={(v) => updateContent({ global: { ...content.global, location: v } })} />
-                      <CMSInput label="Tagline" value={content.global.tagline} onChange={(v) => updateContent({ global: { ...content.global, tagline: v } })} />
+                      <CMSInput label="Email" value={content.global.email} onChange={(v) => updateContent({ global: { ...content.global, email: v } })} dirty={content.global.email !== savedContent.global.email} />
+                      <CMSInput label="Phone" value={content.global.phone} onChange={(v) => updateContent({ global: { ...content.global, phone: v } })} dirty={content.global.phone !== savedContent.global.phone} />
+                      <CMSInput label="Location" value={content.global.location} onChange={(v) => updateContent({ global: { ...content.global, location: v } })} dirty={content.global.location !== savedContent.global.location} />
+                      <CMSInput label="Tagline" value={content.global.tagline} onChange={(v) => updateContent({ global: { ...content.global, tagline: v } })} dirty={content.global.tagline !== savedContent.global.tagline} />
                     </div>
                     <CMSSectionHeading>Homepage</CMSSectionHeading>
                     <ResponsiveRichTextEditor
@@ -549,6 +609,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       mobileValue={content.homepage.headlineMobile}
                       onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, headlineMobile: v } })}
                       previewStyle="font-family: var(--font-heading); font-size: clamp(52px, 8vw, 96px); color: var(--foreground); line-height: 1.05; font-weight: 400; letter-spacing: -0.02em; text-align: center;"
+                      dirty={content.homepage.headline !== savedContent.homepage.headline || content.homepage.headlineMobile !== savedContent.homepage.headlineMobile}
                     />
                     <ResponsiveRichTextEditor
                       label="Sub-headline"
@@ -557,6 +618,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       mobileValue={content.homepage.subheadlineMobile}
                       onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, subheadlineMobile: v } })}
                       previewStyle="font-family: var(--font-body); font-size: clamp(16px, 2vw, 20px); color: var(--muted-foreground); line-height: 1.6; font-weight: 300; text-align: center;"
+                      dirty={content.homepage.subheadline !== savedContent.homepage.subheadline || content.homepage.subheadlineMobile !== savedContent.homepage.subheadlineMobile}
                     />
                     <ResponsiveRichTextEditor
                       label="Question"
@@ -565,6 +627,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       mobileValue={content.homepage.questionMobile}
                       onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, questionMobile: v } })}
                       previewStyle="font-family: var(--font-heading); font-style: italic; font-size: 32px; color: var(--c-teal); text-align: center;"
+                      dirty={content.homepage.question !== savedContent.homepage.question || content.homepage.questionMobile !== savedContent.homepage.questionMobile}
                     />
                     <ResponsiveRichTextEditor
                       label="Footer Note (shown after the location, e.g. Adelaide, Australia · [this])"
@@ -573,6 +636,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       mobileValue={content.homepage.footerNoteMobile}
                       onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, footerNoteMobile: v } })}
                       previewStyle="font-family: var(--font-mono); font-size: 10px; color: var(--c-text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: center;"
+                      dirty={content.homepage.footerNote !== savedContent.homepage.footerNote || content.homepage.footerNoteMobile !== savedContent.homepage.footerNoteMobile}
                     />
 
                     <CMSSectionHeading>Homepage Cards</CMSSectionHeading>
@@ -580,29 +644,35 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       The 4 clickable cards on the homepage. Question and description are editable per card — the button label (e.g. &quot;Show me your work&quot;) stays fixed.
                     </p>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-                      {HOME_CARD_LABELS.map(({ id, label }) => (
+                      {HOME_CARD_LABELS.map(({ id, label }) => {
+                        const card = content.homepage.cards[id];
+                        const savedCard = savedContent.homepage.cards[id];
+                        return (
                         <CMSCard key={id}>
                           <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: "14px", color: "var(--c-heading)", fontWeight: 400, marginBottom: 14 }}>
                             {label}
                           </p>
                           <ResponsiveRichTextEditor
                             label="Question"
-                            value={content.homepage.cards[id].question}
+                            value={card.question}
                             onChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], question: v } } } })}
-                            mobileValue={content.homepage.cards[id].questionMobile}
+                            mobileValue={card.questionMobile}
                             onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], questionMobile: v } } } })}
                             previewStyle="font-family: var(--font-heading); font-size: clamp(16px, 1.5vw, 20px); color: var(--foreground); line-height: 1.3; font-weight: 400;"
+                            dirty={card.question !== savedCard.question || card.questionMobile !== savedCard.questionMobile}
                           />
                           <ResponsiveRichTextEditor
                             label="Description"
-                            value={content.homepage.cards[id].description}
+                            value={card.description}
                             onChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], description: v } } } })}
-                            mobileValue={content.homepage.cards[id].descriptionMobile}
+                            mobileValue={card.descriptionMobile}
                             onMobileChange={(v) => updateContent({ homepage: { ...content.homepage, cards: { ...content.homepage.cards, [id]: { ...content.homepage.cards[id], descriptionMobile: v } } } })}
                             previewStyle="font-family: var(--font-body); font-size: 13px; color: var(--muted-foreground); line-height: 1.6; font-weight: 300;"
+                            dirty={card.description !== savedCard.description || card.descriptionMobile !== savedCard.descriptionMobile}
                           />
                         </CMSCard>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Lives here rather than under Evaluate because PathCTA (this same
@@ -615,6 +685,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaHeading: v } })}
                       mobileValue={content.evaluate.ctaHeadingMobile}
                       onMobileChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaHeadingMobile: v } })}
+                      dirty={content.evaluate.ctaHeading !== savedContent.evaluate.ctaHeading || content.evaluate.ctaHeadingMobile !== savedContent.evaluate.ctaHeadingMobile}
                     />
                     <ResponsiveRichTextEditor
                       label="CTA Body"
@@ -622,12 +693,14 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       onChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaBody: v } })}
                       mobileValue={content.evaluate.ctaBodyMobile}
                       onMobileChange={(v) => updateContent({ evaluate: { ...content.evaluate, ctaBodyMobile: v } })}
+                      dirty={content.evaluate.ctaBody !== savedContent.evaluate.ctaBody || content.evaluate.ctaBodyMobile !== savedContent.evaluate.ctaBodyMobile}
                     />
                   </>
                 )}
                 {activeTab === "work" && (
                   <WorkSection
                     data={content.work}
+                    savedData={savedContent.work}
                     companies={content.companies}
                     evaluateStats={content.evaluate.stats}
                     onChange={(v) => {
@@ -643,16 +716,17 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                 {activeTab === "evaluate" && (
                   <EvaluateSection
                     data={content.evaluate}
+                    savedData={savedContent.evaluate}
                     companies={content.companies}
                     projects={getAllLinkableProjects(content)}
                     onChange={(v) => updateContent({ evaluate: v })}
                   />
                 )}
                 {activeTab === "process" && (
-                  <ProcessSection data={content.process} onChange={(v) => updateContent({ process: v })} />
+                  <ProcessSection data={content.process} savedData={savedContent.process} onChange={(v) => updateContent({ process: v })} />
                 )}
                 {activeTab === "story" && (
-                  <StorySection data={content.story} onChange={(v) => updateContent({ story: v })} />
+                  <StorySection data={content.story} savedData={savedContent.story} onChange={(v) => updateContent({ story: v })} />
                 )}
                 {activeTab === "enquiry" && (
                   <div>

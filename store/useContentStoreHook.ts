@@ -33,6 +33,11 @@ export function useContentStore() {
   // Falls back to DEFAULT_CONTENT only if somehow rendered outside that provider.
   const initialContent = useInitialContent();
   const [content, setContentState] = useState<CMSContent>(initialContent ?? DEFAULT_CONTENT);
+  // Mirrors whatever's actually in Postgres right now — untouched by in-progress edits, only
+  // ever replaced wholesale when a save/fetch actually lands. Fields/cards compare their own
+  // live value against the same slice of this snapshot to show an "unsaved" outline; see
+  // components/CMSFields.tsx and the per-tab dot in components/AdminCMS.tsx.
+  const [savedContent, setSavedContent] = useState<CMSContent>(initialContent ?? DEFAULT_CONTENT);
   const [isDirty, setIsDirty] = useState(false);
   const [isLoading, setIsLoading] = useState(!initialContent);
 
@@ -44,6 +49,7 @@ export function useContentStore() {
       fetchContent().then((c) => {
         if (cancelled) return;
         setContentState(c);
+        setSavedContent(c);
         setIsLoading(false);
       });
     }
@@ -51,6 +57,7 @@ export function useContentStore() {
       fetchContent().then((c) => {
         if (cancelled) return;
         setContentState(c);
+        setSavedContent(c);
         setIsDirty(false);
       });
     };
@@ -80,5 +87,5 @@ export function useContentStore() {
     return ok;
   }
 
-  return { content, updateContent, persistContent, isDirty, isLoading };
+  return { content, updateContent, persistContent, isDirty, isLoading, savedContent };
 }

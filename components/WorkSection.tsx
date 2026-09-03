@@ -13,6 +13,9 @@ const MAX_HOME_STATS = 6;
 
 interface Props {
   data: CMSWork;
+  // What's actually in Postgres right now — used only to flag cards/fields that differ from it
+  // (see the "dirty" outline on each CMSCard/field below), never read for anything else.
+  savedData: CMSWork;
   companies: CMSCompany[];
   evaluateStats: CMSStat[];
   onChange: (data: CMSWork) => void;
@@ -598,7 +601,7 @@ function HighlightSwapButton({ onSwap }: { onSwap: () => void }) {
   );
 }
 
-export function WorkSection({ data, companies, evaluateStats, onChange }: Props) {
+export function WorkSection({ data, savedData, companies, evaluateStats, onChange }: Props) {
   const [openId, setOpenId] = useState<number | null>(null);
   const [openProjId, setOpenProjId] = useState<string | null>(null);
   const [imgOpenId, setImgOpenId] = useState<string | null>(null);
@@ -814,6 +817,21 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
   }
   const allTags = Array.from(new Set([...data.projects, ...data.caseStudies].flatMap((e) => e.tags))).sort((a, b) => a.localeCompare(b));
 
+  // Card-level "unsaved" outline — cheaper and more useful than per-field precision here, since
+  // every field below lives inside one of these collapsible cards; a highlighted input inside a
+  // collapsed card would be invisible anyway. A missing saved counterpart (id not found) means
+  // the whole card is new and unsaved, not an error.
+  function caseStudyDirtyStyle(cs: CMSCaseStudy): React.CSSProperties | undefined {
+    const saved = savedData.caseStudies.find((x) => x.id === cs.id);
+    const dirty = !saved || JSON.stringify(cs) !== JSON.stringify(saved);
+    return dirty ? { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" } : undefined;
+  }
+  function projectDirtyStyle(p: CMSProject): React.CSSProperties | undefined {
+    const saved = savedData.projects.find((x) => x.id === p.id);
+    const dirty = !saved || JSON.stringify(p) !== JSON.stringify(saved);
+    return dirty ? { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" } : undefined;
+  }
+
   return (
     <div>
       <CMSSectionHeading>Hero</CMSSectionHeading>
@@ -823,6 +841,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         onChange={(v) => onChange({ ...data, heroStatement: v })}
         mobileValue={data.heroStatementMobile}
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+        dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
       <CMSSectionHeading>Stats Bar</CMSSectionHeading>
@@ -1084,7 +1103,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
       )}
 
       {filteredFullCaseStudies.map((cs) => (
-        <CMSCard key={cs.id} ref={cs.id === justAddedId ? newCardRef : undefined}>
+        <CMSCard key={cs.id} ref={cs.id === justAddedId ? newCardRef : undefined} style={caseStudyDirtyStyle(cs)}>
           <div className="w-full flex flex-col lg:flex-row lg:items-center gap-3" style={{ position: "sticky", top: 0, zIndex: 5, background: "#141D24", margin: "-20px -20px 0", padding: "20px 20px 14px", borderRadius: "12px 12px 0 0" }}>
             {/* Clickable title area — stacks above the action row on narrow screens (a long
                 title wrapping to several lines would otherwise squeeze against and vertically
@@ -1459,7 +1478,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         if (entry.kind === "cs") {
           const cs = entry.cs;
           return (
-            <CMSCard key={`cs-${cs.id}`} ref={cs.id === justAddedId ? newCardRef : undefined}>
+            <CMSCard key={`cs-${cs.id}`} ref={cs.id === justAddedId ? newCardRef : undefined} style={caseStudyDirtyStyle(cs)}>
             <div className="w-full flex flex-col lg:flex-row lg:items-center gap-3" style={{ position: "sticky", top: 0, zIndex: 5, background: "#141D24", margin: "-20px -20px 0", padding: "20px 20px 14px", borderRadius: "12px 12px 0 0" }}>
               {/* Clickable title area — stacks above the action row on narrow screens (a long
                   title wrapping to several lines would otherwise squeeze against and vertically
@@ -1811,7 +1830,7 @@ export function WorkSection({ data, companies, evaluateStats, onChange }: Props)
         }
         const p = entry.p;
         return (
-          <CMSCard key={`proj-${p.id}`}>
+          <CMSCard key={`proj-${p.id}`} style={projectDirtyStyle(p)}>
             <div className="w-full flex flex-col lg:flex-row lg:items-center gap-3" style={{ position: "sticky", top: 0, zIndex: 5, background: "#141D24", margin: "-20px -20px 0", padding: "20px 20px 14px", borderRadius: "12px 12px 0 0" }}>
               {/* Clickable title area — stacks above the action row on narrow screens (a long
                   name wrapping to several lines would otherwise squeeze against and vertically

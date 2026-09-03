@@ -12,10 +12,15 @@ import { computeAutoStatValue } from "@/store/contentStore";
 
 interface Props {
   data: CMSEvaluate;
+  // What's actually in Postgres right now — compared against `data` to flag unsaved
+  // fields/cards (see the "dirty" outline below), never used for anything else.
+  savedData: CMSEvaluate;
   companies: CMSCompany[];
   projects: CMSProject[];
   onChange: (data: CMSEvaluate) => void;
 }
+
+const DIRTY_CARD_STYLE: React.CSSProperties = { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" };
 
 // Reorderable/hideable list of projects auto-matched to an experience entry's linked company
 // (by CMSProject.companyId), rendered underneath its Key Skills — same up/down + visibility
@@ -361,7 +366,7 @@ function ResumeUpload({ value, onChange }: { value: string | undefined; onChange
   );
 }
 
-export function EvaluateSection({ data, companies, projects, onChange }: Props) {
+export function EvaluateSection({ data, savedData, companies, projects, onChange }: Props) {
   const [openExp, setOpenExp] = useState<number | null>(null);
   const statsDrag = useDragReorder(data.stats, (v) => onChange({ ...data, stats: v }));
   const skillsDrag = useDragReorder(data.skills, (v) => onChange({ ...data, skills: v }));
@@ -370,6 +375,14 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
   const qualificationsDrag = useDragReorder(data.qualifications, (v) => onChange({ ...data, qualifications: v }));
   const testimonialsDrag = useDragReorder(data.testimonials, (v) => onChange({ ...data, testimonials: v }));
   const faqDrag = useDragReorder(data.faqItems ?? [], (v) => onChange({ ...data, faqItems: v }));
+
+  // Card-level "unsaved" outline, index-matched against the same slot in savedData — good
+  // enough here since none of these lists reorder via drag-into-a-different-identity; a
+  // missing saved counterpart (list grew) just means the row is new and unsaved.
+  function rowDirty<T>(item: T, saved: T[] | undefined, i: number): boolean {
+    const s = saved?.[i];
+    return s === undefined || JSON.stringify(item) !== JSON.stringify(s);
+  }
 
   return (
     <div>
@@ -380,25 +393,27 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
         onChange={(v) => onChange({ ...data, heroStatement: v })}
         mobileValue={data.heroStatementMobile}
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+        dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
       <CMSSectionHeading>Who I Am</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.bioHeading ?? "About Me"} onChange={(v) => onChange({ ...data, bioHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.bioHeading ?? "About Me"} onChange={(v) => onChange({ ...data, bioHeading: v })} dirty={(data.bioHeading ?? "About Me") !== (savedData.bioHeading ?? "About Me")} />
       <ResponsiveRichTextEditor
         label="Bio"
         value={data.bio}
         onChange={(v) => onChange({ ...data, bio: v })}
         mobileValue={data.bioMobile}
         onMobileChange={(v) => onChange({ ...data, bioMobile: v })}
+        dirty={data.bio !== savedData.bio || data.bioMobile !== savedData.bioMobile}
       />
-      <CMSInput label="Industries — Section Heading (public page)" value={data.industriesHeading ?? "Industries"} onChange={(v) => onChange({ ...data, industriesHeading: v })} />
-      <CMSChipEditor label="Industries" items={data.industries} onChange={(v) => onChange({ ...data, industries: v })} />
+      <CMSInput label="Industries — Section Heading (public page)" value={data.industriesHeading ?? "Industries"} onChange={(v) => onChange({ ...data, industriesHeading: v })} dirty={(data.industriesHeading ?? "Industries") !== (savedData.industriesHeading ?? "Industries")} />
+      <CMSChipEditor label="Industries" items={data.industries} onChange={(v) => onChange({ ...data, industries: v })} dirty={JSON.stringify(data.industries) !== JSON.stringify(savedData.industries)} />
 
       <CMSSectionHeading>At A Glance</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.statsHeading ?? "At a Glance"} onChange={(v) => onChange({ ...data, statsHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.statsHeading ?? "At a Glance"} onChange={(v) => onChange({ ...data, statsHeading: v })} dirty={(data.statsHeading ?? "At a Glance") !== (savedData.statsHeading ?? "At a Glance")} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
       {data.stats.map((stat, i) => (
-        <CMSCard key={i} style={statsDrag.cardStyle(i)} {...statsDrag.dropTargetProps(i)}>
+        <CMSCard key={i} style={{ ...statsDrag.cardStyle(i), ...(rowDirty(stat, savedData.stats, i) ? DIRTY_CARD_STYLE : {}) }} {...statsDrag.dropTargetProps(i)}>
           <div className="flex items-center justify-between gap-1 mb-2">
             <DragHandle {...statsDrag.dragHandleProps(i)} />
             <div className="flex items-center gap-1">
@@ -504,10 +519,10 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       <ResumeUpload value={data.resumeUrl} onChange={(url) => onChange({ ...data, resumeUrl: url })} />
 
       <CMSSectionHeading>Core Strengths</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.skillsHeading ?? "Core Strengths"} onChange={(v) => onChange({ ...data, skillsHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.skillsHeading ?? "Core Strengths"} onChange={(v) => onChange({ ...data, skillsHeading: v })} dirty={(data.skillsHeading ?? "Core Strengths") !== (savedData.skillsHeading ?? "Core Strengths")} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
       {data.skills.map((group, i) => (
-        <CMSCard key={i} style={skillsDrag.cardStyle(i)} {...skillsDrag.dropTargetProps(i)}>
+        <CMSCard key={i} style={{ ...skillsDrag.cardStyle(i), ...(rowDirty(group, savedData.skills, i) ? DIRTY_CARD_STYLE : {}) }} {...skillsDrag.dropTargetProps(i)}>
           <div className="flex items-center justify-between gap-1 mb-2">
             <DragHandle {...skillsDrag.dragHandleProps(i)} />
             <div className="flex items-center gap-1">
@@ -560,7 +575,12 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       </button>
 
       <CMSSectionHeading>Clients & Companies</CMSSectionHeading>
-      <CMSInput label="Section Heading (shown on both the Evaluate and Work pages)" value={data.clientsHeading ?? "Clients & Companies"} onChange={(v) => onChange({ ...data, clientsHeading: v })} />
+      <CMSInput
+        label="Section Heading (shown on both the Evaluate and Work pages)"
+        value={data.clientsHeading ?? "Clients & Companies"}
+        onChange={(v) => onChange({ ...data, clientsHeading: v })}
+        dirty={(data.clientsHeading ?? "Clients & Companies") !== (savedData.clientsHeading ?? "Clients & Companies")}
+      />
 
       <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, cursor: "pointer", userSelect: "none" }}>
         <input
@@ -597,7 +617,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       {/* Client cards — 2 column grid on tablet/desktop, stacked on mobile */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         {(data.clients ?? []).map((client, i) => (
-          <div key={i} className="rounded-xl p-4" style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.06)", ...clientsDrag.cardStyle(i) }} {...clientsDrag.dropTargetProps(i)}>
+          <div key={i} className="rounded-xl p-4" style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.06)", ...clientsDrag.cardStyle(i), ...(rowDirty(client, savedData.clients, i) ? DIRTY_CARD_STYLE : {}) }} {...clientsDrag.dropTargetProps(i)}>
 
             {/* Row assignment + reorder + delete */}
             <div className="flex items-center justify-between mb-3">
@@ -692,9 +712,9 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       </button>
 
       <CMSSectionHeading>Professional Experience</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.experienceHeading ?? "Professional Experience"} onChange={(v) => onChange({ ...data, experienceHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.experienceHeading ?? "Professional Experience"} onChange={(v) => onChange({ ...data, experienceHeading: v })} dirty={(data.experienceHeading ?? "Professional Experience") !== (savedData.experienceHeading ?? "Professional Experience")} />
       {data.experience.map((exp, i) => (
-        <CMSCard key={i} style={experienceDrag.cardStyle(i)} {...experienceDrag.dropTargetProps(i)}>
+        <CMSCard key={i} style={{ ...experienceDrag.cardStyle(i), ...(rowDirty(exp, savedData.experience, i) ? DIRTY_CARD_STYLE : {}) }} {...experienceDrag.dropTargetProps(i)}>
           <div className="w-full flex items-center justify-between gap-2">
             <button
               className="flex-1 min-w-0 flex items-center justify-between"
@@ -807,10 +827,10 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       </button>
 
       <CMSSectionHeading>Education & Qualifications</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.qualificationsHeading ?? "Education & Qualifications"} onChange={(v) => onChange({ ...data, qualificationsHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.qualificationsHeading ?? "Education & Qualifications"} onChange={(v) => onChange({ ...data, qualificationsHeading: v })} dirty={(data.qualificationsHeading ?? "Education & Qualifications") !== (savedData.qualificationsHeading ?? "Education & Qualifications")} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
         {data.qualifications.map((q, i) => (
-          <CMSCard key={i} style={qualificationsDrag.cardStyle(i)} {...qualificationsDrag.dropTargetProps(i)}>
+          <CMSCard key={i} style={{ ...qualificationsDrag.cardStyle(i), ...(rowDirty(q, savedData.qualifications, i) ? DIRTY_CARD_STYLE : {}) }} {...qualificationsDrag.dropTargetProps(i)}>
             <div className="flex items-center justify-between gap-1 mb-2">
               <DragHandle {...qualificationsDrag.dragHandleProps(i)} />
               <div className="flex items-center gap-1">
@@ -868,13 +888,13 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
       >
         <Plus size={13} /> Add Qualification
       </button>
-      <CMSChipEditor label="Additional Background" items={data.additional} onChange={(v) => onChange({ ...data, additional: v })} />
+      <CMSChipEditor label="Additional Background" items={data.additional} onChange={(v) => onChange({ ...data, additional: v })} dirty={JSON.stringify(data.additional) !== JSON.stringify(savedData.additional)} />
 
       <CMSSectionHeading>Testimonials</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.testimonialsHeading ?? "Why Teams Like Working With Me"} onChange={(v) => onChange({ ...data, testimonialsHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.testimonialsHeading ?? "Why Teams Like Working With Me"} onChange={(v) => onChange({ ...data, testimonialsHeading: v })} dirty={(data.testimonialsHeading ?? "Why Teams Like Working With Me") !== (savedData.testimonialsHeading ?? "Why Teams Like Working With Me")} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
         {data.testimonials.map((t, i) => (
-        <CMSCard key={i} style={testimonialsDrag.cardStyle(i)} {...testimonialsDrag.dropTargetProps(i)}>
+        <CMSCard key={i} style={{ ...testimonialsDrag.cardStyle(i), ...(rowDirty(t, savedData.testimonials, i) ? DIRTY_CARD_STYLE : {}) }} {...testimonialsDrag.dropTargetProps(i)}>
           <div className="flex items-center justify-between gap-1 mb-2">
             <DragHandle {...testimonialsDrag.dragHandleProps(i)} />
             <div className="flex items-center gap-1">
@@ -959,7 +979,7 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
         </span>
       </div>
 
-      <CMSInput label="Section Heading (public page)" value={data.faqHeading ?? "Frequently Asked Questions"} onChange={(v) => onChange({ ...data, faqHeading: v })} />
+      <CMSInput label="Section Heading (public page)" value={data.faqHeading ?? "Frequently Asked Questions"} onChange={(v) => onChange({ ...data, faqHeading: v })} dirty={(data.faqHeading ?? "Frequently Asked Questions") !== (savedData.faqHeading ?? "Frequently Asked Questions")} />
 
       <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
         <div>
@@ -1002,8 +1022,11 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
         Shows {(data.faqColumns ?? 2) * (data.faqRows ?? 3)} question{(data.faqColumns ?? 2) * (data.faqRows ?? 3) > 1 ? "s" : ""} at a time ({data.faqRows ?? 3} row{(data.faqRows ?? 3) > 1 ? "s" : ""} × {data.faqColumns ?? 2} column{(data.faqColumns ?? 2) > 1 ? "s" : ""}). If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
       </p>
 
-      {(data.faqItems ?? []).map((item, i) => (
-        <CMSCard key={item.id} style={faqDrag.cardStyle(i)} {...faqDrag.dropTargetProps(i)}>
+      {(data.faqItems ?? []).map((item, i) => {
+        const savedItem = (savedData.faqItems ?? []).find((f) => f.id === item.id);
+        const faqDirty = !savedItem || JSON.stringify(item) !== JSON.stringify(savedItem);
+        return (
+        <CMSCard key={item.id} style={{ ...faqDrag.cardStyle(i), ...(faqDirty ? DIRTY_CARD_STYLE : {}) }} {...faqDrag.dropTargetProps(i)}>
           <div className="flex items-center justify-between gap-1 mb-2">
             <DragHandle {...faqDrag.dragHandleProps(i)} />
             <div className="flex items-center gap-1">
@@ -1067,7 +1090,8 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
             rows={2}
           />
         </CMSCard>
-      ))}
+        );
+      })}
       <button
         onClick={() => {
           const items = data.faqItems ?? [];
@@ -1099,13 +1123,19 @@ export function EvaluateSection({ data, companies, projects, onChange }: Props) 
 
       {!data.beyondDesignHidden && (
         <>
-          <CMSInput label="Section Heading (public page)" value={data.beyondDesignHeading ?? "Beyond Design"} onChange={(v) => onChange({ ...data, beyondDesignHeading: v })} />
+          <CMSInput
+            label="Section Heading (public page)"
+            value={data.beyondDesignHeading ?? "Beyond Design"}
+            onChange={(v) => onChange({ ...data, beyondDesignHeading: v })}
+            dirty={(data.beyondDesignHeading ?? "Beyond Design") !== (savedData.beyondDesignHeading ?? "Beyond Design")}
+          />
           <ResponsiveRichTextEditor
             label="Personal Note"
             value={data.beyondDesign}
             onChange={(v) => onChange({ ...data, beyondDesign: v })}
             mobileValue={data.beyondDesignMobile}
             onMobileChange={(v) => onChange({ ...data, beyondDesignMobile: v })}
+            dirty={data.beyondDesign !== savedData.beyondDesign || data.beyondDesignMobile !== savedData.beyondDesignMobile}
           />
         </>
       )}

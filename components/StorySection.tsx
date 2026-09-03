@@ -9,10 +9,13 @@ import type { CMSStory } from "@/store/contentStore";
 
 interface Props {
   data: CMSStory;
+  // What's actually in Postgres right now — compared against `data` to flag unsaved
+  // fields/entries (see the "dirty" outline below), never used for anything else.
+  savedData: CMSStory;
   onChange: (data: CMSStory) => void;
 }
 
-export function StorySection({ data, onChange }: Props) {
+export function StorySection({ data, savedData, onChange }: Props) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [deleteConfirmIdx, setDeleteConfirmIdx] = useState<number | null>(null);
   const [deleteConfirmInterestIdx, setDeleteConfirmInterestIdx] = useState<number | null>(null);
@@ -77,6 +80,7 @@ export function StorySection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, heroStatement: v })}
         mobileValue={data.heroStatementMobile}
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+        dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
       <ResponsiveRichTextEditor
         label="Sub-headline"
@@ -84,6 +88,7 @@ export function StorySection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, subheadline: v })}
         mobileValue={data.subheadlineMobile}
         onMobileChange={(v) => onChange({ ...data, subheadlineMobile: v })}
+        dirty={data.subheadline !== savedData.subheadline || data.subheadlineMobile !== savedData.subheadlineMobile}
       />
       <ImagePicker
         label="Portrait Photo · 3:4 portrait"
@@ -101,12 +106,25 @@ export function StorySection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, portraitCaption: v })}
         mobileValue={data.portraitCaptionMobile}
         onMobileChange={(v) => onChange({ ...data, portraitCaptionMobile: v })}
+        dirty={(data.portraitCaption ?? "") !== (savedData.portraitCaption ?? "") || data.portraitCaptionMobile !== savedData.portraitCaptionMobile}
       />
 
       <CMSSectionHeading>The Journey (Timeline)</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.timelineHeading ?? "The Journey"} onChange={(v) => onChange({ ...data, timelineHeading: v })} />
-      {data.timeline.map((item, i) => (
-        <CMSCard key={i} style={timelineDrag.cardStyle(i)} {...timelineDrag.dropTargetProps(i)}>
+      <CMSInput
+        label="Section Heading (public page)"
+        value={data.timelineHeading ?? "The Journey"}
+        onChange={(v) => onChange({ ...data, timelineHeading: v })}
+        dirty={(data.timelineHeading ?? "The Journey") !== (savedData.timelineHeading ?? "The Journey")}
+      />
+      {data.timeline.map((item, i) => {
+        const saved = savedData.timeline[i];
+        const dirty = !saved || JSON.stringify(item) !== JSON.stringify(saved);
+        return (
+        <CMSCard
+          key={i}
+          style={{ ...timelineDrag.cardStyle(i), ...(dirty ? { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" } : {}) }}
+          {...timelineDrag.dropTargetProps(i)}
+        >
           <div className="w-full flex items-center gap-2">
             <button
               className="flex-1 min-w-0 text-left"
@@ -181,7 +199,8 @@ export function StorySection({ data, onChange }: Props) {
             </div>
           )}
         </CMSCard>
-      ))}
+        );
+      })}
       <button
         onClick={addTimelineItem}
         className="flex items-center gap-2 transition-opacity hover:opacity-80 mb-6"
@@ -191,9 +210,21 @@ export function StorySection({ data, onChange }: Props) {
       </button>
 
       <CMSSectionHeading>Beyond Design (Interests)</CMSSectionHeading>
-      <CMSInput label="Section Heading (public page)" value={data.interestsHeading ?? "Outside of Design"} onChange={(v) => onChange({ ...data, interestsHeading: v })} />
-      {data.interests.map((interest, i) => (
-        <CMSCard key={i} style={interestsDrag.cardStyle(i)} {...interestsDrag.dropTargetProps(i)}>
+      <CMSInput
+        label="Section Heading (public page)"
+        value={data.interestsHeading ?? "Outside of Design"}
+        onChange={(v) => onChange({ ...data, interestsHeading: v })}
+        dirty={(data.interestsHeading ?? "Outside of Design") !== (savedData.interestsHeading ?? "Outside of Design")}
+      />
+      {data.interests.map((interest, i) => {
+        const saved = savedData.interests[i];
+        const dirty = !saved || JSON.stringify(interest) !== JSON.stringify(saved);
+        return (
+        <CMSCard
+          key={i}
+          style={{ ...interestsDrag.cardStyle(i), ...(dirty ? { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" } : {}) }}
+          {...interestsDrag.dropTargetProps(i)}
+        >
           <div className="w-full flex items-center gap-2 mb-3">
             <DragHandle {...interestsDrag.dragHandleProps(i)} />
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.08em", flex: 1 }}>
@@ -248,7 +279,8 @@ export function StorySection({ data, onChange }: Props) {
             onMobileChange={(v) => { const ins = [...data.interests]; ins[i] = { ...ins[i], detailMobile: v }; onChange({ ...data, interests: ins }); }}
           />
         </CMSCard>
-      ))}
+        );
+      })}
       <button
         onClick={addInterest}
         className="flex items-center gap-2 transition-opacity hover:opacity-80 mb-6"
@@ -264,6 +296,7 @@ export function StorySection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, closingQuote: v })}
         mobileValue={data.closingQuoteMobile}
         onMobileChange={(v) => onChange({ ...data, closingQuoteMobile: v })}
+        dirty={data.closingQuote !== savedData.closingQuote || data.closingQuoteMobile !== savedData.closingQuoteMobile}
       />
     </div>
   );

@@ -12,12 +12,21 @@ function newStepId(): string {
 
 interface Props {
   data: CMSProcess;
+  // What's actually in Postgres right now — compared against `data` to flag unsaved
+  // fields/steps (see the "dirty" outline below), never used for anything else.
+  savedData: CMSProcess;
   onChange: (data: CMSProcess) => void;
 }
 
-export function ProcessSection({ data, onChange }: Props) {
+export function ProcessSection({ data, savedData, onChange }: Props) {
   const [openStep, setOpenStep] = useState<string | null>(null);
   const stepsDrag = useDragReorder(data.steps, (v) => onChange({ ...data, steps: v }));
+
+  // A missing saved counterpart (id not found) means the whole step is new and unsaved.
+  function stepDirty(step: CMSProcessStep): boolean {
+    const saved = savedData.steps.find((s) => s.id === step.id);
+    return !saved || JSON.stringify(step) !== JSON.stringify(saved);
+  }
 
   return (
     <div>
@@ -28,11 +37,16 @@ export function ProcessSection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, heroStatement: v })}
         mobileValue={data.heroStatementMobile}
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
+        dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
       <CMSSectionHeading>Process Steps</CMSSectionHeading>
       {data.steps.map((step, i) => (
-        <CMSCard key={step.id} style={stepsDrag.cardStyle(i)} {...stepsDrag.dropTargetProps(i)}>
+        <CMSCard
+          key={step.id}
+          style={{ ...stepsDrag.cardStyle(i), ...(stepDirty(step) ? { borderColor: "rgba(245,158,11,0.5)", boxShadow: "0 0 0 1px rgba(245,158,11,0.15)" } : {}) }}
+          {...stepsDrag.dropTargetProps(i)}
+        >
           <div className="w-full flex items-center justify-between gap-2">
             <button
               className="flex-1 min-w-0 flex items-center justify-between"
@@ -132,6 +146,7 @@ export function ProcessSection({ data, onChange }: Props) {
         onChange={(v) => onChange({ ...data, closingQuote: v })}
         mobileValue={data.closingQuoteMobile}
         onMobileChange={(v) => onChange({ ...data, closingQuoteMobile: v })}
+        dirty={data.closingQuote !== savedData.closingQuote || data.closingQuoteMobile !== savedData.closingQuoteMobile}
       />
     </div>
   );

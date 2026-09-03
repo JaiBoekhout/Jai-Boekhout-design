@@ -18,6 +18,10 @@ interface Props {
    *  wins there rather than being dropped. */
   onMobileChange: (html: string | undefined) => void;
   previewStyle?: string;
+  /** True when either the desktop or mobile value differs from what's actually saved — draws
+   *  the same amber ring CMSFields.tsx uses for its own dirty inputs (see DIRTY_GLOW there)
+   *  around the whole editor block, since there's no single <input> border to recolor here. */
+  dirty?: boolean;
 }
 
 // Wraps a single RichTextEditor with an independent Desktop/Mobile device toggle, so one field
@@ -30,7 +34,7 @@ interface Props {
 // content when `device` toggles — no changes needed inside RichTextEditor itself beyond letting
 // its own label be suppressed (label="" below) so this component can render its own label +
 // toggle row instead of double-labeling the field.
-export function ResponsiveRichTextEditor({ label, value, onChange, mobileValue, onMobileChange, previewStyle }: Props) {
+export function ResponsiveRichTextEditor({ label, value, onChange, mobileValue, onMobileChange, previewStyle, dirty }: Props) {
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const hasMobileOverride = !!mobileValue;
   const activeValue = device === "mobile" ? (mobileValue ?? value) : value;
@@ -42,7 +46,15 @@ export function ResponsiveRichTextEditor({ label, value, onChange, mobileValue, 
 
   return (
     // No mb-4 here — RichTextEditor's own outer div already applies it, avoiding a doubled gap.
-    <div style={{ maxWidth: RICH_TEXT_EDITOR_WIDTH }}>
+    <div
+      style={{
+        maxWidth: RICH_TEXT_EDITOR_WIDTH,
+        boxShadow: dirty ? "0 0 0 3px rgba(245,158,11,0.12)" : undefined,
+        outline: dirty ? "1px solid rgba(245,158,11,0.6)" : undefined,
+        outlineOffset: dirty ? 4 : undefined,
+        borderRadius: dirty ? 8 : undefined,
+      }}
+    >
       <div className="flex items-center justify-between flex-wrap gap-2" style={{ marginBottom: 6 }}>
         <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.12em", textTransform: "uppercase" }}>
           {label}
