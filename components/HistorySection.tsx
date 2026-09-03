@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { History as HistoryIcon, RotateCcw, AlertTriangle, Check } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { History as HistoryIcon, RotateCcw, AlertTriangle, Check, Download, Upload } from "lucide-react";
 import { useContentStore, diffSections } from "@/store/contentStore";
 import type { CMSHistoryEntry } from "@/store/contentStore";
 import { getHistoryAction } from "@/app/actions/cms";
-import { CMSSectionHeading } from "@/components/CMSFields";
 
 function formatTimestamp(iso: string) {
   return new Date(iso).toLocaleDateString("en-AU", {
@@ -17,13 +16,25 @@ function formatTimestamp(iso: string) {
   });
 }
 
+interface Props {
+  // Backup/Restore live here (next to the version list they're the manual counterpart of)
+  // rather than the sidebar footer — the actual download/parse logic and the "restore this
+  // file, overwriting everything?" confirmation modal both still live in AdminCMS.tsx, since
+  // that modal is shared full-screen overlay UI, not something scoped to one tab.
+  onDownloadBackup: () => void;
+  onRestoreFileSelected: (file: File) => void;
+  restoreError: string | null;
+  restored: boolean;
+}
+
 // Every entry here is real, stored in Postgres (cms_history table, see lib/cmsHistory.ts) and
 // archived automatically on every save — capped at the most recent 20.
-export function HistorySection() {
+export function HistorySection({ onDownloadBackup, onRestoreFileSelected, restoreError, restored }: Props) {
   const { content, updateContent, persistContent } = useContentStore();
   const [history, setHistory] = useState<CMSHistoryEntry[]>([]);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [restoredId, setRestoredId] = useState<string | null>(null);
+  const restoreInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +67,53 @@ export function HistorySection() {
 
   return (
     <div>
-      <CMSSectionHeading>Version History</CMSSectionHeading>
+      <div
+        className="flex items-end justify-between gap-4 flex-wrap"
+        style={{ marginBottom: "16px", marginTop: "8px", paddingBottom: "10px", borderBottom: "1px solid rgba(237,232,223,0.06)" }}
+      >
+        <h3 style={{ fontFamily: "'Poppins', sans-serif", fontSize: "19px", color: "#EDE8DF", fontWeight: 600, margin: 0 }}>
+          Version History
+        </h3>
+        {/* Manual counterpart to the automatic list below — a plain JSON file the admin keeps
+            somewhere themselves, since Postgres has no backup beyond this app. */}
+        <div className="flex gap-2">
+          <button
+            onClick={onDownloadBackup}
+            title="Download everything in this CMS as a JSON backup file"
+            className="flex items-center gap-1.5 rounded-lg py-2 px-3 transition-opacity hover:opacity-70"
+            style={{ background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
+          >
+            <Download size={12} style={{ color: "#EDE8DF" }} />
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Backup</span>
+          </button>
+          <button
+            onClick={() => restoreInputRef.current?.click()}
+            title="Restore from a previously downloaded backup file"
+            className="flex items-center gap-1.5 rounded-lg py-2 px-3 transition-opacity hover:opacity-70"
+            style={{ background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
+          >
+            <Upload size={12} style={{ color: "#EDE8DF" }} />
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Restore</span>
+          </button>
+          <input
+            ref={restoreInputRef}
+            type="file"
+            accept="application/json"
+            style={{ display: "none" }}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onRestoreFileSelected(f); e.target.value = ""; }}
+          />
+        </div>
+      </div>
+      {restoreError && (
+        <p role="alert" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#E05252", lineHeight: 1.5, margin: "-8px 0 16px" }}>
+          {restoreError}
+        </p>
+      )}
+      {restored && (
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#14ADB5", lineHeight: 1.5, margin: "-8px 0 16px" }}>
+          ✓ Restored and saved
+        </p>
+      )}
 
       <div
         style={{

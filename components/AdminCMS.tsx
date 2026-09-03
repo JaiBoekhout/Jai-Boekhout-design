@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, Download, Upload, History as HistoryIcon, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
+import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, History as HistoryIcon, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
 import { useContentStore, getAllLinkableProjects } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { WorkSection, WORK_SECTIONS } from "@/components/WorkSection";
@@ -147,7 +147,6 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   const [pendingRestore, setPendingRestore] = useState<CMSContent | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [restored, setRestored] = useState(false);
-  const restoreInputRef = useRef<HTMLInputElement>(null);
 
   // At least one project/case study has been saved as a draft (via its own "Save" button)
   // but never published — surfaced on the global Save Changes button as a reminder.
@@ -175,7 +174,10 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
       JSON.stringify(content.global) !== JSON.stringify(savedContent.global) ||
       JSON.stringify(content.homepage) !== JSON.stringify(savedContent.homepage) ||
       evaluateCtaDirty,
-    work: JSON.stringify(content.work) !== JSON.stringify(savedContent.work),
+    // hasUnpublishedDraft also drives the Save Changes button orange (see below) — folding it
+    // in here too means that reason always has a visible dot somewhere, instead of the button
+    // going orange with nothing in the sidebar to point at why.
+    work: JSON.stringify(content.work) !== JSON.stringify(savedContent.work) || hasUnpublishedDraft,
     evaluate: JSON.stringify(evaluateSansCta(content.evaluate)) !== JSON.stringify(evaluateSansCta(savedContent.evaluate)),
     process: JSON.stringify(content.process) !== JSON.stringify(savedContent.process),
     story: JSON.stringify(content.story) !== JSON.stringify(savedContent.story),
@@ -398,18 +400,38 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                   const sectionsCollapsed = collapsedSectionTabs.has(tab.id);
                   return (
                     <div key={tab.id}>
-                      <div className="flex items-center gap-1 w-full">
+                      <div
+                        className="flex items-center gap-1 w-full rounded-lg transition-colors"
+                        style={{
+                          background: active ? "rgba(20,173,181,0.16)" : "transparent",
+                          borderStyle: "solid",
+                          borderWidth: "0 0 0 3px",
+                          borderColor: active ? "#14ADB5" : "transparent",
+                        }}
+                      >
                         <button
-                          onClick={() => { setActiveTab(tab.id); setMobileNavOpen(false); }}
-                          title={tab.label}
-                          className={`flex-1 min-w-0 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
-                          style={{
-                            background: active ? "rgba(20,173,181,0.16)" : "transparent",
-                            borderStyle: "solid",
-                            borderWidth: "0 0 0 3px",
-                            borderColor: active ? "#14ADB5" : "transparent",
-                            cursor: "pointer",
+                          onClick={() => {
+                            // Switching to a tab that wasn't already active always lands on it
+                            // expanded — toggling only kicks in on a second click once it's
+                            // already the active tab (same as clicking the arrow), so navigating
+                            // to a tab for the first time never immediately collapses its own
+                            // list out from under you.
+                            if (active && sections && sections.length > 0) {
+                              toggleSectionsCollapsed(tab.id);
+                            } else if (sections && sections.length > 0) {
+                              setCollapsedSectionTabs((prev) => {
+                                if (!prev.has(tab.id)) return prev;
+                                const next = new Set(prev);
+                                next.delete(tab.id);
+                                return next;
+                              });
+                            }
+                            setActiveTab(tab.id);
+                            setMobileNavOpen(false);
                           }}
+                          title={tab.label}
+                          className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
+                          style={{ background: "none", border: "none", cursor: "pointer" }}
                         >
                           <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
                             <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
@@ -457,17 +479,22 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                         </button>
                         {/* Chevron toggle — separate button (not nested inside the tab-select
                             button above, since HTML doesn't allow nested interactive elements)
-                            so collapsing the sub-list never also switches the active tab. Hidden
-                            in the same icon-only rail states as the label itself, via railClass. */}
+                            doing the exact same toggle as clicking the row itself, just without
+                            requiring the row's own click to also move focus/selection there.
+                            Hidden in the same icon-only rail states as the label, via railClass. */}
                         {sections && sections.length > 0 && (
                           <button
                             onClick={() => toggleSectionsCollapsed(tab.id)}
                             title={sectionsCollapsed ? "Expand sections" : "Collapse sections"}
                             aria-label={sectionsCollapsed ? "Expand sections" : "Collapse sections"}
                             className={`${railClass("flex")} items-center justify-center hover:opacity-70 transition-opacity`}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "#8C9AA3", padding: "6px", flexShrink: 0 }}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: "6px", flexShrink: 0 }}
                           >
-                            <ChevronDown size={13} style={{ transform: sectionsCollapsed ? "rotate(-90deg)" : "none", transition: "transform 0.2s ease" }} />
+                            <ChevronDown
+                              size={13}
+                              color={active ? "#14ADB5" : "#8C9AA3"}
+                              style={{ transform: sectionsCollapsed ? "rotate(-90deg)" : "none", transition: "transform 0.2s ease" }}
+                            />
                           </button>
                         )}
                       </div>
@@ -477,22 +504,28 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                           style={{ marginLeft: "20px", paddingLeft: "12px", borderLeft: "1px solid rgba(20,173,181,0.2)" }}
                         >
                           {sections.map((section) => (
-                            <button
-                              key={section.id}
-                              onClick={() => {
-                                setActiveTab(tab.id);
-                                setMobileNavOpen(false);
-                                requestAnimationFrame(() => {
-                                  document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                });
-                              }}
-                              className="text-left rounded-md px-2 py-1 transition-colors hover:opacity-80"
-                              style={{ background: "none", border: "none", cursor: "pointer" }}
-                            >
-                              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#8C9AA3", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
-                                {section.label}
-                              </span>
-                            </button>
+                            // Relative wrapper just to anchor the little branch tick connecting
+                            // this item back to the shared vertical spine (the sub-list
+                            // container's own borderLeft above) — a plain flat list read as
+                            // disconnected from that line without one.
+                            <div key={section.id} style={{ position: "relative" }}>
+                              <span style={{ position: "absolute", left: "-12px", top: "50%", width: "9px", height: "1px", background: "rgba(20,173,181,0.2)" }} />
+                              <button
+                                onClick={() => {
+                                  setActiveTab(tab.id);
+                                  setMobileNavOpen(false);
+                                  requestAnimationFrame(() => {
+                                    document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                  });
+                                }}
+                                className="text-left rounded-md px-2 py-1 transition-colors hover:opacity-80 w-full"
+                                style={{ background: "none", border: "none", cursor: "pointer" }}
+                              >
+                                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#8C9AA3", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
+                                  {section.label}
+                                </span>
+                              </button>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -538,48 +571,6 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       Your changes are still here, but nothing was written to storage. This usually means the browser&apos;s storage is full — try removing a few unused images or large rich text blocks, then save again.
                     </p>
                   </div>
-                )}
-
-                {/* Content lives in Postgres now — Backup/Restore is just the admin's own
-                    disaster-recovery safety net, not the primary persistence path anymore.
-                    Stacked vertically in either icon-only rail (mobile default, or desktop once
-                    collapsed) since side by side has no room at 64px wide; a row otherwise. */}
-                <div className={`flex gap-2 ${mobileNavOpen ? "flex-row" : "flex-col"} ${desktopCollapsed ? "md:flex-col" : "md:flex-row"}`}>
-                  <button
-                    onClick={handleDownloadBackup}
-                    title="Download everything in this CMS as a JSON backup file"
-                    className="flex items-center justify-center gap-1.5 rounded-lg py-2 transition-opacity hover:opacity-70"
-                    style={{ flex: 1, background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
-                  >
-                    <Download size={12} style={{ color: "#EDE8DF" }} />
-                    <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Backup</span>
-                  </button>
-                  <button
-                    onClick={() => restoreInputRef.current?.click()}
-                    title="Restore from a previously downloaded backup file"
-                    className="flex items-center justify-center gap-1.5 rounded-lg py-2 transition-opacity hover:opacity-70"
-                    style={{ flex: 1, background: "rgba(237,232,223,0.05)", border: "1px solid rgba(237,232,223,0.1)", cursor: "pointer" }}
-                  >
-                    <Upload size={12} style={{ color: "#EDE8DF" }} />
-                    <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "10.5px", color: "#EDE8DF", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Restore</span>
-                  </button>
-                  <input
-                    ref={restoreInputRef}
-                    type="file"
-                    accept="application/json"
-                    style={{ display: "none" }}
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleRestoreFileSelected(f); e.target.value = ""; }}
-                  />
-                </div>
-                {restoreError && (
-                  <p role="alert" className={railClass("block")} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#E05252", lineHeight: 1.5, margin: 0 }}>
-                    {restoreError}
-                  </p>
-                )}
-                {restored && (
-                  <p className={railClass("block")} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#14ADB5", lineHeight: 1.5, margin: 0 }}>
-                    ✓ Restored and saved
-                  </p>
                 )}
 
                 <button
@@ -885,7 +876,14 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                   </div>
                 )}
                 {activeTab === "media" && <MediaSection />}
-                {activeTab === "history" && <HistorySection />}
+                {activeTab === "history" && (
+                  <HistorySection
+                    onDownloadBackup={handleDownloadBackup}
+                    onRestoreFileSelected={handleRestoreFileSelected}
+                    restoreError={restoreError}
+                    restored={restored}
+                  />
+                )}
                 {activeTab === "design" && (
                   <DesignSystemSection
                     data={content.designSystem}
