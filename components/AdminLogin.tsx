@@ -35,8 +35,11 @@ export function AdminLogin({ isOpen, onClose, onSuccess }: Props) {
     e.preventDefault();
     const { ok, error: errorMessage } = await loginForCms(password);
     if (ok) {
+      // Deliberately not also calling onClose() here — the caller's own isOpen prop (driven by
+      // whatever state onSuccess flips) is what actually hides this form; onClose is a separate,
+      // user-initiated "cancel/dismiss" action (the × button), not something success should
+      // trigger too.
       onSuccess();
-      onClose();
     } else {
       setError(errorMessage || "Incorrect password — try again");
       setShake(true);

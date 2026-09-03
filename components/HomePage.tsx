@@ -3,7 +3,7 @@
 import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, User } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
@@ -24,11 +24,10 @@ type CMSHomeCardMap = Record<"work" | "recruit" | "process" | "story", CMSHomeCa
 
 interface HomePageProps {
   onSelect: (path: string) => void;
-  onNameClick?: () => void;
   logoUrl: string;
 }
 
-export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
+export function HomePage({ onSelect, logoUrl }: HomePageProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { content } = useContentStore();
@@ -92,32 +91,12 @@ export function HomePage({ onSelect, onNameClick, logoUrl }: HomePageProps) {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <FontSizeToggle />
-          <button
-            onClick={onNameClick}
-            title="Admin"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "15px",
-              margin: "-15px",
-              color: "var(--c-text-muted)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--c-teal)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--c-text-muted)"; }}
-          >
-            <User size={21} />
-          </button>
         </div>
       </div>
 
       <div className="flex md:hidden flex-col items-center" style={{ position: "relative" }}>
         <div style={{ position: "absolute", top: 0, right: 0 }}>
-          <MobileNavMenu onAdminClick={() => onNameClick?.()} />
+          <MobileNavMenu />
         </div>
         <img
           src={logoUrl}

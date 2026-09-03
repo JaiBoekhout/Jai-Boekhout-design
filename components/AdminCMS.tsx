@@ -16,6 +16,7 @@ import { CMSInput, CMSSectionHeading, CMSCard } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { deleteEnquiryAction, clearEnquiriesAction } from "@/app/actions/contact";
 import type { Enquiry } from "@/app/actions/contact";
+import { logoutAction } from "@/app/actions/auth";
 
 type Tab = "home" | "work" | "evaluate" | "process" | "story" | "enquiry" | "media" | "design" | "history";
 
@@ -41,6 +42,9 @@ const HOME_CARD_LABELS: { id: "work" | "recruit" | "process" | "story"; label: s
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  // Called after the session cookie has actually been cleared — distinct from onClose (the "X"
+  // button), which just navigates away without ending the session.
+  onLoggedOut: () => void;
 }
 
 // The CMS chrome (sidebar, cards, buttons) is hardcoded dark and was never designed to follow
@@ -78,7 +82,7 @@ const ADMIN_DARK_VARS = {
   "--c-surface-10": "rgba(237, 232, 223, 0.1)",
 } as React.CSSProperties;
 
-export function AdminCMS({ isOpen, onClose }: Props) {
+export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("home");
   // Mobile only — the sidebar is a fixed narrow icon rail by default (see the sidebar's own
   // md:static/md:w-[220px] overrides, which make this state irrelevant at desktop widths) and
@@ -249,7 +253,8 @@ export function AdminCMS({ isOpen, onClose }: Props) {
       setTimeout(() => setSaveError(false), 5000);
       return;
     }
-    onClose();
+    await logoutAction();
+    onLoggedOut();
   }
 
   // Shows sidebar content that only makes sense in the "expanded" state — the mobile flyout

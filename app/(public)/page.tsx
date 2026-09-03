@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { track } from "@vercel/analytics";
 import { HomePage } from "@/components/HomePage";
-import { useAdminShell } from "@/components/AdminShell";
 import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
 
@@ -15,7 +14,6 @@ export default function PortfolioPage() {
   const router = useRouter();
   const { content } = useContentStore();
   const logoUrl = content.branding.logoUrl || DEFAULT_LOGO_URL;
-  const { openAdminLogin, adminUI } = useAdminShell();
 
   function handleSelect(path: string) {
     track("path_selected", { path });
@@ -24,8 +22,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="min-h-screen w-full" style={{ background: "var(--background)", transition: "background 0.3s ease" }}>
-      <HomePage onSelect={handleSelect} onNameClick={openAdminLogin} logoUrl={logoUrl} />
-      {adminUI}
+      <HomePage onSelect={handleSelect} logoUrl={logoUrl} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFontScale } from "@/store/fontScaleStore";
 import type { FontScale } from "@/store/fontScaleStore";
@@ -12,11 +12,11 @@ const SIZES: { scale: FontScale; label: string }[] = [
   { scale: 2, label: "Larger" },
 ];
 
-// Mobile replacement for the desktop nav bar's separate ThemeToggle/FontSizeToggle/Admin
-// icons — those rely on hover (FontSizeToggle's size dropdown) or sit too close together for
-// a comfortable tap target, so on small screens they're collapsed into one hamburger button
-// that opens a proper tap-friendly menu instead.
-export function MobileNavMenu({ onAdminClick }: { onAdminClick: () => void }) {
+// Mobile replacement for the desktop nav bar's separate ThemeToggle/FontSizeToggle icons —
+// those rely on hover (FontSizeToggle's size dropdown) or sit too close together for a
+// comfortable tap target, so on small screens they're collapsed into one hamburger button that
+// opens a proper tap-friendly menu instead.
+export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const { fontScale, setFontScale } = useFontScale();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -119,21 +119,6 @@ export function MobileNavMenu({ onAdminClick }: { onAdminClick: () => void }) {
               })}
             </div>
           </div>
-
-          <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
-
-          {/* CMS Login */}
-          <button
-            type="button"
-            onClick={() => { setOpen(false); onAdminClick(); }}
-            className="flex items-center justify-between hover:opacity-80 transition-opacity"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: "10px 12px", width: "100%" }}
-          >
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>
-              CMS Login
-            </span>
-            <User size={16} style={{ color: "var(--c-text-muted)" }} />
-          </button>
         </div>
       )}
     </div>

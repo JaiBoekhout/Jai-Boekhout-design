@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { User } from "lucide-react";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { PathSwitcher } from "@/components/PathSwitcher";
-import { useAdminShell } from "@/components/AdminShell";
 import { pathKeyFromPathname } from "@/lib/paths";
 
 // Shared chrome for every experience path (/work, /evaluate, /process, /story, and their
@@ -22,7 +20,6 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
   const logoUrl = content.branding.logoUrl || DEFAULT_LOGO_URL;
   const pathname = usePathname();
   const router = useRouter();
-  const { openAdminLogin, adminUI } = useAdminShell();
   const selectedPath = pathKeyFromPathname(pathname);
 
   return (
@@ -79,33 +76,13 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
           <div className="flex items-center justify-end gap-3">
             <ThemeToggle />
             <FontSizeToggle />
-            <button
-              onClick={openAdminLogin}
-              title="Admin"
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "15px",
-                margin: "-15px",
-                color: "var(--c-text-muted)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-teal)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-text-muted)"; }}
-            >
-              <User size={21} />
-            </button>
           </div>
         </div>
 
         {/* Mobile: logo + text centred and stacked, hamburger menu top-right. */}
         <div className="flex md:hidden flex-col items-center" style={{ position: "relative" }}>
           <div style={{ position: "absolute", top: 0, right: 0 }}>
-            <MobileNavMenu onAdminClick={openAdminLogin} />
+            <MobileNavMenu />
           </div>
           <Link href="/" style={{ display: "flex" }}>
             <img
@@ -143,8 +120,6 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
       {children}
 
       {selectedPath && <PathSwitcher selectedPath={selectedPath} onSwitch={() => router.push("/")} />}
-
-      {adminUI}
     </div>
   );
 }
