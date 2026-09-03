@@ -381,10 +381,20 @@ export interface CMSFaqItem {
   // switch — lets items be staged/reviewed individually before (or even after) the section as a
   // whole goes live, rather than every drafted question appearing the moment the switch flips.
   published: boolean;
-  // Admin-only — never rendered on the public site. For leaving a note to self on an item that
-  // isn't ready (e.g. still has an unresolved detail to fill in) so it doesn't get published by
-  // mistake.
-  internalNote?: string;
+  // A CMSFaqCategory.id, or unset for "uncategorized" — still shows under the built-in "All" tab
+  // in Tabs layout mode, just not under any specific one. Only meaningful when faqLayoutMode is
+  // "tabs"; ignored entirely in "list" mode.
+  category?: string;
+}
+
+// A tab in the FAQ section's "Tabs" layout mode (see CMSEvaluate.faqLayoutMode). The built-in
+// "All" tab is never stored here — it's synthesized first, always, in both the CMS category
+// manager (EvaluateSection.tsx) and the public render (ExperienceRecruiter.tsx) — so a real
+// category can never collide with it except by name (blocked in the CMS editor).
+export interface CMSFaqCategory {
+  id: string;
+  name: string;
+  order: number;
 }
 
 export interface CMSEvaluate {
@@ -441,6 +451,11 @@ export interface CMSEvaluate {
   // paging through FAQs in batches.
   faqColumns?: number;
   faqRows?: number;
+  // "list" (default, current behavior) or "tabs" (category tab bar — see faqCategories below).
+  // Left unset rather than written as "list" wherever this ships, so nothing on the live site
+  // changes until this is deliberately switched in the CMS.
+  faqLayoutMode?: "list" | "tabs";
+  faqCategories?: CMSFaqCategory[];
 }
 
 export interface CMSProcessStep {

@@ -11,6 +11,19 @@ import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug } from "@/store
 
 const MAX_HOME_STATS = 6;
 
+// Drives the Work tab's sidebar sub-section list in AdminCMS.tsx (same pattern as
+// DESIGN_SYSTEM_SECTIONS in DesignSystemSection.tsx) — one entry per top-level CMSSectionHeading
+// below, in order. "View More Projects" isn't included — it's a per-item heading inside
+// ViewMoreEditor, repeated once per project/case study, not a single page anchor.
+export const WORK_SECTIONS: { id: string; label: string }[] = [
+  { id: "work-hero", label: "Hero" },
+  { id: "work-stats-bar", label: "Stats Bar" },
+  { id: "work-featured-grid", label: "Featured Grid" },
+  { id: "work-project-list", label: "Project List" },
+  { id: "work-case-studies", label: "Case Studies" },
+  { id: "work-projects", label: "Projects" },
+];
+
 interface Props {
   data: CMSWork;
   // What's actually in Postgres right now — used only to flag cards/fields that differ from it
@@ -834,7 +847,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
   return (
     <div>
-      <CMSSectionHeading>Hero</CMSSectionHeading>
+      <CMSSectionHeading id="work-hero">Hero</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Hero Statement"
         value={data.heroStatement}
@@ -844,13 +857,13 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
-      <CMSSectionHeading>Stats Bar</CMSSectionHeading>
+      <CMSSectionHeading id="work-stats-bar">Stats Bar</CMSSectionHeading>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>
         Pulls from Evaluate → At A Glance — pick which entries show here and in what order. Editing a value or label there updates it here automatically.
       </p>
       <HomeStatsEditor data={data} evaluateStats={evaluateStats} onChange={onChange} />
 
-      <CMSSectionHeading>Featured Grid</CMSSectionHeading>
+      <CMSSectionHeading id="work-featured-grid">Featured Grid</CMSSectionHeading>
 
       <div className="rounded-lg p-4 mb-4" style={{ background: "rgba(20,173,181,0.05)", border: "1px solid rgba(20,173,181,0.15)" }}>
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.08em" }}>
@@ -1016,7 +1029,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         {effectiveFeatured.length} / {MAX_FEATURED} slots filled
       </div>
 
-      <CMSSectionHeading>Project List</CMSSectionHeading>
+      <CMSSectionHeading id="work-project-list">Project List</CMSSectionHeading>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12px", color: "#8C9AA3", marginTop: "-8px", marginBottom: "16px", lineHeight: 1.5 }}>
         Controls how the &quot;View more projects&quot; list appears on the public Work page, underneath the Featured Grid.
       </p>
@@ -1078,7 +1091,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         Shows {data.projectListRows ?? 3} row{(data.projectListRows ?? 3) > 1 ? "s" : ""} at a time, with a &quot;Load more Projects&quot; button to reveal the next {data.projectListRows ?? 3}.
       </p>
 
-      <CMSSectionHeading>Case Studies</CMSSectionHeading>
+      <CMSSectionHeading id="work-case-studies">Case Studies</CMSSectionHeading>
       <button
         onClick={addCase}
         className="flex items-center gap-2 mb-4 transition-opacity hover:opacity-80"
@@ -1455,7 +1468,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
       {(draftCaseStudies.length > 0 || standaloneProjects.length > 0) && (
         <>
-          <CMSSectionHeading>Projects</CMSSectionHeading>
+          <CMSSectionHeading id="work-projects">Projects</CMSSectionHeading>
 
           <ListToolbar
             search={projSearch}

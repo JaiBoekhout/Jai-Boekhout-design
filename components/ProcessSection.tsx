@@ -10,6 +10,14 @@ function newStepId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// Drives the Process tab's sidebar sub-section list in AdminCMS.tsx (same pattern as
+// DESIGN_SYSTEM_SECTIONS in DesignSystemSection.tsx).
+export const PROCESS_SECTIONS: { id: string; label: string }[] = [
+  { id: "process-hero", label: "Hero" },
+  { id: "process-steps", label: "Process Steps" },
+  { id: "process-closing-quote", label: "Closing Quote" },
+];
+
 interface Props {
   data: CMSProcess;
   // What's actually in Postgres right now — compared against `data` to flag unsaved
@@ -30,7 +38,7 @@ export function ProcessSection({ data, savedData, onChange }: Props) {
 
   return (
     <div>
-      <CMSSectionHeading>Hero</CMSSectionHeading>
+      <CMSSectionHeading id="process-hero">Hero</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Hero Statement"
         value={data.heroStatement}
@@ -40,7 +48,7 @@ export function ProcessSection({ data, savedData, onChange }: Props) {
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
-      <CMSSectionHeading>Process Steps</CMSSectionHeading>
+      <CMSSectionHeading id="process-steps">Process Steps</CMSSectionHeading>
       {data.steps.map((step, i) => (
         <CMSCard
           key={step.id}
@@ -139,7 +147,7 @@ export function ProcessSection({ data, savedData, onChange }: Props) {
         <Plus size={13} /> Add Step
       </button>
 
-      <CMSSectionHeading>Closing Quote</CMSSectionHeading>
+      <CMSSectionHeading id="process-closing-quote">Closing Quote</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Quote"
         value={data.closingQuote}

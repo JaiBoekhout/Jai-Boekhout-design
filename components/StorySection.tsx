@@ -7,6 +7,15 @@ import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor"
 import { ImagePicker } from "@/components/ImagePicker";
 import type { CMSStory } from "@/store/contentStore";
 
+// Drives the Story tab's sidebar sub-section list in AdminCMS.tsx (same pattern as
+// DESIGN_SYSTEM_SECTIONS in DesignSystemSection.tsx).
+export const STORY_SECTIONS: { id: string; label: string }[] = [
+  { id: "story-hero", label: "Hero" },
+  { id: "story-journey", label: "The Journey (Timeline)" },
+  { id: "story-beyond-design", label: "Beyond Design (Interests)" },
+  { id: "story-closing-quote", label: "Closing Quote" },
+];
+
 interface Props {
   data: CMSStory;
   // What's actually in Postgres right now — compared against `data` to flag unsaved
@@ -73,7 +82,7 @@ export function StorySection({ data, savedData, onChange }: Props) {
 
   return (
     <div>
-      <CMSSectionHeading>Hero</CMSSectionHeading>
+      <CMSSectionHeading id="story-hero">Hero</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Hero Statement"
         value={data.heroStatement}
@@ -109,7 +118,7 @@ export function StorySection({ data, savedData, onChange }: Props) {
         dirty={(data.portraitCaption ?? "") !== (savedData.portraitCaption ?? "") || data.portraitCaptionMobile !== savedData.portraitCaptionMobile}
       />
 
-      <CMSSectionHeading>The Journey (Timeline)</CMSSectionHeading>
+      <CMSSectionHeading id="story-journey">The Journey (Timeline)</CMSSectionHeading>
       <CMSInput
         label="Section Heading (public page)"
         value={data.timelineHeading ?? "The Journey"}
@@ -209,7 +218,7 @@ export function StorySection({ data, savedData, onChange }: Props) {
         <Plus size={12} /> Add Timeline Entry
       </button>
 
-      <CMSSectionHeading>Beyond Design (Interests)</CMSSectionHeading>
+      <CMSSectionHeading id="story-beyond-design">Beyond Design (Interests)</CMSSectionHeading>
       <CMSInput
         label="Section Heading (public page)"
         value={data.interestsHeading ?? "Outside of Design"}
@@ -289,7 +298,7 @@ export function StorySection({ data, savedData, onChange }: Props) {
         <Plus size={12} /> Add Interest
       </button>
 
-      <CMSSectionHeading>Closing Quote</CMSSectionHeading>
+      <CMSSectionHeading id="story-closing-quote">Closing Quote</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Quote"
         value={data.closingQuote}

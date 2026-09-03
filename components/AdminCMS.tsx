@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, Download, Upload, History as HistoryIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, Download, Upload, History as HistoryIcon, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
 import { useContentStore, getAllLinkableProjects } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
-import { WorkSection } from "@/components/WorkSection";
-import { EvaluateSection } from "@/components/EvaluateSection";
-import { ProcessSection } from "@/components/ProcessSection";
-import { StorySection } from "@/components/StorySection";
+import { WorkSection, WORK_SECTIONS } from "@/components/WorkSection";
+import { EvaluateSection, EVALUATE_SECTIONS } from "@/components/EvaluateSection";
+import { ProcessSection, PROCESS_SECTIONS } from "@/components/ProcessSection";
+import { StorySection, STORY_SECTIONS } from "@/components/StorySection";
 import { MediaSection } from "@/components/MediaSection";
 import { HistorySection } from "@/components/HistorySection";
 import { DesignSystemSection, DESIGN_SYSTEM_SECTIONS } from "@/components/DesignSystemSection";
@@ -38,6 +38,26 @@ const HOME_CARD_LABELS: { id: "work" | "recruit" | "process" | "story"; label: s
   { id: "process", label: "Card 3 — Process" },
   { id: "story", label: "Card 4 — Story" },
 ];
+
+// Home's sections live inline in this file rather than a separate component, unlike the other
+// tabs — same shape as WORK_SECTIONS/EVALUATE_SECTIONS/etc. otherwise.
+const HOME_SECTIONS: { id: string; label: string }[] = [
+  { id: "home-global-settings", label: "Global Settings" },
+  { id: "home-homepage", label: "Homepage" },
+  { id: "home-homepage-cards", label: "Homepage Cards" },
+  { id: "home-contact-cta", label: "Contact CTA" },
+];
+
+// Every tab's sidebar sub-section list, keyed by Tab id — a tab with no entry here (Enquiries,
+// Media Library, History) just doesn't get an expand chevron or nested list at all.
+const TAB_SECTIONS: Partial<Record<Tab, { id: string; label: string }[]>> = {
+  home: HOME_SECTIONS,
+  work: WORK_SECTIONS,
+  evaluate: EVALUATE_SECTIONS,
+  process: PROCESS_SECTIONS,
+  story: STORY_SECTIONS,
+  design: DESIGN_SYSTEM_SECTIONS,
+};
 
 interface Props {
   isOpen: boolean;
@@ -98,6 +118,19 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
     const stored = localStorage.getItem("cms_sidebar_collapsed");
     if (stored === "true") setDesktopCollapsed(true);
   }, []);
+  // Which tabs' sub-section list the admin has collapsed (chevron pointing right instead of
+  // down) — separate from `active`/`activeTab` so collapsing a list doesn't require leaving that
+  // tab, and independent per tab. Starts empty (every list expanded by default), matching how
+  // Design System's list already behaved before this became toggleable.
+  const [collapsedSectionTabs, setCollapsedSectionTabs] = useState<Set<Tab>>(() => new Set());
+  function toggleSectionsCollapsed(tabId: Tab) {
+    setCollapsedSectionTabs((prev) => {
+      const next = new Set(prev);
+      if (next.has(tabId)) next.delete(tabId);
+      else next.add(tabId);
+      return next;
+    });
+  }
   function toggleDesktopCollapsed() {
     setDesktopCollapsed((v) => {
       localStorage.setItem("cms_sidebar_collapsed", String(!v));
@@ -361,74 +394,93 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                 {TABS.map((tab) => {
                   const Icon = tab.icon;
                   const active = activeTab === tab.id;
+                  const sections = TAB_SECTIONS[tab.id];
+                  const sectionsCollapsed = collapsedSectionTabs.has(tab.id);
                   return (
                     <div key={tab.id}>
-                      <button
-                        onClick={() => { setActiveTab(tab.id); setMobileNavOpen(false); }}
-                        title={tab.label}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors w-full ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
-                        style={{
-                          background: active ? "rgba(20,173,181,0.16)" : "transparent",
-                          borderStyle: "solid",
-                          borderWidth: "0 0 0 3px",
-                          borderColor: active ? "#14ADB5" : "transparent",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
-                          <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
+                      <div className="flex items-center gap-1 w-full">
+                        <button
+                          onClick={() => { setActiveTab(tab.id); setMobileNavOpen(false); }}
+                          title={tab.label}
+                          className={`flex-1 min-w-0 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
+                          style={{
+                            background: active ? "rgba(20,173,181,0.16)" : "transparent",
+                            borderStyle: "solid",
+                            borderWidth: "0 0 0 3px",
+                            borderColor: active ? "#14ADB5" : "transparent",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+                            <Icon size={14} color={active ? "#14ADB5" : "#FFFFFF"} />
+                            {tabDirty[tab.id] && (
+                              <span
+                                title="Unsaved changes"
+                                style={{
+                                  position: "absolute",
+                                  top: -3,
+                                  right: -4,
+                                  width: 6,
+                                  height: 6,
+                                  borderRadius: "50%",
+                                  background: "#F59E0B",
+                                  border: "1.5px solid #0C1117",
+                                }}
+                              />
+                            )}
+                          </span>
+                          <span
+                            className={railClass("inline")}
+                            style={{
+                              fontFamily: "'DM Sans', sans-serif",
+                              fontSize: "13px",
+                              color: active ? "#14ADB5" : "#FFFFFF",
+                              fontWeight: active ? 400 : 300,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {tab.label}
+                          </span>
                           {tabDirty[tab.id] && (
                             <span
-                              title="Unsaved changes"
+                              className={railClass("inline-block")}
                               style={{
-                                position: "absolute",
-                                top: -3,
-                                right: -4,
-                                width: 6,
-                                height: 6,
+                                width: 5,
+                                height: 5,
                                 borderRadius: "50%",
                                 background: "#F59E0B",
-                                border: "1.5px solid #0C1117",
+                                flexShrink: 0,
+                                marginLeft: -4,
                               }}
                             />
                           )}
-                        </span>
-                        <span
-                          className={railClass("inline")}
-                          style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: "13px",
-                            color: active ? "#14ADB5" : "#FFFFFF",
-                            fontWeight: active ? 400 : 300,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {tab.label}
-                        </span>
-                        {tabDirty[tab.id] && (
-                          <span
-                            className={railClass("inline-block")}
-                            style={{
-                              width: 5,
-                              height: 5,
-                              borderRadius: "50%",
-                              background: "#F59E0B",
-                              flexShrink: 0,
-                              marginLeft: -4,
-                            }}
-                          />
+                        </button>
+                        {/* Chevron toggle — separate button (not nested inside the tab-select
+                            button above, since HTML doesn't allow nested interactive elements)
+                            so collapsing the sub-list never also switches the active tab. Hidden
+                            in the same icon-only rail states as the label itself, via railClass. */}
+                        {sections && sections.length > 0 && (
+                          <button
+                            onClick={() => toggleSectionsCollapsed(tab.id)}
+                            title={sectionsCollapsed ? "Expand sections" : "Collapse sections"}
+                            aria-label={sectionsCollapsed ? "Expand sections" : "Collapse sections"}
+                            className={`${railClass("flex")} items-center justify-center hover:opacity-70 transition-opacity`}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#8C9AA3", padding: "6px", flexShrink: 0 }}
+                          >
+                            <ChevronDown size={13} style={{ transform: sectionsCollapsed ? "rotate(-90deg)" : "none", transition: "transform 0.2s ease" }} />
+                          </button>
                         )}
-                      </button>
-                      {tab.id === "design" && active && (
+                      </div>
+                      {sections && sections.length > 0 && active && !sectionsCollapsed && (
                         <div
                           className={`${railClass("flex")} flex-col gap-0.5 mt-0.5 mb-1`}
                           style={{ marginLeft: "20px", paddingLeft: "12px", borderLeft: "1px solid rgba(20,173,181,0.2)" }}
                         >
-                          {DESIGN_SYSTEM_SECTIONS.map((section) => (
+                          {sections.map((section) => (
                             <button
                               key={section.id}
                               onClick={() => {
-                                setActiveTab("design");
+                                setActiveTab(tab.id);
                                 setMobileNavOpen(false);
                                 requestAnimationFrame(() => {
                                   document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -594,14 +646,14 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
               <div className="pt-6">
                 {activeTab === "home" && (
                   <>
-                    <CMSSectionHeading>Global Settings</CMSSectionHeading>
+                    <CMSSectionHeading id="home-global-settings">Global Settings</CMSSectionHeading>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <CMSInput label="Email" value={content.global.email} onChange={(v) => updateContent({ global: { ...content.global, email: v } })} dirty={content.global.email !== savedContent.global.email} />
                       <CMSInput label="Phone" value={content.global.phone} onChange={(v) => updateContent({ global: { ...content.global, phone: v } })} dirty={content.global.phone !== savedContent.global.phone} />
                       <CMSInput label="Location" value={content.global.location} onChange={(v) => updateContent({ global: { ...content.global, location: v } })} dirty={content.global.location !== savedContent.global.location} />
                       <CMSInput label="Tagline" value={content.global.tagline} onChange={(v) => updateContent({ global: { ...content.global, tagline: v } })} dirty={content.global.tagline !== savedContent.global.tagline} />
                     </div>
-                    <CMSSectionHeading>Homepage</CMSSectionHeading>
+                    <CMSSectionHeading id="home-homepage">Homepage</CMSSectionHeading>
                     <ResponsiveRichTextEditor
                       label="Headline"
                       value={content.homepage.headline}
@@ -639,7 +691,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                       dirty={content.homepage.footerNote !== savedContent.homepage.footerNote || content.homepage.footerNoteMobile !== savedContent.homepage.footerNoteMobile}
                     />
 
-                    <CMSSectionHeading>Homepage Cards</CMSSectionHeading>
+                    <CMSSectionHeading id="home-homepage-cards">Homepage Cards</CMSSectionHeading>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>
                       The 4 clickable cards on the homepage. Question and description are editable per card — the button label (e.g. &quot;Show me your work&quot;) stays fixed.
                     </p>
@@ -678,7 +730,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                     {/* Lives here rather than under Evaluate because PathCTA (this same
                         heading/body pair) renders at the bottom of all 4 experience pages, not
                         just Evaluate — Home better reflects that it's site-wide, not page-specific. */}
-                    <CMSSectionHeading>Contact CTA</CMSSectionHeading>
+                    <CMSSectionHeading id="home-contact-cta">Contact CTA</CMSSectionHeading>
                     <ResponsiveRichTextEditor
                       label="CTA Heading"
                       value={content.evaluate.ctaHeading}

@@ -438,9 +438,13 @@ export function CMSChipEditor({ label, items, onChange, dirty }: { label: string
   );
 }
 
-export function CMSSectionHeading({ children }: { children: React.ReactNode }) {
+// `id` is optional — set it to give this section a scrollable anchor target (see the sidebar's
+// per-tab sub-section list in AdminCMS.tsx, which jumps to these via scrollIntoView()). Every
+// other CMSSectionHeading usage that doesn't need one just omits it.
+export function CMSSectionHeading({ children, id }: { children: React.ReactNode; id?: string }) {
   return (
     <h3
+      id={id}
       style={{
         fontFamily: "'Poppins', sans-serif",
         fontSize: "19px",
@@ -450,6 +454,7 @@ export function CMSSectionHeading({ children }: { children: React.ReactNode }) {
         marginTop: "8px",
         paddingBottom: "10px",
         borderBottom: "1px solid rgba(237,232,223,0.06)",
+        scrollMarginTop: 20,
       }}
     >
       {children}

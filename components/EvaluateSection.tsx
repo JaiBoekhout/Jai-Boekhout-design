@@ -2,13 +2,30 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown, X, Eye, EyeOff, Upload, FileText, Loader2 } from "lucide-react";
-import { CMSInput, CMSUrlInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
+import { CMSInput, CMSUrlInput, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
 import { STAT_ICON_OPTIONS } from "@/lib/statIcons";
-import type { CMSEvaluate, CMSClient, CMSCompany, CMSProject, CMSExperience, CMSStat } from "@/store/contentStore";
+import type { CMSEvaluate, CMSClient, CMSCompany, CMSProject, CMSExperience, CMSStat, CMSFaqCategory } from "@/store/contentStore";
 import { computeAutoStatValue } from "@/store/contentStore";
+
+// Drives the Evaluate tab's sidebar sub-section list in AdminCMS.tsx (same pattern as
+// DESIGN_SYSTEM_SECTIONS in DesignSystemSection.tsx) — one entry per CMSSectionHeading below,
+// in the same top-to-bottom order they actually appear in.
+export const EVALUATE_SECTIONS: { id: string; label: string }[] = [
+  { id: "eval-hero", label: "Hero" },
+  { id: "eval-who-i-am", label: "Who I Am" },
+  { id: "eval-at-a-glance", label: "At A Glance" },
+  { id: "eval-resume", label: "Resume" },
+  { id: "eval-core-strengths", label: "Core Strengths" },
+  { id: "eval-clients-companies", label: "Clients & Companies" },
+  { id: "eval-professional-experience", label: "Professional Experience" },
+  { id: "eval-education-qualifications", label: "Education & Qualifications" },
+  { id: "eval-testimonials", label: "Testimonials" },
+  { id: "eval-faq", label: "FAQ" },
+  { id: "eval-beyond-design", label: "Beyond Design" },
+];
 
 interface Props {
   data: CMSEvaluate;
@@ -366,6 +383,86 @@ function ResumeUpload({ value, onChange }: { value: string | undefined; onChange
   );
 }
 
+const RESERVED_TAB_NAME = "all";
+
+// Manages the faqCategories collection that backs the FAQ section's "Tabs" layout mode — the
+// built-in "All" tab (always first, always shows every published item) is rendered here as a
+// non-editable reference row but is never part of `categories` itself; see CMSFaqCategory in
+// store/contentStore.ts. Deletion is handled by the caller (onDelete) rather than folded into
+// onChange, since deleting a category also needs to clear it off any FAQ item still assigned to
+// it — something only the parent (which holds faqItems too) can do in one atomic update.
+function FaqCategoryManager({
+  categories, onChange, onDelete,
+}: {
+  categories: CMSFaqCategory[];
+  onChange: (categories: CMSFaqCategory[]) => void;
+  onDelete: (id: string) => void;
+}) {
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
+  const { dragHandleProps, dropTargetProps, cardStyle } = useDragReorder(sorted, (next) => onChange(next.map((c, i) => ({ ...c, order: i + 1 }))));
+
+  function rename(id: string, name: string) {
+    onChange(sorted.map((c) => (c.id === id ? { ...c, name } : c)));
+  }
+
+  function add() {
+    onChange([...sorted, { id: `faqcat-${Date.now()}`, name: "New Tab", order: sorted.length + 1 }]);
+  }
+
+  return (
+    <div className="mb-6">
+      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
+        Tabs (used by the Tabs layout mode)
+      </label>
+      <div className="flex flex-col gap-2 mb-2">
+        <div className="flex items-center gap-2 rounded-lg" style={{ padding: "10px 14px", background: "rgba(237,232,223,0.03)", border: "1px solid rgba(237,232,223,0.06)" }}>
+          <span style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#8C9AA3", fontWeight: 300 }}>All</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7E8A", letterSpacing: "0.04em" }}>Built-in — always first, can&apos;t be edited</span>
+        </div>
+        {sorted.map((cat, i) => {
+          const reserved = cat.name.trim().toLowerCase() === RESERVED_TAB_NAME;
+          return (
+            <div key={cat.id}>
+              <div className="flex items-center gap-2 rounded-lg" style={{ ...cardStyle(i), padding: "2px" }} {...dropTargetProps(i)}>
+                <DragHandle {...dragHandleProps(i)} />
+                <input
+                  value={cat.name}
+                  onChange={(e) => rename(cat.id, e.target.value)}
+                  style={{
+                    flex: 1, background: "#0C1117", border: `1px solid ${reserved ? "rgba(192,57,43,0.5)" : "rgba(237,232,223,0.08)"}`, borderRadius: 8,
+                    padding: "10px 14px", fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#EDE8DF", fontWeight: 300, outline: "none",
+                  }}
+                  onFocus={(e) => { if (!reserved) e.target.style.borderColor = "rgba(20,173,181,0.4)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = reserved ? "rgba(192,57,43,0.5)" : "rgba(237,232,223,0.08)"; }}
+                />
+                <button
+                  onClick={() => onDelete(cat.id)}
+                  className="hover:opacity-60 transition-opacity"
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#EDE8DF", padding: "4px", flexShrink: 0 }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              {reserved && (
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#C0392B", marginTop: 4, marginLeft: 24 }}>
+                  Tab can&apos;t be named &quot;All&quot; — that name is reserved for the built-in tab above.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <button
+        onClick={add}
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "8px 14px" }}
+      >
+        <Plus size={12} /> Add Tab
+      </button>
+    </div>
+  );
+}
+
 export function EvaluateSection({ data, savedData, companies, projects, onChange }: Props) {
   const [openExp, setOpenExp] = useState<number | null>(null);
   const statsDrag = useDragReorder(data.stats, (v) => onChange({ ...data, stats: v }));
@@ -386,7 +483,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
 
   return (
     <div>
-      <CMSSectionHeading>Hero</CMSSectionHeading>
+      <CMSSectionHeading id="eval-hero">Hero</CMSSectionHeading>
       <ResponsiveRichTextEditor
         label="Hero Statement"
         value={data.heroStatement}
@@ -396,7 +493,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
 
-      <CMSSectionHeading>Who I Am</CMSSectionHeading>
+      <CMSSectionHeading id="eval-who-i-am">Who I Am</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.bioHeading ?? "About Me"} onChange={(v) => onChange({ ...data, bioHeading: v })} dirty={(data.bioHeading ?? "About Me") !== (savedData.bioHeading ?? "About Me")} />
       <ResponsiveRichTextEditor
         label="Bio"
@@ -409,7 +506,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
       <CMSInput label="Industries — Section Heading (public page)" value={data.industriesHeading ?? "Industries"} onChange={(v) => onChange({ ...data, industriesHeading: v })} dirty={(data.industriesHeading ?? "Industries") !== (savedData.industriesHeading ?? "Industries")} />
       <CMSChipEditor label="Industries" items={data.industries} onChange={(v) => onChange({ ...data, industries: v })} dirty={JSON.stringify(data.industries) !== JSON.stringify(savedData.industries)} />
 
-      <CMSSectionHeading>At A Glance</CMSSectionHeading>
+      <CMSSectionHeading id="eval-at-a-glance">At A Glance</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.statsHeading ?? "At a Glance"} onChange={(v) => onChange({ ...data, statsHeading: v })} dirty={(data.statsHeading ?? "At a Glance") !== (savedData.statsHeading ?? "At a Glance")} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
       {data.stats.map((stat, i) => (
@@ -515,10 +612,10 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Stat
       </button>
 
-      <CMSSectionHeading>Resume</CMSSectionHeading>
+      <CMSSectionHeading id="eval-resume">Resume</CMSSectionHeading>
       <ResumeUpload value={data.resumeUrl} onChange={(url) => onChange({ ...data, resumeUrl: url })} />
 
-      <CMSSectionHeading>Core Strengths</CMSSectionHeading>
+      <CMSSectionHeading id="eval-core-strengths">Core Strengths</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.skillsHeading ?? "Core Strengths"} onChange={(v) => onChange({ ...data, skillsHeading: v })} dirty={(data.skillsHeading ?? "Core Strengths") !== (savedData.skillsHeading ?? "Core Strengths")} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
       {data.skills.map((group, i) => (
@@ -574,7 +671,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Category
       </button>
 
-      <CMSSectionHeading>Clients & Companies</CMSSectionHeading>
+      <CMSSectionHeading id="eval-clients-companies">Clients & Companies</CMSSectionHeading>
       <CMSInput
         label="Section Heading (shown on both the Evaluate and Work pages)"
         value={data.clientsHeading ?? "Clients & Companies"}
@@ -711,7 +808,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Client
       </button>
 
-      <CMSSectionHeading>Professional Experience</CMSSectionHeading>
+      <CMSSectionHeading id="eval-professional-experience">Professional Experience</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.experienceHeading ?? "Professional Experience"} onChange={(v) => onChange({ ...data, experienceHeading: v })} dirty={(data.experienceHeading ?? "Professional Experience") !== (savedData.experienceHeading ?? "Professional Experience")} />
       {data.experience.map((exp, i) => (
         <CMSCard key={i} style={{ ...experienceDrag.cardStyle(i), ...(rowDirty(exp, savedData.experience, i) ? DIRTY_CARD_STYLE : {}) }} {...experienceDrag.dropTargetProps(i)}>
@@ -826,7 +923,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Experience
       </button>
 
-      <CMSSectionHeading>Education & Qualifications</CMSSectionHeading>
+      <CMSSectionHeading id="eval-education-qualifications">Education & Qualifications</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.qualificationsHeading ?? "Education & Qualifications"} onChange={(v) => onChange({ ...data, qualificationsHeading: v })} dirty={(data.qualificationsHeading ?? "Education & Qualifications") !== (savedData.qualificationsHeading ?? "Education & Qualifications")} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
         {data.qualifications.map((q, i) => (
@@ -890,7 +987,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
       </button>
       <CMSChipEditor label="Additional Background" items={data.additional} onChange={(v) => onChange({ ...data, additional: v })} dirty={JSON.stringify(data.additional) !== JSON.stringify(savedData.additional)} />
 
-      <CMSSectionHeading>Testimonials</CMSSectionHeading>
+      <CMSSectionHeading id="eval-testimonials">Testimonials</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.testimonialsHeading ?? "Why Teams Like Working With Me"} onChange={(v) => onChange({ ...data, testimonialsHeading: v })} dirty={(data.testimonialsHeading ?? "Why Teams Like Working With Me") !== (savedData.testimonialsHeading ?? "Why Teams Like Working With Me")} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
         {data.testimonials.map((t, i) => (
@@ -984,7 +1081,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Testimonial
       </button>
 
-      <CMSSectionHeading>FAQ</CMSSectionHeading>
+      <CMSSectionHeading id="eval-faq">FAQ</CMSSectionHeading>
 
       <div className="flex items-center gap-3 mb-4">
         <Switch
@@ -997,6 +1094,36 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
       </div>
 
       <CMSInput label="Section Heading (public page)" value={data.faqHeading ?? "Frequently Asked Questions"} onChange={(v) => onChange({ ...data, faqHeading: v })} dirty={(data.faqHeading ?? "Frequently Asked Questions") !== (savedData.faqHeading ?? "Frequently Asked Questions")} />
+
+      <div className="mb-6">
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Layout</p>
+        <div className="flex gap-2">
+          {(["list", "tabs"] as const).map((mode) => {
+            const active = (data.faqLayoutMode ?? "list") === mode;
+            return (
+              <button
+                key={mode}
+                onClick={() => onChange({ ...data, faqLayoutMode: mode })}
+                style={{
+                  fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.04em",
+                  padding: "8px 14px", borderRadius: 8, cursor: "pointer",
+                  background: active ? "#14ADB5" : "rgba(237,232,223,0.04)",
+                  border: `1px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.1)"}`,
+                  color: active ? "#0C1117" : "#EDE8DF",
+                  textTransform: "capitalize",
+                }}
+              >
+                {mode}
+              </button>
+            );
+          })}
+        </div>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#6B7E8A", marginTop: 8, lineHeight: 1.5 }}>
+          List is today&apos;s layout. Tabs adds a category bar (All + whatever tabs you set up
+          below) above the questions — set up your tabs and assign questions to them before
+          switching this on, then check it on the live page.
+        </p>
+      </div>
 
       <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
         <div>
@@ -1036,8 +1163,18 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         </div>
       </div>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#6B7E8A", marginTop: "-2px", marginBottom: "20px", lineHeight: 1.5 }}>
-        Shows {(data.faqColumns ?? 2) * (data.faqRows ?? 3)} question{(data.faqColumns ?? 2) * (data.faqRows ?? 3) > 1 ? "s" : ""} at a time ({data.faqRows ?? 3} row{(data.faqRows ?? 3) > 1 ? "s" : ""} × {data.faqColumns ?? 2} column{(data.faqColumns ?? 2) > 1 ? "s" : ""}). If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
+        Shows {(data.faqColumns ?? 2) * (data.faqRows ?? 3)} question{(data.faqColumns ?? 2) * (data.faqRows ?? 3) > 1 ? "s" : ""} at a time ({data.faqRows ?? 3} row{(data.faqRows ?? 3) > 1 ? "s" : ""} × {data.faqColumns ?? 2} column{(data.faqColumns ?? 2) > 1 ? "s" : ""}). In Tabs mode this counts only the active tab&apos;s questions, not every published question at once. If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
       </p>
+
+      <FaqCategoryManager
+        categories={data.faqCategories ?? []}
+        onChange={(cats) => onChange({ ...data, faqCategories: cats })}
+        onDelete={(id) => {
+          const cats = (data.faqCategories ?? []).filter((c) => c.id !== id).map((c, i) => ({ ...c, order: i + 1 }));
+          const items = (data.faqItems ?? []).map((item) => (item.category === id ? { ...item, category: undefined } : item));
+          onChange({ ...data, faqCategories: cats, faqItems: items });
+        }}
+      />
 
       {(data.faqItems ?? []).map((item, i) => {
         const savedItem = (savedData.faqItems ?? []).find((f) => f.id === item.id);
@@ -1096,16 +1233,30 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
               onChange({ ...data, faqItems: items });
             }}
           />
-          <CMSTextarea
-            label="Internal note (admin only — never shown on the public site)"
-            value={item.internalNote ?? ""}
-            onChange={(v) => {
-              const items = [...(data.faqItems ?? [])];
-              items[i] = { ...items[i], internalNote: v || undefined };
-              onChange({ ...data, faqItems: items });
-            }}
-            rows={2}
-          />
+          <div className="mb-4">
+            <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
+              Tab (Tabs layout mode)
+            </label>
+            <select
+              value={item.category ?? ""}
+              onChange={(e) => {
+                const items = [...(data.faqItems ?? [])];
+                items[i] = { ...items[i], category: e.target.value || undefined };
+                onChange({ ...data, faqItems: items });
+              }}
+              style={{ width: "100%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "8px", padding: "10px 14px", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: "#EDE8DF", fontWeight: 300, outline: "none", ...selectArrowStyle }}
+            >
+              <option value="">— None (All only) —</option>
+              {[...(data.faqCategories ?? [])].sort((a, b) => a.order - b.order).map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            {!item.category && (
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginTop: 6 }}>
+                Not assigned to a tab — will only appear under All.
+              </p>
+            )}
+          </div>
         </CMSCard>
         );
       })}
@@ -1124,7 +1275,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         <Plus size={13} /> Add Question
       </button>
 
-      <CMSSectionHeading>Beyond Design</CMSSectionHeading>
+      <CMSSectionHeading id="eval-beyond-design">Beyond Design</CMSSectionHeading>
 
       <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, cursor: "pointer", userSelect: "none" }}>
         <input

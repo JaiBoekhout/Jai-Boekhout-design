@@ -110,6 +110,16 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const [openJobs, setOpenJobs] = useState<Set<number>>(() => new Set([0]));
   const [openFaqs, setOpenFaqs] = useState<Set<number>>(() => new Set());
   const [showAllFaqs, setShowAllFaqs] = useState(false);
+  // "all" (the built-in, always-first tab) or a CMSFaqCategory id — only meaningful when
+  // faqLayoutMode is "tabs"; list mode never changes this away from its default.
+  const [activeFaqTab, setActiveFaqTab] = useState<string>("all");
+  function selectFaqTab(id: string) {
+    setActiveFaqTab(id);
+    // Both are keyed against whichever item set is currently visible, so switching tabs starts
+    // that tab fresh rather than carrying over open/expanded state that no longer lines up.
+    setShowAllFaqs(false);
+    setOpenFaqs(new Set());
+  }
   // Tracked in JS (not left to a CSS breakpoint) so the FAQ column split below can collapse to a
   // single column on mobile — otherwise "2 columns" would still split items into two arrays that
   // then just stack in the wrong order (all of column 1, then all of column 2) once the layout
@@ -138,12 +148,46 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
       return next;
     });
   }
+  // Roving-tabindex arrow key navigation between FAQ tabs (Home/End jump to the first/last) —
+  // only the active tab is in the regular tab order (tabIndex 0), so Tab itself moves focus past
+  // the whole bar in one step, matching standard tablist behavior.
+  function handleFaqTabKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, tabIds: string[], currentIndex: number) {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    const nextIndex =
+      e.key === "ArrowRight" ? (currentIndex + 1) % tabIds.length
+      : e.key === "ArrowLeft" ? (currentIndex - 1 + tabIds.length) % tabIds.length
+      : e.key === "Home" ? 0
+      : tabIds.length - 1;
+    const nextId = tabIds[nextIndex];
+    const container = e.currentTarget.parentElement;
+    selectFaqTab(nextId);
+    requestAnimationFrame(() => {
+      container?.querySelector<HTMLButtonElement>(`[data-faq-tab="${nextId}"]`)?.focus();
+    });
+  }
   const { content } = useContentStore();
   const cms = content.evaluate;
   const publishedFaqs = [...(cms.faqItems ?? [])].filter((f) => f.published).sort((a, b) => a.order - b.order);
+  const faqLayoutMode = cms.faqLayoutMode ?? "list";
+  const faqCategoriesSorted = [...(cms.faqCategories ?? [])].sort((a, b) => a.order - b.order);
+  // A tab with nothing published in it hides itself from the row entirely, rather than being
+  // selectable into an empty panel.
+  const nonEmptyFaqCategories = faqCategoriesSorted.filter((cat) => publishedFaqs.some((f) => f.category === cat.id));
+  // If the active tab's last item gets unpublished (or the tab itself deleted) out from under it,
+  // fall back to "All" rather than silently showing nothing.
+  useEffect(() => {
+    if (activeFaqTab !== "all" && !nonEmptyFaqCategories.some((c) => c.id === activeFaqTab)) {
+      setActiveFaqTab("all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [faqLayoutMode, nonEmptyFaqCategories.map((c) => c.id).join(",")]);
+  const tabFilteredFaqs = faqLayoutMode === "tabs" && activeFaqTab !== "all"
+    ? publishedFaqs.filter((f) => f.category === activeFaqTab)
+    : publishedFaqs;
   const faqColumns = cms.faqColumns ?? 2;
   const faqVisibleCount = faqColumns * (cms.faqRows ?? 3);
-  const visibleFaqs = showAllFaqs ? publishedFaqs : publishedFaqs.slice(0, faqVisibleCount);
+  const visibleFaqs = showAllFaqs ? tabFilteredFaqs : tabFilteredFaqs.slice(0, faqVisibleCount);
   // Independent columns rather than a CSS grid: a grid's rows are shared across both columns, so
   // opening a card on the left grows that whole row and shoves every card to its right down too.
   // Splitting into separate arrays up front (one flex column each) means each column's own
@@ -732,13 +776,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     )}
                     <div
                       className={`rte-content testimonial-card-body ${t.quoteMobile ? "hidden md:block" : ""}`}
-                      style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
+                      style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "30px" }}
                       dangerouslySetInnerHTML={{ __html: t.quote }}
                     />
                     {t.quoteMobile && (
                       <div
                         className="rte-content testimonial-card-body block md:hidden"
-                        style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
+                        style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "30px" }}
                         dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
                       />
                     )}
@@ -755,7 +799,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         fontSize: "13px",
                         color: "var(--c-quote-emphasis)",
                         lineHeight: 1.6,
-                        marginBottom: "16px",
+                        marginBottom: "30px",
                       }}
                       dangerouslySetInnerHTML={{ __html: t.quote }}
                     />
@@ -767,7 +811,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                           fontSize: "13px",
                           color: "var(--c-quote-emphasis)",
                           lineHeight: 1.6,
-                          marginBottom: "16px",
+                          marginBottom: "30px",
                         }}
                         dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
                       />
@@ -837,7 +881,54 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
               {cms.faqHeading || "Frequently Asked Questions"}
             </p>
-            <div className="flex gap-3 items-start">
+            {faqLayoutMode === "tabs" && (() => {
+              const tabIds = ["all", ...nonEmptyFaqCategories.map((c) => c.id)];
+              return (
+                <div
+                  role="tablist"
+                  aria-label="FAQ categories"
+                  className="flex gap-2 overflow-x-auto"
+                  style={{ marginBottom: 20, paddingBottom: 4 }}
+                >
+                  {tabIds.map((id, ti) => {
+                    const label = id === "all" ? "All" : nonEmptyFaqCategories.find((c) => c.id === id)?.name ?? "";
+                    const active = activeFaqTab === id;
+                    return (
+                      <button
+                        key={id}
+                        role="tab"
+                        data-faq-tab={id}
+                        aria-selected={active}
+                        aria-controls="faq-tabpanel"
+                        id={`faq-tab-${id}`}
+                        tabIndex={active ? 0 : -1}
+                        onClick={() => selectFaqTab(id)}
+                        onKeyDown={(e) => handleFaqTabKeyDown(e, tabIds, ti)}
+                        style={{
+                          flexShrink: 0,
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 12,
+                          letterSpacing: "0.04em",
+                          padding: "9px 16px",
+                          borderRadius: 999,
+                          cursor: "pointer",
+                          background: active ? "rgba(20,173,181,0.15)" : "var(--c-bg-card)",
+                          border: `1px solid ${active ? "rgba(20,173,181,0.4)" : "var(--c-border-soft)"}`,
+                          color: active ? "var(--c-teal)" : "var(--c-text-muted)",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            <div
+              className="flex gap-3 items-start"
+              {...(faqLayoutMode === "tabs" ? { role: "tabpanel" as const, id: "faq-tabpanel", "aria-labelledby": `faq-tab-${activeFaqTab}` } : {})}
+            >
               {faqColumnGroups.map((col, ci) => (
                 <div key={ci} className="flex flex-col gap-3" style={{ flex: 1, minWidth: 0 }}>
                   {col.map(({ faq, idx }) => (
@@ -890,7 +981,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </div>
               ))}
             </div>
-            {!showAllFaqs && publishedFaqs.length > faqVisibleCount && (
+            {!showAllFaqs && tabFilteredFaqs.length > faqVisibleCount && (
               <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
                 <button
                   onClick={() => setShowAllFaqs(true)}
