@@ -236,6 +236,14 @@
      back to the theme-aware quote color, scoped to just this container so it doesn't touch other
      rich-text fields that may intentionally use custom colors. */
   .rte-content.quote-color-fix, .rte-content.quote-color-fix * { color: var(--c-quote-emphasis) !important; }
+  /* The rich text editor's "Max Width" toolbar button bakes a literal inline max-width +
+     margin-left/right: auto onto a paragraph, to center a capped-width block of text within a
+     wide page section (e.g. a hero statement). Inside a narrow fixed-width card like a
+     testimonial, that same style makes the text jump inward once the card is wider than the
+     baked-in max-width, instead of just filling the card like every other field. Scoped
+     override so a testimonial/credential card's own copy always fills the card, regardless of
+     what width setting was applied when it was authored. */
+  .rte-content.testimonial-card-body p { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
   /* Key Skills chips + Projects rows in the Professional Experience section — the generic
      --c-border-soft/--c-border tokens are barely visible (6-10% opacity), and unlike --c-divider
      they're shared by dozens of other borders sitewide, so they aren't something the Design

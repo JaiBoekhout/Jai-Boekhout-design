@@ -720,33 +720,36 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               >
                 {t.eyebrow ? (
                   // A fact about what Jai was trusted to do, not a quote from someone else — no
-                  // name attribution, so it never reads as a quote from a named person.
+                  // name attribution, so it never reads as a quote from a named person. The
+                  // eyebrow caption sits right above the tags (mirroring where the testimonial
+                  // branch's Role/Company caption lands below) so the headline + copy — the
+                  // actual substance — leads the card instead.
                   <>
-                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
-                      {t.eyebrow}
-                    </p>
                     {t.headline && (
                       <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
                         {t.headline}
                       </p>
                     )}
                     <div
-                      className={`rte-content ${t.quoteMobile ? "hidden md:block" : ""}`}
+                      className={`rte-content testimonial-card-body ${t.quoteMobile ? "hidden md:block" : ""}`}
                       style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
                       dangerouslySetInnerHTML={{ __html: t.quote }}
                     />
                     {t.quoteMobile && (
                       <div
-                        className="rte-content block md:hidden"
+                        className="rte-content testimonial-card-body block md:hidden"
                         style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", lineHeight: 1.6, marginBottom: "16px" }}
                         dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
                       />
                     )}
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
+                      {t.eyebrow}
+                    </p>
                   </>
                 ) : (
                   <>
                     <div
-                      className={`rte-content quote-color-fix ${t.quoteMobile ? "hidden md:block" : ""}`}
+                      className={`rte-content quote-color-fix testimonial-card-body ${t.quoteMobile ? "hidden md:block" : ""}`}
                       style={{
                         fontFamily: "var(--font-body)",
                         fontSize: "13px",
@@ -758,7 +761,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     />
                     {t.quoteMobile && (
                       <div
-                        className="rte-content quote-color-fix block md:hidden"
+                        className="rte-content quote-color-fix testimonial-card-body block md:hidden"
                         style={{
                           fontFamily: "var(--font-body)",
                           fontSize: "13px",
