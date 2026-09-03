@@ -351,6 +351,10 @@ export interface CMSTestimonial {
   role?: string;
   company?: string;
   linkedInUrl?: string;
+  // Optional headshot shown next to Name — only ever added once the person has explicitly
+  // approved having their photo used (see components/EvaluateSection.tsx); most testimonials
+  // won't have one, and the card renders identically to today when it's unset.
+  photoUrl?: string;
   // Setting eyebrow switches this card from a quote (name attribution below the quote) to a
   // "credential" card — a fact about Jai rather than someone else's words, e.g. a research/
   // speaking credit. headline is the bold line under the eyebrow; quote doubles as the body
@@ -2107,6 +2111,9 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
   }
   for (const client of content.evaluate.clients ?? []) {
     if (client.logoUrl === src) hits.push(`Client Logo — "${client.name}"`);
+  }
+  for (const t of content.evaluate.testimonials) {
+    if (t.photoUrl === src) hits.push(`Testimonial "${t.name}" — Photo`);
   }
   for (const company of content.companies ?? []) {
     if (company.logoUrl === src) hits.push(`Company Logo — "${company.name}"`);

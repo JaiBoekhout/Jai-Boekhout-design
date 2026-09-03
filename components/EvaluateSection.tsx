@@ -935,9 +935,33 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
           </div>
           <CMSInput label="Eyebrow (optional — set this for a credential-style card, e.g. a research or speaking credit, instead of a quote)" value={t.eyebrow ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], eyebrow: v }; onChange({ ...data, testimonials: ts }); }} />
           {t.eyebrow ? (
-            <CMSInput label="Headline" value={t.headline ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], headline: v }; onChange({ ...data, testimonials: ts }); }} />
+            <>
+              <CMSInput label="Headline" value={t.headline ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], headline: v }; onChange({ ...data, testimonials: ts }); }} />
+              <ResponsiveRichTextEditor
+                label="Body"
+                value={t.quote}
+                onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }}
+                mobileValue={t.quoteMobile}
+                onMobileChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quoteMobile: v }; onChange({ ...data, testimonials: ts }); }}
+              />
+            </>
           ) : (
             <>
+              <ResponsiveRichTextEditor
+                label="Quote"
+                value={t.quote}
+                onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }}
+                mobileValue={t.quoteMobile}
+                onMobileChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quoteMobile: v }; onChange({ ...data, testimonials: ts }); }}
+              />
+              <ImagePicker
+                label="Photo (optional)"
+                previewRatio="1/1"
+                previewFit="cover"
+                previewMaxWidth={96}
+                value={t.photoUrl}
+                onChange={(url) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], photoUrl: url }; onChange({ ...data, testimonials: ts }); }}
+              />
               <div className="grid grid-cols-2 gap-2">
                 <CMSInput label="Name" value={t.name} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], name: v }; onChange({ ...data, testimonials: ts }); }} />
                 <CMSInput label="LinkedIn URL (optional)" value={t.linkedInUrl ?? ""} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], linkedInUrl: v }; onChange({ ...data, testimonials: ts }); }} />
@@ -948,13 +972,6 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
               </div>
             </>
           )}
-          <ResponsiveRichTextEditor
-            label={t.eyebrow ? "Body" : "Quote"}
-            value={t.quote}
-            onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quote: v }; onChange({ ...data, testimonials: ts }); }}
-            mobileValue={t.quoteMobile}
-            onMobileChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], quoteMobile: v }; onChange({ ...data, testimonials: ts }); }}
-          />
           <CMSChipEditor label="Highlights" items={t.highlights} onChange={(v) => { const ts = [...data.testimonials]; ts[i] = { ...ts[i], highlights: v }; onChange({ ...data, testimonials: ts }); }} />
         </CMSCard>
         ))}

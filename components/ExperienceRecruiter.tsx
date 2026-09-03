@@ -745,19 +745,6 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   </>
                 ) : (
                   <>
-                    {(t.role || t.company) && (
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>
-                        {t.role && t.company ? `${t.role} at ${t.company}` : t.role || t.company}
-                      </p>
-                    )}
-                    <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
-                      <span>{t.name}</span>
-                      {t.linkedInUrl && (
-                        <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
-                          <FaLinkedin size={13} />
-                        </a>
-                      )}
-                    </p>
                     <div
                       className={`rte-content quote-color-fix ${t.quoteMobile ? "hidden md:block" : ""}`}
                       style={{
@@ -781,6 +768,30 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         }}
                         dangerouslySetInnerHTML={{ __html: t.quoteMobile }}
                       />
+                    )}
+                    <div className="flex items-center gap-2.5" style={{ marginBottom: (t.role || t.company) ? "4px" : "12px" }}>
+                      {t.photoUrl && (
+                        <img
+                          src={t.photoUrl}
+                          alt=""
+                          width={36}
+                          height={36}
+                          style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                        />
+                      )}
+                      <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, margin: 0 }}>
+                        <span>{t.name}</span>
+                        {t.linkedInUrl && (
+                          <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
+                            <FaLinkedin size={13} />
+                          </a>
+                        )}
+                      </p>
+                    </div>
+                    {(t.role || t.company) && (
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "12px" }}>
+                        {t.role && t.company ? `${t.role} at ${t.company}` : t.role || t.company}
+                      </p>
                     )}
                   </>
                 )}
