@@ -17,6 +17,11 @@ const SIZES: { scale: FontScale; px: number; label: string }[] = [
 ];
 
 function SizeButton({ scale, px, label, active, onSelect }: { scale: FontScale; px: number; label: string; active: boolean; onSelect: (s: FontScale) => void }) {
+  // Resting color: the currently-selected size gets a dimmed version of the highlight color (a
+  // quiet "this is active" cue, not a bright one — the default size is the common case for most
+  // visitors, so it shouldn't read as urgent), everything else stays neutral. Hovering always
+  // goes to the full highlight color regardless of active state — a pure interaction affordance.
+  const restColor = active ? "rgba(var(--c-teal-rgb), 0.4)" : "var(--c-text-muted)";
   return (
     <button
       type="button"
@@ -33,12 +38,12 @@ function SizeButton({ scale, px, label, active, onSelect }: { scale: FontScale; 
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
-        color: active ? "var(--c-teal)" : "var(--c-text-muted)",
+        color: restColor,
         fontFamily: "var(--font-body)",
         transition: "color 0.15s",
       }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "var(--c-heading)"; }}
-      onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "var(--c-text-muted)"; }}
+      onMouseEnter={(e) => { e.currentTarget.style.color = "var(--c-teal)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = restColor; }}
     >
       <span style={{ fontSize: px, lineHeight: 1 }}>A</span>
     </button>
