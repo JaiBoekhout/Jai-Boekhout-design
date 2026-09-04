@@ -36,7 +36,7 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
         {/* Tags */}
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
           {project.tags.map((t, ti) => (
-            <span key={`${t}-${ti}`} className="pro-exp-outline" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", borderRadius: 999, padding: "10px 18px", whiteSpace: "nowrap" }}>{t}</span>
+            <span key={`${t}-${ti}`} className="pro-exp-outline" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", borderRadius: 999, padding: "6px 14px", whiteSpace: "nowrap" }}>{t}</span>
           ))}
         </div>
 

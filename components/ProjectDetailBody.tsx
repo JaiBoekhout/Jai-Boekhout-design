@@ -511,7 +511,7 @@ export function ProjectDetailBody({
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
           {project.tags.map((t, ti) => (
-            <span key={`${t}-${ti}`} className="pro-exp-outline" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", borderRadius: 999, padding: "10px 18px", whiteSpace: "nowrap" }}>
+            <span key={`${t}-${ti}`} className="pro-exp-outline" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", borderRadius: 999, padding: "6px 14px", whiteSpace: "nowrap" }}>
               {t}
             </span>
           ))}
@@ -528,7 +528,7 @@ export function ProjectDetailBody({
                 <button
                   onClick={() => onViewCaseStudy(project)}
                   className="hover:opacity-80 transition-opacity"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0C1117", background: TEAL, border: "none", borderRadius: 999, padding: "8px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em" }}>
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0C1117", background: TEAL, border: "none", borderRadius: 10, padding: "8px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em" }}>
                   {project.fullCaseStudyLocked && <Lock size={11} />}
                   View Full Case Study →
                 </button>

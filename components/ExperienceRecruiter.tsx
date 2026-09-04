@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, ArrowRight } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
 import { useContentStore, resolveExperienceProjects, projectUrlSlug, resolveStatValue } from "@/store/contentStore";
 import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
@@ -197,6 +197,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const effectiveFaqColumns = faqDesktop ? faqColumns : 1;
   const faqColumnGroups: { faq: CMSFaqItem; idx: number }[][] = Array.from({ length: effectiveFaqColumns }, () => []);
   visibleFaqs.forEach((faq, i) => faqColumnGroups[i % effectiveFaqColumns].push({ faq, idx: i }));
+  // Pins the grid's height to whatever "All" needs, so switching to a tab with fewer questions
+  // doesn't shrink the section and jolt everything below it upward — only remeasured while
+  // actually on "All" (the only tab whose full item set is ever in the DOM to measure), which
+  // is also the default landing tab, so a baseline exists before any tab switch can happen.
+  const faqGridRef = useRef<HTMLDivElement>(null);
+  const [faqAllHeight, setFaqAllHeight] = useState<number | undefined>(undefined);
+  useLayoutEffect(() => {
+    if (activeFaqTab !== "all") return;
+    const el = faqGridRef.current;
+    if (el) setFaqAllHeight(el.scrollHeight);
+  }, [activeFaqTab, showAllFaqs, openFaqs, effectiveFaqColumns, visibleFaqs.length]);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -347,7 +358,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     fontSize: "13px",
                     color: "var(--c-text)",
                     border: "1px solid rgba(20,173,181,0.2)",
-                    borderRadius: "8px",
+                    borderRadius: 999,
                     padding: "6px 14px",
                     background: "rgba(20,173,181,0.05)",
                   }}
@@ -374,28 +385,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 const isClickable = !!scrollTarget;
                 const handleActivate = () => scrollTarget?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                 const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
-                return (
-                  <div
-                    key={id}
-                    role={isClickable ? "button" : undefined}
-                    tabIndex={isClickable ? 0 : undefined}
-                    onClick={isClickable ? handleActivate : undefined}
-                    onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
-                    className="rounded-lg p-3 transition-colors"
-                    style={{
-                      background: "var(--c-bg-card)",
-                      border: "1px solid var(--c-border-soft)",
-                      cursor: isClickable ? "pointer" : undefined,
-                    }}
-                    onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; e.currentTarget.style.background = "var(--c-bg-card-hover, var(--c-bg-card))"; } : undefined}
-                    onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; e.currentTarget.style.background = "var(--c-bg-card)"; } : undefined}
-                  >
-                    <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
-                      <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
-                        {value}
-                      </span>
-                    </div>
+                const labelBlock = (
+                  <div>
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                       {label}
                     </span>
@@ -403,6 +394,46 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "2px" }}>
                         {sub}
                       </span>
+                    )}
+                  </div>
+                );
+                return (
+                  <div
+                    key={id}
+                    role={isClickable ? "button" : undefined}
+                    tabIndex={isClickable ? 0 : undefined}
+                    onClick={isClickable ? handleActivate : undefined}
+                    onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
+                    className="stat-card rounded-lg p-3"
+                    style={{
+                      background: "var(--c-bg-card)",
+                      border: "1px solid var(--c-border-soft)",
+                      cursor: isClickable ? "pointer" : undefined,
+                    }}
+                    onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; } : undefined}
+                    onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; } : undefined}
+                  >
+                    {/* Absolutely positioned, so it never affects layout — see .stat-card-glow
+                        in globals.css for the actual gradient + hover-reveal. */}
+                    <div className="stat-card-glow" />
+                    <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
+                      <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
+                        {value}
+                      </span>
+                    </div>
+                    {isClickable ? (
+                      <div className="flex items-end justify-between gap-2" style={{ marginTop: "10px" }}>
+                        {labelBlock}
+                        <span
+                          className="stat-card-view-section flex items-center gap-1"
+                          style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
+                        >
+                          View section <ArrowRight size={11} />
+                        </span>
+                      </div>
+                    ) : (
+                      labelBlock
                     )}
                   </div>
                 );
@@ -535,8 +566,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                   fontFamily: "var(--font-body)",
                                   fontSize: "12px",
                                   color: "var(--c-text-muted)",
-                                  borderRadius: "6px",
-                                  padding: "3px 10px",
+                                  borderRadius: 999,
+                                  padding: "6px 14px",
                                 }}
                               >
                                 {t}
@@ -730,8 +761,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     fontSize: "12px",
                     color: "var(--c-text)",
                     border: "1px solid rgba(20,173,181,0.2)",
-                    borderRadius: "8px",
-                    padding: "4px 12px",
+                    borderRadius: 999,
+                    padding: "6px 14px",
                     background: "rgba(20,173,181,0.05)",
                   }}
                 >
@@ -851,8 +882,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         fontSize: "11px",
                         color: "var(--c-teal)",
                         border: "1px solid rgba(20,173,181,0.2)",
-                        borderRadius: "8px",
-                        padding: "3px 10px",
+                        borderRadius: 999,
+                        padding: "6px 14px",
                         background: "rgba(20,173,181,0.05)",
                       }}
                     >
@@ -926,7 +957,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               );
             })()}
             <div
+              ref={faqGridRef}
               className="flex gap-3 items-start"
+              style={faqLayoutMode === "tabs" ? { minHeight: faqAllHeight } : undefined}
               {...(faqLayoutMode === "tabs" ? { role: "tabpanel" as const, id: "faq-tabpanel", "aria-labelledby": `faq-tab-${activeFaqTab}` } : {})}
             >
               {faqColumnGroups.map((col, ci) => (
