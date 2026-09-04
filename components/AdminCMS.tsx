@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, History as HistoryIcon, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
+import { X, Menu, Home as HomeIcon, Briefcase, User, GitBranch, BookOpen, Image, Save, LogOut, Check, Inbox, Trash2, Palette, AlertTriangle, History as HistoryIcon, PanelLeftClose, PanelLeftOpen, ChevronDown, Loader2 } from "lucide-react";
 import { useContentStore, getAllLinkableProjects } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { WorkSection, WORK_SECTIONS } from "@/components/WorkSection";
@@ -138,6 +138,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
     });
   }
   const [saveError, setSaveError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [pendingPersist, setPendingPersist] = useState(false);
   const { content, updateContent, persistContent, isDirty, savedContent } = useContentStore();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -240,7 +241,10 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   }, [isOpen, isDirty]);
 
   async function handleSave() {
+    if (isSaving) return; // already in flight — the button is disabled too, but guard regardless
+    setIsSaving(true);
     const ok = await persistContent();
+    setIsSaving(false);
     if (ok) {
       setSaveError(false);
       // No separate "just saved" flash state needed — isDirty (and hasUnpublishedDraft) flip
@@ -538,8 +542,11 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
               <div className="px-3 pb-5 flex flex-col gap-2 overflow-x-hidden" style={{ borderTop: "1px solid rgba(237,232,223,0.06)", paddingTop: "16px" }}>
                 <button
                   onClick={handleSave}
+                  disabled={isSaving}
                   title={
-                    saveError
+                    isSaving
+                      ? "Saving…"
+                      : saveError
                       ? "Save failed — see the error below"
                       : isDirty && hasUnpublishedDraft
                       ? "You have unsaved changes, and some projects are saved but not published yet"
@@ -551,14 +558,23 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                   }
                   className={`flex items-center gap-2 rounded-lg px-3 py-2.5 w-full transition-all ${mobileNavOpen ? "" : "justify-center"} ${desktopCollapsed ? "md:justify-center" : "md:justify-start"}`}
                   style={{
-                    background: saveError ? "#C0392B" : (isDirty || hasUnpublishedDraft) ? "#F59E0B" : "rgba(20,173,181,0.15)",
+                    background: isSaving ? "rgba(245,158,11,0.6)" : saveError ? "#C0392B" : (isDirty || hasUnpublishedDraft) ? "#F59E0B" : "rgba(20,173,181,0.15)",
                     border: "none",
-                    cursor: "pointer",
+                    cursor: isSaving ? "default" : "pointer",
+                    opacity: isSaving ? 0.85 : 1,
                   }}
                 >
-                  {saveError ? <X size={13} style={{ color: "#EDE8DF" }} /> : (isDirty || hasUnpublishedDraft) ? <Save size={13} style={{ color: "#0C1117" }} /> : <Check size={13} style={{ color: "#14ADB5" }} />}
-                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: saveError ? "#EDE8DF" : (isDirty || hasUnpublishedDraft) ? "#0C1117" : "#14ADB5", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-                    {saveError ? "Save failed" : (isDirty || hasUnpublishedDraft) ? "Save Changes" : "Saved!"}
+                  {isSaving ? (
+                    <Loader2 size={13} className="animate-spin" style={{ color: "#0C1117" }} />
+                  ) : saveError ? (
+                    <X size={13} style={{ color: "#EDE8DF" }} />
+                  ) : (isDirty || hasUnpublishedDraft) ? (
+                    <Save size={13} style={{ color: "#0C1117" }} />
+                  ) : (
+                    <Check size={13} style={{ color: "#14ADB5" }} />
+                  )}
+                  <span className={railClass("inline")} style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: isSaving ? "#0C1117" : saveError ? "#EDE8DF" : (isDirty || hasUnpublishedDraft) ? "#0C1117" : "#14ADB5", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    {isSaving ? "Saving…" : saveError ? "Save failed" : (isDirty || hasUnpublishedDraft) ? "Save Changes" : "Saved!"}
                   </span>
                 </button>
                 {saveError && (

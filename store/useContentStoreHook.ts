@@ -80,11 +80,23 @@ export function useContentStore() {
   // "unsaved changes" state in place rather than pretending nothing changed. Version-history
   // archiving happens server-side inside saveCmsContentAction itself now (it reads the true
   // current database state right before overwriting it), not here — see app/actions/cms.ts.
+  //
+  // saveCmsContentAction itself already catches DB-level failures and resolves to false, but a
+  // dropped connection or any other transport-level hiccup calling a Server Action throws
+  // instead of resolving — without this try/catch that exception had nowhere to go (every
+  // caller just does `const ok = await persistContent()`), so it silently killed whatever this
+  // call was part of: the caller's own "saving…"/error state update never ran, callers awaiting
+  // it inside a loop never continued, and the admin saw no error at all — just a save that
+  // appeared to do nothing.
   async function persistContent(overrides?: Partial<CMSContent>): Promise<boolean> {
     const toSave = overrides ? deepMerge(content, overrides) : content;
-    const ok = await saveCmsContentAction(toSave);
-    if (ok) window.dispatchEvent(new Event("cms_content_updated"));
-    return ok;
+    try {
+      const ok = await saveCmsContentAction(toSave);
+      if (ok) window.dispatchEvent(new Event("cms_content_updated"));
+      return ok;
+    } catch {
+      return false;
+    }
   }
 
   return { content, updateContent, persistContent, isDirty, isLoading, savedContent };
