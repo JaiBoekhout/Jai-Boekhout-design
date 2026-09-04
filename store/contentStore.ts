@@ -776,6 +776,17 @@ export interface CMSSavedTheme {
   id: string;
   name: string;
   colors: CMSDesignColors;
+  // Everything below is optional so THEME_PRESETS (colors-only, hardcoded below) and any
+  // already-saved theme from before this existed still satisfy this type — applyTheme() in
+  // DesignSystemSection.tsx only touches a field when the theme actually carries one.
+  fontPairing?: CMSFontPairingId;
+  typeScale?: CMSTypeScale;
+  componentColors?: CMSComponentColors;
+  buttonStyles?: CMSButtonStyles;
+  menuStyle?: CMSMenuStyle;
+  tabBarStyle?: CMSTabBarStyle;
+  textAreaStyle?: CMSTextAreaStyle;
+  switchStyle?: CMSSwitchStyle;
 }
 
 export interface CMSDesignSystem {

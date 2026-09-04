@@ -727,14 +727,39 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     onChange({ ...data, colors: { ...data.colors, ...patch } });
   }
 
-  // Applying a theme replaces the whole palette (including any Accent 2/3) rather than
-  // patching individual fields — a curated/saved theme is a complete, coherent combination.
-  function applyTheme(colors: CMSDesignColors) {
-    onChange({ ...data, colors: { ...colors } });
+  // Applying a theme replaces the whole palette (including any Accent 2/3), plus every other
+  // field the theme actually carries — a curated THEME_PRESETS entry or an older saved theme
+  // only ever has `colors`, so this leaves fonts/buttons/components alone for those; a theme
+  // saved since this expanded to a full snapshot restores everything at once.
+  function applyTheme(theme: CMSSavedTheme) {
+    onChange({
+      ...data,
+      colors: { ...theme.colors },
+      ...(theme.fontPairing ? { fontPairing: theme.fontPairing } : {}),
+      ...(theme.typeScale ? { typeScale: theme.typeScale } : {}),
+      ...(theme.componentColors ? { componentColors: theme.componentColors } : {}),
+      ...(theme.buttonStyles ? { buttonStyles: theme.buttonStyles } : {}),
+      ...(theme.menuStyle ? { menuStyle: theme.menuStyle } : {}),
+      ...(theme.tabBarStyle ? { tabBarStyle: theme.tabBarStyle } : {}),
+      ...(theme.textAreaStyle ? { textAreaStyle: theme.textAreaStyle } : {}),
+      ...(theme.switchStyle ? { switchStyle: theme.switchStyle } : {}),
+    });
   }
 
   function saveCurrentAsTheme(name: string) {
-    const theme: CMSSavedTheme = { id: `theme-${Date.now()}`, name, colors: data.colors };
+    const theme: CMSSavedTheme = {
+      id: `theme-${Date.now()}`,
+      name,
+      colors: data.colors,
+      fontPairing: data.fontPairing,
+      typeScale: data.typeScale,
+      componentColors: data.componentColors,
+      buttonStyles: data.buttonStyles,
+      menuStyle: data.menuStyle,
+      tabBarStyle: data.tabBarStyle,
+      textAreaStyle: data.textAreaStyle,
+      switchStyle: data.switchStyle,
+    };
     onChange({ ...data, savedThemes: [...data.savedThemes, theme] });
   }
 
@@ -809,10 +834,10 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Theme Gallery</p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
           {THEME_PRESETS.map((t) => (
-            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t.colors)} />
+            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t)} />
           ))}
           {data.savedThemes.map((t) => (
-            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t.colors)} onDelete={() => deleteTheme(t.id)} />
+            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t)} onDelete={() => deleteTheme(t.id)} />
           ))}
           {namingTheme ? (
             <div style={{ width: 92, display: "flex", flexDirection: "column", gap: 4 }}>
