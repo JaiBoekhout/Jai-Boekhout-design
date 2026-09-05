@@ -108,7 +108,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   className="transition-all"
                   style={{
                     fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
-                    padding: "7px 15px", borderRadius: 999, cursor: "pointer",
+                    padding: "7px 15px", borderRadius: 0, cursor: "pointer",
                     background: active ? TEAL : "transparent",
                     color: active ? "#06090C" : "var(--c-text-50)",
                     border: active ? "0.5px solid transparent" : "0.5px solid rgba(237,232,223,0.16)",
@@ -135,18 +135,18 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             <div
               key={p?.id ?? `ph-${i}`}
               data-card
-              className="group relative"
+              className="group relative flex flex-col"
               style={{
-                aspectRatio: "16/9",
                 borderRadius: 0,
                 background: "var(--c-bg-card)",
                 border: "0.5px solid var(--c-border-soft)",
                 outline: "none",
                 boxShadow: "none",
+                overflow: "hidden",
               }}
             >
-              {/* Inner clip so the cover image respects the card's rounded corners */}
-              <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "inherit" }}>
+              {/* Image — fixed aspect ratio; card text sits in its own panel below, not overlaid on top */}
+              <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
                 {/* Cover image — prefers linked case study coverImageUrl, then project coverImageUrl, then imgs[0] */}
                 {cardCoverSrc && p && (() => {
                   const fromCS = !!cardCS?.coverImageUrl;
@@ -188,28 +188,22 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     </>
                   );
                 })()}
-                {/* Bottom gradient */}
-                <div
-                  className="absolute inset-0"
-                  style={{ background: "linear-gradient(to top, rgba(6,9,12,0.98) 0%, rgba(6,9,12,0.85) 32%, rgba(6,9,12,0.28) 62%, transparent 100%)", zIndex: 1 }}
-                />
+
+                {/* Placeholder — shown for an empty grid slot (no project assigned) as well as a
+                    real project with no cover image configured yet in CMS */}
+                {!cardCoverSrc && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
+                  </div>
+                )}
               </div>
 
-              {/* Placeholder — shown for an empty grid slot (no project assigned) as well as a
-                  real project with no cover image configured yet in CMS */}
-              {!cardCoverSrc && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 1 }}>
-                  <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-                </div>
-              )}
-
-              {/* Card text */}
+              {/* Card text — its own panel below the image, not overlaid on top of it */}
               {p && (
-                <div className="absolute left-5 right-5 bottom-5" style={{ zIndex: 2, pointerEvents: "none" }}>
+                <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px", pointerEvents: "none" }}>
                   {/* Category pills — the project's own curated categories (Work tab → Filter
-                      Categories), outlined, sitting above the title rather than over the image.
-                      A project with none assigned yet simply shows no pill here — it still
-                      appears under "All" in the filter bar above. */}
+                      Categories). A project with none assigned yet simply shows no pill here — it
+                      still appears under "All" in the filter bar above. */}
                   {(() => {
                     const names = (p.categories ?? [])
                       .map((id) => categoryNameById.get(id))
@@ -220,9 +214,9 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                         {names.map((name, ni) => (
                           <span key={`${name}-${ni}`} style={{
                             fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-                            color: TEAL, background: "rgba(6,9,12,0.55)", textTransform: "uppercase",
-                            border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 999,
-                            padding: "4px 11px", backdropFilter: "blur(8px)",
+                            color: TEAL, background: "transparent", textTransform: "uppercase",
+                            border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                            padding: "4px 11px",
                           }}>
                             {name}
                           </span>
@@ -230,12 +224,12 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                       </div>
                     ) : null;
                   })()}
-                  {/* Name — 2-line clamp so a long title can never overflow the fixed-aspect card */}
+                  {/* Name — 2-line clamp so a long title can never overflow the card */}
                   <h2 style={{
                     fontFamily: "var(--font-heading)",
                     fontSize: 17,
                     fontWeight: 500,
-                    color: TEAL,
+                    color: "var(--c-text)",
                     lineHeight: 1.2,
                     marginBottom: 7,
                     letterSpacing: "-0.01em",
@@ -251,7 +245,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   <div style={{
                     fontFamily: "var(--font-body)",
                     fontSize: 12,
-                    color: "#F3F2F2",
+                    color: "var(--c-text-70)",
                     lineHeight: 1.55,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
@@ -262,7 +256,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   </div>
 
                   {/* VIEW PROJECT → — collapsed (zero height, invisible) by default so the name/
-                      description sit lower in the card, and smoothly expands/fades in on hover.
+                      description sit lower in the panel, and smoothly expands/fades in on hover.
                       max-height (not height:auto) so the transition has explicit start/end
                       values to animate between. */}
                   <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-8 group-hover:opacity-100 transition-all duration-300 ease-out">
@@ -274,14 +268,15 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               )}
 
               {/* Full-card link — a same-app click is intercepted into the modal popup; a hard
-                  nav/refresh/crawler lands on the real page. Sits above the gradient/text (which
-                  are pointer-events:none) so the whole card is one click target. */}
+                  nav/refresh/crawler lands on the real page. Sits above the image/text (which are
+                  pointer-events:none) so the whole card, image and text panel alike, is one click
+                  target. */}
               {p && (
                 <Link
                   href={`/work/${projectUrlSlug(p)}`}
                   aria-label={p.name}
                   className="absolute inset-0"
-                  style={{ zIndex: 3, borderRadius: "inherit", cursor: "pointer" }}
+                  style={{ zIndex: 3, cursor: "pointer" }}
                   onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
                   onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
                 />
