@@ -268,7 +268,9 @@ export interface CMSWork {
   heroImagePosition?: string;
   heroImageScale?: number;
   heroOverlayColor1?: string;
+  heroOverlayColor1Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2?: string;
+  heroOverlayColor2Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number;
   heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
@@ -452,7 +454,9 @@ export interface CMSEvaluate {
   heroImagePosition?: string;
   heroImageScale?: number;
   heroOverlayColor1?: string;
+  heroOverlayColor1Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2?: string;
+  heroOverlayColor2Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number; // 0-100, defaults to 60
   heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left"; // defaults to "to-bottom"
@@ -541,7 +545,9 @@ export interface CMSProcess {
   heroImagePosition?: string;
   heroImageScale?: number;
   heroOverlayColor1?: string;
+  heroOverlayColor1Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2?: string;
+  heroOverlayColor2Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number;
   heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
@@ -582,7 +588,9 @@ export interface CMSStory {
   heroImagePosition?: string;
   heroImageScale?: number;
   heroOverlayColor1?: string;
+  heroOverlayColor1Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2?: string;
+  heroOverlayColor2Opacity?: number; // 0-100, defaults to 100
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number;
   heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";

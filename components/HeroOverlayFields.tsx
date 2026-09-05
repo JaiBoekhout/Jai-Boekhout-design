@@ -4,17 +4,21 @@ import { ImagePicker } from "@/components/ImagePicker";
 
 // Shared shape for every "path" page's optional full-bleed hero photo + colour-overlay gradient
 // (Work/Evaluate/Story/Process all structurally satisfy this once their CMS interfaces carry
-// these fields). A 2-stop gradient runs along heroOverlayDirection: heroOverlayColor1 at the 0%
-// end, giving way to either heroOverlayColor2 or full transparency (heroOverlayColor2Transparent)
-// by heroOverlayRatio% along the gradient. heroOverlayMidpoint (0-100, default 50) biases where
-// the 50/50 blend between the two falls within that 0%→ratio% span — mirrors Photoshop's gradient
-// midpoint diamond; 50 is the plain arithmetic middle (a linear transition).
+// these fields). A 2-stop gradient runs along heroOverlayDirection: heroOverlayColor1 (at its own
+// heroOverlayColor1Opacity, 0-100, default 100) at the 0% end, giving way to either
+// heroOverlayColor2 (at heroOverlayColor2Opacity) or full transparency
+// (heroOverlayColor2Transparent) by heroOverlayRatio% along the gradient. heroOverlayMidpoint
+// (0-100, default 50) biases where the 50/50 blend between the two falls within that 0%→ratio%
+// span — mirrors Photoshop's gradient midpoint diamond; 50 is the plain arithmetic middle (a
+// linear transition).
 export interface HeroOverlayData {
   heroImageUrl?: string;
   heroImagePosition?: string;
   heroImageScale?: number;
   heroOverlayColor1?: string;
+  heroOverlayColor1Opacity?: number;
   heroOverlayColor2?: string;
+  heroOverlayColor2Opacity?: number;
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number;
   heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
@@ -55,13 +59,19 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
 }
 
+function clampPct(n: number): number {
+  return Math.min(100, Math.max(0, n));
+}
+
 // Resolves every field against an optional per-page baseline before falling back to the
 // hard-coded defaults below — lets a page migrating an existing hardcoded gradient (e.g. Story)
 // keep its current look for content saved before these fields existed, without a DB migration.
 function resolve(data: HeroOverlayData, defaults: Partial<HeroOverlayData>) {
   return {
     color1: data.heroOverlayColor1 ?? defaults.heroOverlayColor1 ?? "#000000",
+    color1Opacity: data.heroOverlayColor1Opacity ?? defaults.heroOverlayColor1Opacity ?? 100,
     color2: data.heroOverlayColor2 ?? defaults.heroOverlayColor2 ?? "#000000",
+    color2Opacity: data.heroOverlayColor2Opacity ?? defaults.heroOverlayColor2Opacity ?? 100,
     color2Transparent: data.heroOverlayColor2Transparent ?? defaults.heroOverlayColor2Transparent ?? false,
     ratio: data.heroOverlayRatio ?? defaults.heroOverlayRatio ?? 60,
     midpoint: data.heroOverlayMidpoint ?? defaults.heroOverlayMidpoint ?? 50,
@@ -70,17 +80,26 @@ function resolve(data: HeroOverlayData, defaults: Partial<HeroOverlayData>) {
 }
 
 export function buildHeroOverlayGradient(data: HeroOverlayData, defaults: Partial<HeroOverlayData> = {}): string {
-  const { color1, color2, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
-  const color2Stop = color2Transparent ? "transparent" : color2;
-  const [r, g, b] = hexToRgb(color1);
-  const midColor = color2Transparent
-    ? `rgba(${r}, ${g}, ${b}, 0.5)`
-    : (() => {
-        const [r2, g2, b2] = hexToRgb(color2Stop);
-        return `rgb(${Math.round((r + r2) / 2)}, ${Math.round((g + g2) / 2)}, ${Math.round((b + b2) / 2)})`;
-      })();
+  const { color1, color1Opacity, color2, color2Opacity, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
+  const [r1, g1, b1] = hexToRgb(color1);
+  const a1 = clampPct(color1Opacity) / 100;
+  const color1Stop = `rgba(${r1}, ${g1}, ${b1}, ${a1})`;
+
+  // When "fade to transparent" is on, Colour 2's own hue/opacity don't apply — the midpoint
+  // blend below still needs *some* rgb to average against, so it falls back to Colour 1's own
+  // hue (fading to see-through, not to black) with alpha 0, matching how the endpoint itself
+  // is rendered as the literal `transparent` keyword.
+  const [r2, g2, b2] = color2Transparent ? [r1, g1, b1] : hexToRgb(color2);
+  const a2 = color2Transparent ? 0 : clampPct(color2Opacity) / 100;
+  const color2Stop = color2Transparent ? "transparent" : `rgba(${r2}, ${g2}, ${b2}, ${a2})`;
+
+  // Midpoint blend — the colour a plain linear gradient would already show at the midpoint
+  // position; inserting it explicitly is what lets the Midpoint slider bias WHERE that colour
+  // sits instead of it always landing at the arithmetic middle.
+  const midColor = `rgba(${Math.round((r1 + r2) / 2)}, ${Math.round((g1 + g2) / 2)}, ${Math.round((b1 + b2) / 2)}, ${(a1 + a2) / 2})`;
+
   const midPos = (ratio * midpoint) / 100;
-  return `linear-gradient(${CSS_DIRECTION[direction]}, ${color1} 0%, ${midColor} ${midPos}%, ${color2Stop} ${ratio}%)`;
+  return `linear-gradient(${CSS_DIRECTION[direction]}, ${color1Stop} 0%, ${midColor} ${midPos}%, ${color2Stop} ${ratio}%)`;
 }
 
 // Public-render layer: the full-bleed background photo + colour-overlay gradient, absolutely
@@ -107,10 +126,17 @@ export function HeroOverlayLayer({ data, defaults }: { data: HeroOverlayData; de
   );
 }
 
-// Plain hex swatch + text input — same shape as DesignSystemSection.tsx's own ColorInput; kept as
-// a local copy (a third one, alongside EvaluateSection.tsx's pre-existing copy) rather than a
-// shared export, since none of these admin-only files otherwise need to depend on each other.
-function ColorInput({ label, value, onChange, disabled }: { label: string; value: string; onChange: (v: string) => void; disabled?: boolean }) {
+// Plain hex swatch + text input, plus a % opacity field — same shape as DesignSystemSection.tsx's
+// own ColorInput (minus the opacity field, which that one doesn't need); kept as a local copy (a
+// third one, alongside EvaluateSection.tsx's pre-existing copy) rather than a shared export, since
+// none of these admin-only files otherwise need to depend on each other.
+function ColorInput({
+  label, value, onChange, opacity, onOpacityChange, disabled,
+}: {
+  label: string; value: string; onChange: (v: string) => void;
+  opacity: number; onOpacityChange: (n: number) => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="flex items-center gap-2" style={{ flex: 1, opacity: disabled ? 0.4 : 1 }}>
       <input
@@ -132,6 +158,23 @@ function ColorInput({ label, value, onChange, disabled }: { label: string; value
           onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.1)")}
         />
       </div>
+      <div style={{ width: 58, flexShrink: 0 }}>
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 3 }}>Opacity</p>
+        <div className="flex items-center gap-1">
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={opacity}
+            onChange={(e) => onOpacityChange(Math.min(100, Math.max(0, Math.round(Number(e.target.value)))))}
+            disabled={disabled}
+            style={{ width: "100%", background: "rgba(237,232,223,0.04)", border: "1px solid rgba(237,232,223,0.1)", borderRadius: 6, padding: "5px 6px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none" }}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.1)")}
+          />
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#6B7E8A" }}>%</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -152,7 +195,7 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
   imageLabel?: string;
   defaults?: Partial<HeroOverlayData>;
 }) {
-  const { color1, color2, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
+  const { color1, color1Opacity, color2, color2Opacity, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
   return (
     <>
       <ImagePicker
@@ -199,8 +242,21 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
           </div>
 
           <div className="flex gap-3 mb-3">
-            <ColorInput label="Colour 1" value={color1} onChange={(v) => onChange({ ...data, heroOverlayColor1: v })} />
-            <ColorInput label="Colour 2" value={color2} onChange={(v) => onChange({ ...data, heroOverlayColor2: v })} disabled={color2Transparent} />
+            <ColorInput
+              label="Colour 1"
+              value={color1}
+              onChange={(v) => onChange({ ...data, heroOverlayColor1: v })}
+              opacity={color1Opacity}
+              onOpacityChange={(n) => onChange({ ...data, heroOverlayColor1Opacity: n })}
+            />
+            <ColorInput
+              label="Colour 2"
+              value={color2}
+              onChange={(v) => onChange({ ...data, heroOverlayColor2: v })}
+              opacity={color2Opacity}
+              onOpacityChange={(n) => onChange({ ...data, heroOverlayColor2Opacity: n })}
+              disabled={color2Transparent}
+            />
           </div>
           <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, cursor: "pointer", userSelect: "none" }}>
             <input
