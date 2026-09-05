@@ -443,37 +443,30 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.experienceHeading || "Professional Experience"}
           </h2>
-          <div className="flex flex-col gap-3">
+          {/* Flush divided list — a table-like row per job (date / role+org / expand toggle)
+              instead of individual bordered cards, matching the flush-divider treatment already
+              used for the Stats bar and Skills section. */}
+          <div style={{ borderTop: "0.5px solid var(--c-divider)" }}>
             {cms.experience.map((job, i) => (
-              <div
-                key={job.org + i}
-                className="rounded-xl border overflow-hidden"
-                style={{
-                  background: "var(--c-bg-card)",
-                  borderColor: openJobs.has(i) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
-                  transition: "border-color 0.3s",
-                }}
-              >
+              <div key={job.org + i} style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
                 <button
-                  className="w-full text-left flex items-center justify-between p-5"
+                  className="w-full text-left flex flex-col md:flex-row md:items-center gap-1 md:gap-6 py-5"
                   onClick={() => toggleJob(i)}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-6">
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400 }}>
-                      {job.org}
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
+                    {job.period}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400, marginBottom: "3px" }}>
+                      {job.role}
                     </h3>
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>
-                      {job.role}
+                      {job.org}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", whiteSpace: "nowrap" }}>
-                      {job.period}
-                    </span>
-                    <motion.div animate={{ rotate: openJobs.has(i) ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                      <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
-                    </motion.div>
-                  </div>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
+                    {openJobs.has(i) ? "−" : "+"}
+                  </span>
                 </button>
 
                 <AnimatePresence>
@@ -485,16 +478,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <div
-                        className="px-5 pb-5 grid md:grid-cols-3 gap-6"
-                        style={{ borderTop: "1px solid rgba(237,232,223,0.05)" }}
-                      >
-                        <div className="md:col-span-2 pt-4 experience-overview">
+                      <div className="pb-6" style={{ borderTop: "0.5px solid rgba(237,232,223,0.05)" }}>
+                        <div className="pt-5 experience-overview">
                           {job.description && (
                             <>
-                              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
-                                Overview
-                              </p>
                               <div
                                 className={`rte-content ${job.descriptionMobile ? "hidden md:block" : ""}`}
                                 style={{ fontSize: "16px", color: "var(--c-text-body)", marginBottom: "20px", maxWidth: "none" }}
@@ -509,41 +496,38 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                               )}
                             </>
                           )}
-                          {job.highlights.length > 0 && (
-                            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
-                              Highlights
-                            </p>
+                          {job.tags.length > 0 && (
+                            <>
+                              <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
+                                Key Skills
+                              </p>
+                              <div className="flex flex-wrap gap-2 mb-6">
+                                {job.tags.map((t, ti) => (
+                                  <span
+                                    key={`${t}-${ti}`}
+                                    className="pro-exp-outline"
+                                    style={{
+                                      fontFamily: "var(--font-body)",
+                                      fontSize: "12px",
+                                      color: "var(--c-text-muted)",
+                                      borderRadius: 0,
+                                      padding: "6px 14px",
+                                    }}
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            </>
                           )}
                           {job.highlights.map((h, hi) => (
                             <div key={hi} className="flex items-start gap-2 mb-2.5">
-                              <span style={{ color: "var(--c-teal)", fontSize: "12px", marginTop: "3px", flexShrink: 0 }}>—</span>
+                              <span style={{ color: "var(--c-teal)", fontSize: "12px", marginTop: "3px", flexShrink: 0 }}>→</span>
                               <span style={{ fontFamily: "var(--font-body)", fontSize: "14px", color: "var(--c-text-body)", fontWeight: 300, lineHeight: 1.6 }}>
                                 {h}
                               </span>
                             </div>
                           ))}
-                        </div>
-                        <div className="pt-4">
-                          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
-                            Key Skills
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {job.tags.map((t, ti) => (
-                              <span
-                                key={`${t}-${ti}`}
-                                className="pro-exp-outline"
-                                style={{
-                                  fontFamily: "var(--font-body)",
-                                  fontSize: "12px",
-                                  color: "var(--c-text-muted)",
-                                  borderRadius: 999,
-                                  padding: "6px 14px",
-                                }}
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
 
                           {(() => {
                             // Matches the "published only" rule FeaturedProjects.tsx enforces before
