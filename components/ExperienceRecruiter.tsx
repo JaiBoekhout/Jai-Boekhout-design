@@ -8,6 +8,7 @@ import { useContentStore, resolveExperienceProjects, projectUrlSlug, resolveStat
 import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { ClientsSlider } from "@/components/ClientsSlider";
+import { SkillNetwork } from "@/components/SkillNetwork";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
@@ -657,23 +658,23 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.skillsHeading || "Core Strengths"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {cms.skills.map((group) => (
-              <div
-                key={group.title}
-                className="text-left rounded-xl p-5"
-                style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
-              >
-                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400, marginBottom: "10px" }}>
+              <div key={group.title} className="text-left">
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-teal)", fontWeight: 600, marginBottom: "12px" }}>
                   {group.title}
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col">
                   {group.skills.map((skill, si) => (
                     <span
                       key={`${skill}-${si}`}
-                      style={{ fontFamily: "var(--font-body)", fontSize: "12px", color: "var(--c-text-muted)", fontWeight: 300 }}
+                      style={{
+                        fontFamily: "var(--font-body)", fontSize: "14px", color: "var(--c-text-muted)", fontWeight: 300,
+                        padding: "10px 0",
+                        borderBottom: si < group.skills.length - 1 ? "1px solid var(--c-border-soft)" : "none",
+                      }}
                     >
-                      {skill}{si < group.skills.length - 1 ? " ·" : ""}
+                      {skill}
                     </span>
                   ))}
                 </div>
@@ -681,6 +682,23 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             ))}
           </div>
         </motion.div>
+
+        {/* Section 4b — Skill Network — same cms.skills data as Core Strengths above, just an
+            interactive visualization of it; nothing separate to maintain. */}
+        {!cms.skillNetworkHidden && cms.skills.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.54 }}
+            className="mb-14 pb-14 border-b"
+            style={{ borderColor: "var(--c-border-soft)" }}
+          >
+            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
+              {cms.skillNetworkHeading || "Skill Network"}
+            </h2>
+            <SkillNetwork groups={cms.skills} />
+          </motion.div>
+        )}
 
         {/* Section 5 — Clients & Companies */}
         {!cms.clientsHidden && cms.clients && cms.clients.length > 0 && (

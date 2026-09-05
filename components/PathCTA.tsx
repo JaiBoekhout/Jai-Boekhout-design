@@ -44,9 +44,15 @@ interface PathCTAProps {
   compact?: boolean;
   /** In compact mode, renders this content above the button in the left column */
   heroContent?: React.ReactNode;
+  /** Full-width, stacked buttons (Get in touch above, next-path button below) instead of the
+      default side-by-side row — used by the Story page to match its magazine-style layout.
+      Defaults to false so every other path (Work, Evaluate, Process) is unaffected. Only
+      changes the button-group wrapper's layout; the buttons themselves, the flying-plane
+      animation, and the form panel are untouched. */
+  stackedButtons?: boolean;
 }
 
-export function PathCTA({ currentPath, onNavigate, compact = false, heroContent }: PathCTAProps) {
+export function PathCTA({ currentPath, onNavigate, compact = false, heroContent, stackedButtons = false }: PathCTAProps) {
   const { content } = useContentStore();
   const socialLinks = SOCIAL_LINKS
     .map((s) => ({ ...s, url: content.socials?.[s.key] }))
@@ -205,7 +211,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
       ref={btnRef}
       layout
       onClick={handleOpen}
-      className="flex items-center gap-3"
+      className={`flex items-center gap-3${stackedButtons ? " w-full justify-center" : ""}`}
       style={{
         ...(open || animating
           ? { background: "rgba(20,173,181,0.08)", color: "var(--c-teal)", border: "1px solid rgba(20,173,181,0.2)" }
@@ -427,12 +433,16 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent 
               />
             )}
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className={stackedButtons ? "flex flex-col items-stretch gap-3" : "flex flex-wrap items-center gap-3"}>
               {button}
 
               {next && (
-                <span style={{ position: "relative", display: "inline-flex" }}>
-                  <Button variant="secondary" icon={<ArrowUpRight size={13} />}>
+                <span style={{ position: "relative", display: stackedButtons ? "flex" : "inline-flex" }}>
+                  <Button
+                    variant="secondary"
+                    icon={<ArrowUpRight size={13} />}
+                    style={stackedButtons ? { width: "100%", justifyContent: "center" } : undefined}
+                  >
                     {next.label}
                   </Button>
                   {/* A real, crawlable link to the next path — layered over the Button, which

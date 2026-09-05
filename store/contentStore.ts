@@ -459,6 +459,11 @@ export interface CMSEvaluate {
   statsHeading?: string;
   experienceHeading?: string;
   skillsHeading?: string;
+  // Interactive network visualization of the same cms.skills groups, shown just after the Core
+  // Strengths list — its own optional heading + hide toggle since it's a newer, more
+  // experimental presentation of that same data (no separate content to maintain).
+  skillNetworkHeading?: string;
+  skillNetworkHidden?: boolean;
   clientsHeading?: string; // shared with CMSWork's public rendering of the same clients data
   qualificationsHeading?: string;
   testimonialsHeading?: string;
@@ -527,6 +532,12 @@ export interface CMSStory {
   heroStatementMobile?: string;
   subheadline: string;
   subheadlineMobile?: string;
+  // Full-bleed background photo behind the hero text — optional, same position/scale
+  // convention as portraitImageUrl below. Unset renders the hero exactly as it always has (a
+  // plain background), so this is purely opt-in.
+  heroImageUrl?: string;
+  heroImagePosition?: string;
+  heroImageScale?: number;
   portraitImageUrl?: string;
   portraitImagePosition?: string;
   portraitImageScale?: number;
@@ -729,7 +740,7 @@ export type AccentFollow = "accent" | "accent2" | "accent3";
 export type LinkUnderline = "none" | "hover" | "always";
 
 export type ButtonFill = "fill" | "outline" | "text";
-export type ButtonCorner = "sharp" | "soft" | "round" | "pill";
+export type ButtonCorner = "square" | "sharp" | "soft" | "round" | "pill";
 export type ButtonIconPosition = "none" | "left" | "right";
 export type ButtonFontChoice = "heading" | "body" | "mono";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -752,6 +763,7 @@ export interface CMSButtonStyles {
 }
 
 export const BUTTON_CORNER_RADIUS: Record<ButtonCorner, number> = {
+  square: 0,
   sharp: 4,
   soft: 8,
   round: 12,

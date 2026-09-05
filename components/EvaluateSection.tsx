@@ -19,6 +19,7 @@ export const EVALUATE_SECTIONS: { id: string; label: string }[] = [
   { id: "eval-at-a-glance", label: "At A Glance" },
   { id: "eval-resume", label: "Resume" },
   { id: "eval-core-strengths", label: "Core Strengths" },
+  { id: "eval-skill-network", label: "Skill Network" },
   { id: "eval-clients-companies", label: "Clients & Companies" },
   { id: "eval-professional-experience", label: "Professional Experience" },
   { id: "eval-education-qualifications", label: "Education & Qualifications" },
@@ -670,6 +671,30 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
       >
         <Plus size={13} /> Add Category
       </button>
+
+      <CMSSectionHeading id="eval-skill-network">Skill Network</CMSSectionHeading>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -8, marginBottom: 16, lineHeight: 1.5 }}>
+        An interactive visualization of the same Core Strengths categories/skills above — nothing extra to maintain, edit them there and this updates automatically.
+      </p>
+      <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, cursor: "pointer", userSelect: "none" }}>
+        <input
+          type="checkbox"
+          checked={!!data.skillNetworkHidden}
+          onChange={(e) => onChange({ ...data, skillNetworkHidden: e.target.checked })}
+          style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
+        />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
+          Hide this section (Evaluate page)
+        </span>
+      </label>
+      {!data.skillNetworkHidden && (
+        <CMSInput
+          label="Section Heading (public page)"
+          value={data.skillNetworkHeading ?? "Skill Network"}
+          onChange={(v) => onChange({ ...data, skillNetworkHeading: v })}
+          dirty={(data.skillNetworkHeading ?? "Skill Network") !== (savedData.skillNetworkHeading ?? "Skill Network")}
+        />
+      )}
 
       <CMSSectionHeading id="eval-clients-companies">Clients & Companies</CMSSectionHeading>
       <CMSInput

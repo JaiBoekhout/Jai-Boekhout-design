@@ -7,6 +7,7 @@ import { PathCTA } from "@/components/PathCTA";
 export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => void }) {
   const { content } = useContentStore();
   const cms = content.story;
+  const hasHeroPhoto = !!cms.heroImageUrl;
 
   // Rendered in two different spots depending on viewport (see the Profile Image / Sidebar
   // grid items below) — extracted once so both stay in sync.
@@ -29,47 +30,58 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         >
           {cms.interestsHeading || "Outside of Design"}
         </p>
-        {cms.interests.map((interest, i) => (
-          <div
-            key={interest.label}
-            className="flex flex-col mb-5 pb-5"
-            style={{ borderBottom: i < cms.interests.length - 1 ? "1px solid rgba(237,232,223,0.05)" : "none" }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: "17px",
-                color: "var(--c-text)",
-                fontWeight: 400,
-                marginBottom: "4px",
-              }}
-            >
-              {interest.label}
-            </span>
+        {cms.interests.map((interest, i) => {
+          return (
             <div
-              className={`rte-content ${interest.detailMobile ? "hidden md:block" : ""}`}
-              style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
-              dangerouslySetInnerHTML={{ __html: interest.detail }}
-            />
-            {interest.detailMobile && (
+              key={i}
+              className="flex flex-col mb-5 pb-5"
+              style={{ borderBottom: i < cms.interests.length - 1 ? "1px solid rgba(237,232,223,0.05)" : "none" }}
+            >
+              {/* Label — only rendered when set. Jai's real "Outside of Design" entry already
+                  builds its own collapsed-by-default accordion (Kitesurfing/Freediving/
+                  Travelling, each a native <details data-icon="chevron"> block styled in
+                  globals.css) directly inside `detail`'s rich text, with an empty top-level
+                  label — so this section must not wrap the whole detail block in a second,
+                  redundant expand/collapse control on top of that. */}
+              {interest.label && (
+                <span
+                  style={{
+                    fontFamily: "var(--font-heading)",
+                    fontSize: "17px",
+                    color: "var(--c-text)",
+                    fontWeight: 400,
+                    marginBottom: "4px",
+                  }}
+                >
+                  {interest.label}
+                </span>
+              )}
               <div
-                className="rte-content block md:hidden"
+                className={`rte-content ${interest.detailMobile ? "hidden md:block" : ""}`}
                 style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
-                dangerouslySetInnerHTML={{ __html: interest.detailMobile }}
+                dangerouslySetInnerHTML={{ __html: interest.detail }}
               />
-            )}
-          </div>
-        ))}
+              {interest.detailMobile && (
+                <div
+                  className="rte-content block md:hidden"
+                  style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
+                  dangerouslySetInnerHTML={{ __html: interest.detailMobile }}
+                />
+              )}
+            </div>
+          );
+        })}
       </motion.div>
 
-      {/* Quote */}
+      {/* Quote — flanked by thin teal divider lines rather than a bordered card, matching the
+          flush divider-based treatment already applied to the Stats bar and Skills section. */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9 }}
-        className="mt-6 p-5 rounded-xl"
-        style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
+        className="mt-8"
       >
+        <div style={{ height: "1px", background: "rgba(20,173,181,0.3)", marginBottom: "20px" }} />
         <div
           className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
           style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
@@ -82,6 +94,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
           />
         )}
+        <div style={{ height: "1px", background: "rgba(20,173,181,0.3)", marginTop: "20px" }} />
       </motion.div>
     </>
   );
@@ -94,8 +107,34 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
       className="min-h-screen pb-32"
       style={{ background: "var(--c-bg)" }}
     >
-      {/* Hero */}
-      <div className="px-8 md:px-16 pt-20 pb-16 border-b" style={{ borderColor: "var(--c-border-soft)" }}>
+      {/* Hero — falls back to today's plain background when no photo is set in the CMS. With a
+          photo set, it becomes a full-bleed banner with the same proven dark-gradient-over-photo
+          treatment already used for legible on-image text elsewhere (FeaturedProjects.tsx
+          cards), so text color switches to a fixed light tone instead of the theme-flipping
+          var(--c-text)/var(--c-text-muted) — a dark overlay needs light text regardless of
+          which site theme is active. */}
+      <div
+        className={`relative px-8 md:px-16 ${hasHeroPhoto ? "pt-32 pb-20 md:pt-44 md:pb-24" : "pt-20 pb-16 border-b"} overflow-hidden`}
+        style={{ borderColor: hasHeroPhoto ? undefined : "var(--c-border-soft)" }}
+      >
+        {hasHeroPhoto && (
+          <>
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url(${cms.heroImageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: cms.heroImagePosition || "center",
+                transform: `scale(${cms.heroImageScale ?? 1})`,
+                transformOrigin: cms.heroImagePosition || "center",
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: "linear-gradient(to top, rgba(6,9,12,0.98) 0%, rgba(6,9,12,0.85) 32%, rgba(6,9,12,0.28) 62%, transparent 100%)" }}
+            />
+          </>
+        )}
         {/* Wayfinding label, not a heading — the real page heading is the statement below.
             (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
             actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
@@ -103,6 +142,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
+          className="relative"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "10px",
@@ -116,7 +156,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           Path 04 — Story
         </motion.p>
         <motion.h1
-          className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
+          className={`relative ${cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
@@ -126,24 +166,24 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             // explicit font-size) — small and neutral so it never inflates the invisible per-line
             // "strut" CSS reserves for a line whose real content is smaller than this. See the
             // matching comment in ExperienceWork.tsx for the full explanation.
-            fontSize: "16px",
-            color: "var(--c-text)",
+            fontSize: hasHeroPhoto ? "clamp(36px, 5.5vw, 68px)" : "16px",
+            color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
             lineHeight: 1.1,
             fontWeight: 400,
-            maxWidth: "700px",
+            maxWidth: hasHeroPhoto ? "800px" : "700px",
           }}
           dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
         />
         {cms.heroStatementMobile && (
           <motion.h1
-            className="block md:hidden"
+            className="relative block md:hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
             style={{
               fontFamily: "var(--font-heading)",
               fontSize: "clamp(32px, 5vw, 64px)",
-              color: "var(--c-text)",
+              color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
               lineHeight: 1.1,
               fontWeight: 400,
               maxWidth: "700px",
@@ -152,14 +192,14 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           />
         )}
         <motion.p
-          className={cms.subheadlineMobile ? "hidden md:block" : undefined}
+          className={`relative ${cms.subheadlineMobile ? "hidden md:block" : ""}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           style={{
             fontFamily: "var(--font-body)",
             fontSize: "16px",
-            color: "var(--c-text-muted)",
+            color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
             lineHeight: 1.7,
             fontWeight: 300,
             maxWidth: "480px",
@@ -169,14 +209,14 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         />
         {cms.subheadlineMobile && (
           <motion.p
-            className="block md:hidden"
+            className="relative block md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "16px",
-              color: "var(--c-text-muted)",
+              color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
               lineHeight: 1.7,
               fontWeight: 300,
               maxWidth: "480px",
@@ -202,29 +242,25 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
           >
             {cms.timelineHeading || "The Journey"}
           </p>
-          <div className="relative">
-            <div
-              className="absolute left-14 top-0 bottom-0 w-px"
-              style={{ background: "var(--c-border-xs)" }}
-            />
-            {[...cms.timeline].reverse().map((item, i) => (
+          <div>
+            {[...cms.timeline].reverse().map((item, i, arr) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex gap-6 mb-10 relative"
+                className="flex gap-6 md:gap-10 pb-8 mb-8"
+                style={{ borderBottom: i < arr.length - 1 ? "1px solid var(--c-border-soft)" : "none" }}
               >
-                {/* Year — paddingRight keeps the text clear of the dot, which sits at a fixed
-                    x-position (left: 56px below) regardless of how wide the year text is */}
-                <div className="flex flex-col items-end" style={{ minWidth: "56px", flexShrink: 0 }}>
+                {/* Year — large italic serif, same treatment as the reference's timeline years */}
+                <div style={{ minWidth: "72px", flexShrink: 0 }}>
                   <span
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
+                      fontFamily: "var(--font-heading)",
+                      fontStyle: "italic",
+                      fontSize: "clamp(26px, 3.2vw, 34px)",
                       color: "var(--c-teal)",
-                      marginTop: "3px",
-                      paddingRight: "8px",
+                      lineHeight: 1,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -232,23 +268,8 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                   </span>
                 </div>
 
-                {/* Dot */}
-                <div
-                  className="absolute"
-                  style={{
-                    left: "56px",
-                    top: "5px",
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: "var(--c-teal)",
-                    transform: "translateX(-50%)",
-                    boxShadow: "0 0 0 3px var(--c-bg), 0 0 12px rgba(20,173,181,0.31)",
-                  }}
-                />
-
                 {/* Content */}
-                <div className="pl-6 flex-1">
+                <div className="flex-1">
                   <span
                     style={{
                       fontFamily: "var(--font-mono)",
@@ -348,7 +369,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             under the photo above); the only copy at all when there's no portrait. */}
         <div className={`md:col-start-4 md:col-span-2${cms.portraitImageUrl ? " md:hidden" : ""}`}>{interestsSidebar}</div>
       </div>
-      <PathCTA currentPath="story" onNavigate={onNavigate} />
+      <PathCTA currentPath="story" onNavigate={onNavigate} stackedButtons />
     </motion.div>
   );
 }

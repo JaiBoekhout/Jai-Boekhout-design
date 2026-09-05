@@ -674,7 +674,7 @@ function ButtonVariantEditor({
           { value: "fill", label: "Fill" }, { value: "outline", label: "Outline" }, { value: "text", label: "Text" },
         ]} />
         <SelectField label="Corner" value={style.corner} onChange={(v) => onChange({ corner: v })} options={[
-          { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+          { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
         ]} />
         <SelectField label="Icon" value={style.icon} onChange={(v) => onChange({ icon: v })} options={[
           { value: "none", label: "None" }, { value: "left", label: "Left" }, { value: "right", label: "Right" },
@@ -1306,7 +1306,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             value={data.menuStyle.corner}
             onChange={(v: ButtonCorner) => updateMenuStyle({ corner: v })}
             options={[
-              { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+              { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
             ]}
           />
         </div>
@@ -1385,7 +1385,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             value={data.tabBarStyle.corner}
             onChange={(v: ButtonCorner) => updateTabBarStyle({ corner: v })}
             options={[
-              { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+              { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
             ]}
           />
           <NumberField label="Font-size" value={data.tabBarStyle.fontSize} onChange={(v) => updateTabBarStyle({ fontSize: v })} suffix="px" />

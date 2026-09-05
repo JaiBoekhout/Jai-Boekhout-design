@@ -100,6 +100,16 @@ export function StorySection({ data, savedData, onChange }: Props) {
         dirty={data.subheadline !== savedData.subheadline || data.subheadlineMobile !== savedData.subheadlineMobile}
       />
       <ImagePicker
+        label="Hero Background Photo · wide, optional — leave empty to keep the plain hero background"
+        previewRatio="21/9"
+        value={data.heroImageUrl}
+        position={data.heroImagePosition}
+        scale={data.heroImageScale}
+        onChange={(url) => onChange({ ...data, heroImageUrl: url })}
+        onPositionChange={(pos) => onChange({ ...data, heroImagePosition: pos })}
+        onScaleChange={(s) => onChange({ ...data, heroImageScale: s })}
+      />
+      <ImagePicker
         label="Portrait Photo · 3:4 portrait"
         previewRatio="3/4"
         value={data.portraitImageUrl}
