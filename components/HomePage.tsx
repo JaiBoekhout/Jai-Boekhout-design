@@ -241,46 +241,40 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
         )}
       </div>
 
-      {/* Cards Grid */}
+      {/* Cards Grid — one continuous bordered/rounded strip divided into columns (a divider
+          border-bottom while cards stack, border-right once they sit in a single row) rather
+          than four separately-boxed cards; matches the divided-strip convention already used
+          for the stats bars on the Work/Evaluate pages. Stays single-column through tablet
+          widths (not just phones) and only goes to a 4-up row at lg: — a narrower md: column
+          isn't wide enough for the longer descriptions without overlapping the CTA below them. */}
       <motion.div
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto w-full"
+        className="grid grid-cols-1 lg:grid-cols-4 max-w-6xl mx-auto w-full rounded-2xl border overflow-hidden"
+        style={{ borderColor: "var(--c-border-soft)" }}
       >
         {CARDS.map((card, i) => {
           const isSelected = selectedId === card.id;
           const isFaded = selectedId !== null && !isSelected;
           const isHovered = hoveredId === card.id && !selectedId;
           const cardText = home.cards[card.id];
+          const isLast = i === CARDS.length - 1;
 
           return (
             <motion.div
               key={card.id}
               onHoverStart={() => setHoveredId(card.id)}
               onHoverEnd={() => setHoveredId(null)}
-              animate={{
-                opacity: isFaded ? 0 : 1,
-                scale: isSelected ? 1.02 : isFaded ? 0.97 : 1,
-                y: isHovered ? -3 : 0,
-              }}
+              animate={{ opacity: isFaded ? 0 : 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="text-left relative overflow-hidden p-6 rounded-xl border"
+              className={`text-left relative p-6 ${!isLast ? "border-b md:border-b-0 md:border-r" : ""}`}
               style={{
-                background: "var(--card)",
-                borderColor: isSelected
-                  ? "var(--c-teal)"
-                  : isHovered
-                  ? "rgba(var(--c-teal-rgb), 0.6)"
-                  : "var(--c-border-soft)",
+                borderColor: "var(--c-divider)",
+                background: isHovered || isSelected ? "rgba(var(--c-teal-rgb), 0.05)" : "transparent",
                 cursor: "pointer",
-                minHeight: "160px",
-                boxShadow: isSelected
-                  ? "0 0 0 1px rgba(var(--c-teal-rgb), 0.4), 0 8px 32px rgba(0,0,0,0.4)"
-                  : isHovered
-                  ? `0 6px 24px rgba(0,0,0,0.12)`
-                  : "none",
-                transition: "border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
+                minHeight: "180px",
+                transition: "background 0.2s ease",
               }}
             >
               {/* Number */}
@@ -411,16 +405,6 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                 {card.cta}
                 <ArrowRight size={12} />
               </motion.span>
-
-              {/* Subtle teal glow on hover */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none rounded-xl"
-                animate={{ opacity: isHovered ? 1 : 0 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  background: "radial-gradient(ellipse at 10% 90%, rgba(var(--c-teal-rgb), 0.04) 0%, transparent 55%)",
-                }}
-              />
 
               {/* Full-card link — a real, crawlable href; see handleSelect above for why this
                   isn't a plain onClick. */}

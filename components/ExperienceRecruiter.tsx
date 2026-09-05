@@ -416,11 +416,11 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
                 const labelBlock = (
                   <div>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text)", fontWeight: 300 }}>
                       {label}
                     </span>
                     {sub && (
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "2px" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-text)", display: "block", marginTop: "2px" }}>
                         {sub}
                       </span>
                     )}
@@ -446,8 +446,8 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         in globals.css for the actual gradient + hover-reveal. */}
                     <div className="stat-card-glow" />
                     <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
-                      <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
+                      <Icon size={15} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
+                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-teal)", fontWeight: 600, lineHeight: 1 }}>
                         {value}
                       </span>
                     </div>
@@ -456,7 +456,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         {labelBlock}
                         <span
                           className="stat-card-view-section flex items-center gap-1"
-                          style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
+                          style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
                         >
                           View section <ArrowRight size={11} />
                         </span>
