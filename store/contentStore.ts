@@ -429,6 +429,18 @@ export interface CMSEvaluate {
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
   heroStatementMobile?: string;
+  // Wide banner photo shown just below the hero copy — optional, same position/scale convention
+  // used for every other image field in this store (e.g. CMSStory.portraitImageUrl). A color
+  // overlay can be layered on top as a top-to-bottom gradient: heroOverlayColor1 at the top,
+  // fading to either heroOverlayColor2 or fully transparent (heroOverlayColor2Transparent) at
+  // heroOverlayRatio% down the image.
+  heroImageUrl?: string;
+  heroImagePosition?: string;
+  heroImageScale?: number;
+  heroOverlayColor1?: string;
+  heroOverlayColor2?: string;
+  heroOverlayColor2Transparent?: boolean;
+  heroOverlayRatio?: number; // 0-100, defaults to 60
   bio: string;
   bioMobile?: string;
   industries: string[];

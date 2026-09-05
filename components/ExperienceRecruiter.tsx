@@ -319,6 +319,34 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
         />
       </div>
 
+      {/* Hero Image — a wide banner shown just below the hero copy, optional (nothing renders
+          when unset). Color overlay is a plain top-to-bottom gradient: Colour 1 at the top,
+          giving way to either Colour 2 or full transparency (heroOverlayColor2Transparent) by
+          heroOverlayRatio% down the image — same position/scale convention as every other image
+          field in this store (e.g. CMSStory's hero/portrait photos). */}
+      {cms.heroImageUrl && (
+        <div className="relative w-full" style={{ aspectRatio: "21/9", overflow: "hidden" }}>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${cms.heroImageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: cms.heroImagePosition || "center",
+              transform: `scale(${cms.heroImageScale ?? 1})`,
+              transformOrigin: cms.heroImagePosition || "center",
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to bottom, ${cms.heroOverlayColor1 ?? "#000000"} 0%, ${
+                cms.heroOverlayColor2Transparent ? "transparent" : (cms.heroOverlayColor2 ?? "#000000")
+              } ${cms.heroOverlayRatio ?? 60}%)`,
+            }}
+          />
+        </div>
+      )}
+
       <div className="px-8 md:px-16">
 
         {/* Section 1 — Professional Snapshot */}
