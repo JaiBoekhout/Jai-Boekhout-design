@@ -16,6 +16,18 @@ const STAT_ID_TO_EVALUATE_ANCHOR: Record<string, string> = {
   countries: "testimonials",
 };
 
+// Literal Tailwind class strings (not built via template interpolation) so the JIT scanner
+// picks them up — the resolved stat count (1-6) selects how many columns fit on one row at
+// lg: and up, so all of them sit on a single row rather than wrapping into a 2-column grid.
+const STATS_LG_COLS: Record<number, string> = {
+  1: "lg:grid-cols-1",
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-4",
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+};
+
 export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, projectId?: string, hash?: string) => void }) {
   const { content } = useContentStore();
 
@@ -143,7 +155,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.5 }}
-          className="mx-8 md:mx-16 mt-14 flex flex-wrap"
+          className={`mx-8 md:mx-16 mt-14 grid grid-cols-2 ${STATS_LG_COLS[homeStats.length] ?? STATS_LG_COLS[4]}`}
           style={{ borderTop: "0.5px solid var(--c-divider)", borderBottom: "0.5px solid var(--c-divider)" }}
         >
           {homeStats.map((stat, i) => {
@@ -160,9 +172,8 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 tabIndex={isClickable ? 0 : undefined}
                 onClick={isClickable ? handleActivate : undefined}
                 onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
-                className="flex-1 transition-colors"
+                className="transition-colors"
                 style={{
-                  minWidth: "45%",
                   padding: "26px 22px",
                   borderRight: isLast ? "none" : "0.5px solid var(--c-divider)",
                   cursor: isClickable ? "pointer" : undefined,
