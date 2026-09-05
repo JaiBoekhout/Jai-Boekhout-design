@@ -1,10 +1,12 @@
 "use client";
 
 import { motion } from "motion/react";
+import { ArrowRight } from "lucide-react";
 import { PathCTA } from "@/components/PathCTA";
 import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy, resolveStatValue } from "@/store/contentStore";
+import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
 // Same 3 stat ids Evaluate's own "At a Glance" cards make clickable there (the rest are purely
 // informational, no matching detail section to jump to) — mapped here to the #hash anchors
@@ -146,10 +148,11 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
       {/* Stats bar — a selector over Evaluate → At a Glance entries, configured in the Work
           tab admin; only shown when enabled and at least one slot resolves to a live entry.
           A flush divider-line row (full-width top/bottom rule, a vertical rule between each
-          item) rather than Evaluate's own bordered/backgrounded "At a Glance" cards — a
-          deliberately flatter treatment for this page. The 3 stat types Evaluate makes
-          clickable there are clickable here too, jumping to that same section on /evaluate.
-          Sits just above the "Interested in working together?" CTA. */}
+          item) rather than Evaluate's own bordered/backgrounded "At a Glance" cards, though it
+          borrows that same icon + "View section" CTA treatment. Unlike Evaluate, the value
+          itself stays the page's plain text colour rather than the highlight colour. The 3
+          stat types Evaluate makes clickable there are clickable here too, jumping to that
+          same section on /evaluate. Sits just above the "Interested in working together?" CTA. */}
       {homeStats.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -159,12 +162,25 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
           style={{ borderTop: "0.5px solid var(--c-divider)", borderBottom: "0.5px solid var(--c-divider)" }}
         >
           {homeStats.map((stat, i) => {
-            const { id, label, sub } = stat;
+            const { id, label, sub, icon } = stat;
             const value = resolveStatValue(stat, content.evaluate);
             const anchor = STAT_ID_TO_EVALUATE_ANCHOR[id];
             const isClickable = !!anchor;
             const handleActivate = () => onNavigate("recruit", undefined, anchor);
             const isLast = i === homeStats.length - 1;
+            const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
+            const labelBlock = (
+              <div>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--c-text)", fontWeight: 300 }}>
+                  {label}
+                </span>
+                {sub && (
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-text)", display: "block", marginTop: "4px" }}>
+                    {sub}
+                  </span>
+                )}
+              </div>
+            );
             return (
               <div
                 key={id}
@@ -181,16 +197,24 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 onMouseEnter={isClickable ? (e) => { e.currentTarget.style.background = "rgba(20,173,181,0.05)"; } : undefined}
                 onMouseLeave={isClickable ? (e) => { e.currentTarget.style.background = "transparent"; } : undefined}
               >
-                <div style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1, marginBottom: 9 }}>
-                  {value}
+                <div className="flex items-center gap-1.5" style={{ marginBottom: 9 }}>
+                  <Icon size={16} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
+                  <div style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
+                    {value}
+                  </div>
                 </div>
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--c-text-muted)", fontWeight: 300 }}>
-                  {label}
-                </span>
-                {sub && (
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "4px" }}>
-                    {sub}
-                  </span>
+                {isClickable ? (
+                  <div className="flex items-end justify-between gap-2">
+                    {labelBlock}
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
+                    >
+                      View section <ArrowRight size={11} />
+                    </span>
+                  </div>
+                ) : (
+                  labelBlock
                 )}
               </div>
             );

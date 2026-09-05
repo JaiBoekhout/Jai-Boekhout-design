@@ -251,7 +251,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-        className="grid grid-cols-1 lg:grid-cols-4 max-w-6xl mx-auto w-full rounded-2xl border overflow-hidden"
+        className="grid grid-cols-1 lg:grid-cols-4 max-w-6xl mx-auto w-full border overflow-hidden"
         style={{ borderColor: "var(--c-border-soft)" }}
       >
         {CARDS.map((card, i) => {
