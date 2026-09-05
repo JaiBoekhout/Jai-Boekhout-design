@@ -5,7 +5,6 @@ import { PathCTA } from "@/components/PathCTA";
 import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy, resolveStatValue } from "@/store/contentStore";
-import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
 // Same 3 stat ids Evaluate's own "At a Glance" cards make clickable there (the rest are purely
 // informational, no matching detail section to jump to) — mapped here to the #hash anchors
@@ -15,18 +14,6 @@ const STAT_ID_TO_EVALUATE_ANCHOR: Record<string, string> = {
   qualifications: "qualifications",
   "years-design": "experience",
   countries: "testimonials",
-};
-
-// Literal Tailwind class strings (not built via template interpolation) so the JIT scanner
-// picks them up — the resolved stat count (1-6) selects how many columns fit on one row at
-// lg: and up, so the cards never wrap to a second row on larger screens.
-const STATS_LG_COLS: Record<number, string> = {
-  1: "lg:grid-cols-1",
-  2: "lg:grid-cols-2",
-  3: "lg:grid-cols-3",
-  4: "lg:grid-cols-4",
-  5: "lg:grid-cols-5",
-  6: "lg:grid-cols-6",
 };
 
 export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, projectId?: string, hash?: string) => void }) {
@@ -146,24 +133,26 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
 
       {/* Stats bar — a selector over Evaluate → At a Glance entries, configured in the Work
           tab admin; only shown when enabled and at least one slot resolves to a live entry.
-          Styled to match Evaluate's own "At a Glance" cards exactly (individual bordered
-          cards, not one box with dividers) — the 3 stat types Evaluate makes clickable there
-          are clickable here too, jumping to that same section on /evaluate. Sits just above
-          the "Interested in working together?" CTA. */}
+          A flush divider-line row (full-width top/bottom rule, a vertical rule between each
+          item) rather than Evaluate's own bordered/backgrounded "At a Glance" cards — a
+          deliberately flatter treatment for this page. The 3 stat types Evaluate makes
+          clickable there are clickable here too, jumping to that same section on /evaluate.
+          Sits just above the "Interested in working together?" CTA. */}
       {homeStats.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.5 }}
-          className={`mx-8 md:mx-16 mt-14 grid grid-cols-2 md:grid-cols-3 gap-2.5 ${STATS_LG_COLS[homeStats.length] ?? STATS_LG_COLS[3]}`}
+          className="mx-8 md:mx-16 mt-14 flex flex-wrap"
+          style={{ borderTop: "0.5px solid var(--c-divider)", borderBottom: "0.5px solid var(--c-divider)" }}
         >
-          {homeStats.map((stat) => {
-            const { id, label, sub, icon } = stat;
+          {homeStats.map((stat, i) => {
+            const { id, label, sub } = stat;
             const value = resolveStatValue(stat, content.evaluate);
             const anchor = STAT_ID_TO_EVALUATE_ANCHOR[id];
             const isClickable = !!anchor;
             const handleActivate = () => onNavigate("recruit", undefined, anchor);
-            const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
+            const isLast = i === homeStats.length - 1;
             return (
               <div
                 key={id}
@@ -171,26 +160,24 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 tabIndex={isClickable ? 0 : undefined}
                 onClick={isClickable ? handleActivate : undefined}
                 onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
-                className="rounded-lg p-3 transition-colors"
+                className="flex-1 transition-colors"
                 style={{
-                  background: "var(--c-bg-card)",
-                  border: "1px solid var(--c-border-soft)",
+                  minWidth: "45%",
+                  padding: "26px 22px",
+                  borderRight: isLast ? "none" : "0.5px solid var(--c-divider)",
                   cursor: isClickable ? "pointer" : undefined,
                 }}
-                onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; e.currentTarget.style.background = "var(--c-bg-card-hover, var(--c-bg-card))"; } : undefined}
-                onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; e.currentTarget.style.background = "var(--c-bg-card)"; } : undefined}
+                onMouseEnter={isClickable ? (e) => { e.currentTarget.style.background = "rgba(20,173,181,0.05)"; } : undefined}
+                onMouseLeave={isClickable ? (e) => { e.currentTarget.style.background = "transparent"; } : undefined}
               >
-                <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
-                  <Icon size={15} style={{ color: "var(--c-teal)", opacity: 0.7, flexShrink: 0 }} />
-                  <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
-                    {value}
-                  </span>
+                <div style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1, marginBottom: 9 }}>
+                  {value}
                 </div>
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                   {label}
                 </span>
                 {sub && (
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "2px" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-teal)", display: "block", marginTop: "4px" }}>
                     {sub}
                   </span>
                 )}

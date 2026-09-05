@@ -43,6 +43,7 @@ export interface FeaturedProjectsProps {
 export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const [listOpen, setListOpen]       = useState(false);
   const [filter, setFilter]           = useState("All");
+  const [featuredFilter, setFeaturedFilter] = useState("All");
   const { content } = useContentStore();
 
   // Only show published (or legacy undefined) projects on the live site
@@ -53,11 +54,28 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
     return resolveLinkedCaseStudy(proj, content.work.caseStudies) ?? null;
   }
 
-  // Pad to 9 slots
-  const slots: (CMSProject | null)[] = [
-    ...publishedFeatured.slice(0, GRID_SIZE),
-    ...Array.from({ length: Math.max(0, GRID_SIZE - publishedFeatured.length) }, () => null),
-  ];
+  // Category filter bar over the featured grid — a small curated taxonomy the admin maintains
+  // directly (Work tab → Featured Grid → Filter Categories), separate from each project's own
+  // freeform `tags` below (those drive the unrelated "more" list filter only). Categories with
+  // no matching featured project are hidden from the bar entirely — nothing to show, nothing to
+  // click. Matching projects are shown as-is (no placeholder padding) whenever a real filter is
+  // active — padding to a fixed 9 only makes sense for the unfiltered "All" view.
+  const projectCategories = [...(content.work.projectCategories ?? [])].sort((a, b) => a.order - b.order);
+  const categoryNameById = new Map(projectCategories.map((c) => [c.id, c.name]));
+  const nonEmptyCategories = projectCategories.filter((c) =>
+    publishedFeatured.some((p) => p.categories?.includes(c.id))
+  );
+  const filteredFeatured = featuredFilter === "All"
+    ? publishedFeatured
+    : publishedFeatured.filter((p) => p.categories?.includes(featuredFilter));
+
+  // Pad to 9 slots only in the unfiltered view
+  const slots: (CMSProject | null)[] = featuredFilter === "All"
+    ? [
+        ...publishedFeatured.slice(0, GRID_SIZE),
+        ...Array.from({ length: Math.max(0, GRID_SIZE - publishedFeatured.length) }, () => null),
+      ]
+    : filteredFeatured;
 
   const allTags = ["All", ...Array.from(new Set(publishedMore.flatMap((p) => p.tags)))];
   const rows    = filter === "All" ? publishedMore : publishedMore.filter((p) => p.tags.includes(filter));
@@ -73,6 +91,39 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
 
   return (
     <div>
+      {/* ── Featured filter bar ──────────────────────────────────────────────
+          Only rendered when at least one curated category actually has a matching
+          featured project — an empty taxonomy (or one where nothing's assigned
+          yet) would make filtering a no-op. */}
+      {nonEmptyCategories.length > 0 && (
+        <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 22 }}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginRight: 4 }}>
+              Filter:
+            </span>
+            {[{ id: "All", name: "All" }, ...nonEmptyCategories].map((c) => {
+              const active = featuredFilter === c.id;
+              return (
+                <button key={c.id} onClick={() => setFeaturedFilter(c.id)}
+                  className="transition-all"
+                  style={{
+                    fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
+                    padding: "7px 15px", borderRadius: 999, cursor: "pointer",
+                    background: active ? TEAL : "transparent",
+                    color: active ? "#06090C" : "var(--c-text-50)",
+                    border: active ? "0.5px solid transparent" : "0.5px solid rgba(237,232,223,0.16)",
+                  }}>
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--c-text-40)", whiteSpace: "nowrap" }}>
+            {filteredFeatured.length} of {publishedFeatured.length}
+          </span>
+        </div>
+      )}
+
       {/* ── Featured grid ─────────────────────────────────────────────────── */}
       <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {slots.map((p, i) => {
@@ -152,27 +203,33 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                 </div>
               )}
 
-              {/* Category pill — top right, same treatment as the project detail badge
-                  (ProjectDetailBody.tsx) minus its numeric prefix */}
-              {p && (
-                <div
-                  className="absolute"
-                  style={{
-                    top: 16, right: 16, zIndex: 2,
-                    fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em",
-                    color: TEAL, background: "rgba(6,9,12,0.75)", textTransform: "uppercase",
-                    border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 999,
-                    padding: "5px 13px", backdropFilter: "blur(8px)",
-                    pointerEvents: "none",
-                  }}
-                >
-                  {p.tags.slice(0, 2).join(" · ")}
-                </div>
-              )}
-
               {/* Card text */}
               {p && (
                 <div className="absolute left-5 right-5 bottom-5" style={{ zIndex: 2, pointerEvents: "none" }}>
+                  {/* Category pills — the project's own curated categories (Work tab → Filter
+                      Categories), outlined, sitting above the title rather than over the image.
+                      A project with none assigned yet simply shows no pill here — it still
+                      appears under "All" in the filter bar above. */}
+                  {(() => {
+                    const names = (p.categories ?? [])
+                      .map((id) => categoryNameById.get(id))
+                      .filter((n): n is string => !!n)
+                      .slice(0, 2);
+                    return names.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
+                        {names.map((name, ni) => (
+                          <span key={`${name}-${ni}`} style={{
+                            fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
+                            color: TEAL, background: "rgba(6,9,12,0.55)", textTransform: "uppercase",
+                            border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 999,
+                            padding: "4px 11px", backdropFilter: "blur(8px)",
+                          }}>
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null;
+                  })()}
                   {/* Name — 2-line clamp so a long title can never overflow the fixed-aspect card */}
                   <h2 style={{
                     fontFamily: "var(--font-heading)",
@@ -209,8 +266,8 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                       max-height (not height:auto) so the transition has explicit start/end
                       values to animate between. */}
                   <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-8 group-hover:opacity-100 transition-all duration-300 ease-out">
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: TEAL, display: "flex", alignItems: "center", gap: 5, marginTop: 11 }}>
-                      VIEW PROJECT <span>→</span>
+                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5, marginTop: 11 }}>
+                      View case study <span>→</span>
                     </div>
                   </div>
                 </div>

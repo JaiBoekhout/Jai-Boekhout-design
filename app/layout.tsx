@@ -10,6 +10,7 @@ import {
   DEFAULT_FAVICON_SVG_URL,
   DEFAULT_APPLE_TOUCH_ICON_URL,
 } from "@/store/contentStore";
+import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
@@ -87,7 +88,7 @@ export default async function RootLayout({
     ],
   };
   return (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
+    <html lang="en" className={`antialiased ${fontVariables}`} suppressHydrationWarning>
       <head>
         {/* Plain, statically-rendered tags we fully own — not Next's own app/favicon.ico
             metadata convention, which renders via its internal metadata system and can fight

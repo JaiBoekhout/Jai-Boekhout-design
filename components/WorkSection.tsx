@@ -6,7 +6,7 @@ import { CMSInput, CMSUrlInput, CMSSlugInput, CMSTextarea, CMSArrayEditor, CMSCh
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
-import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout } from "@/store/contentStore";
+import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout, CMSProjectCategory } from "@/store/contentStore";
 import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug } from "@/store/contentStore";
 
 const MAX_HOME_STATS = 6;
@@ -126,6 +126,140 @@ function HomeStatsEditor({ data, evaluateStats, onChange }: { data: CMSWork; eva
         </>
       )}
     </>
+  );
+}
+
+// Curated categories for the public featured grid's filter bar (CMSWork.projectCategories) —
+// a small fixed taxonomy the admin maintains directly, separate from each project's own
+// freeform Tags chip editor below. The built-in "All" filter is shown here as a non-editable
+// reference row but never stored — mirrors the FAQ section's category manager pattern.
+function ProjectCategoryManager({ data, onChange }: { data: CMSWork; onChange: (data: CMSWork) => void }) {
+  const categories = data.projectCategories ?? [];
+  const drag = useDragReorder(categories, (next) =>
+    onChange({ ...data, projectCategories: next.map((c, i) => ({ ...c, order: i })) })
+  );
+  const hasAllCollision = categories.some((c) => c.name.trim().toLowerCase() === "all");
+
+  function addCategory() {
+    onChange({
+      ...data,
+      projectCategories: [...categories, { id: `projcat-${Date.now()}`, name: "New Category", order: categories.length }],
+    });
+  }
+
+  function renameCategory(id: string, name: string) {
+    onChange({ ...data, projectCategories: categories.map((c) => (c.id === id ? { ...c, name } : c)) });
+  }
+
+  function deleteCategory(id: string) {
+    onChange({
+      ...data,
+      projectCategories: categories.filter((c) => c.id !== id).map((c, i) => ({ ...c, order: i })),
+      projects: data.projects.map((p) =>
+        p.categories?.includes(id) ? { ...p, categories: p.categories.filter((cid) => cid !== id) } : p
+      ),
+      // Bare case studies can be featured directly (see caseStudyToProject in contentStore.ts)
+      // and carry their own copy of this field — same cascade as projects above.
+      caseStudies: data.caseStudies.map((cs) =>
+        cs.categories?.includes(id) ? { ...cs, categories: cs.categories.filter((cid) => cid !== id) } : cs
+      ),
+    });
+  }
+
+  return (
+    <div className="mb-4">
+      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>
+        Filter Categories
+      </label>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginBottom: 12, lineHeight: 1.5 }}>
+        Shown as a filter pill bar above the Featured Grid on the public site. Assign each project to one or more categories below in the Projects list. &quot;All&quot; is built in and always shown first.
+      </p>
+      <div className="flex flex-col gap-1.5 mb-2">
+        <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "rgba(237,232,223,0.03)", border: "1px solid rgba(237,232,223,0.08)" }}>
+          <span style={{ width: 14, flexShrink: 0 }} />
+          <span style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "rgba(237,232,223,0.4)" }}>All</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "rgba(140,154,163,0.5)", letterSpacing: "0.06em" }}>BUILT-IN</span>
+        </div>
+        {categories.map((c, i) => (
+          <div
+            key={c.id}
+            className="flex items-center gap-2 rounded-lg px-3 py-2"
+            style={{ background: "rgba(20,173,181,0.05)", border: "1px solid rgba(20,173,181,0.15)", ...drag.cardStyle(i) }}
+            {...drag.dropTargetProps(i)}
+          >
+            <DragHandle {...drag.dragHandleProps(i)} />
+            <input
+              type="text"
+              value={c.name}
+              onChange={(e) => renameCategory(c.id, e.target.value)}
+              style={{
+                flex: 1, background: "#0C1117",
+                border: `1px solid ${c.name.trim().toLowerCase() === "all" ? "rgba(224,82,82,0.5)" : "rgba(237,232,223,0.08)"}`,
+                borderRadius: 6, padding: "6px 10px", fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#EDE8DF", outline: "none",
+              }}
+            />
+            <button
+              onClick={() => deleteCategory(c.id)}
+              title="Delete category"
+              className="hover:text-red-400 transition-colors"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(140,154,163,0.5)", padding: 4, display: "flex" }}
+            >
+              <X size={13} />
+            </button>
+          </div>
+        ))}
+      </div>
+      {hasAllCollision && (
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#E05252", marginBottom: 8 }}>
+          A category can&apos;t be named &quot;All&quot; — that&apos;s the built-in filter shown above.
+        </p>
+      )}
+      <button
+        onClick={addCategory}
+        className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#14ADB5", background: "none", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 8, padding: "7px 12px", cursor: "pointer" }}
+      >
+        <Plus size={12} /> Add Category
+      </button>
+    </div>
+  );
+}
+
+// Toggle-chip picker for a single project/case-study row's own CMSProjectCategory membership —
+// shared by both CMSCaseStudy Tags editors (updateCase) and the CMSProject one (updateProject)
+// below, since a bare case study can itself be a featured slot (see caseStudyToProject in
+// store/contentStore.ts) and needs the same assignability. Renders nothing while no categories
+// have been curated yet in ProjectCategoryManager above.
+function CategoryToggleRow({ categories, selected, onChange }: { categories: CMSProjectCategory[]; selected: string[]; onChange: (next: string[]) => void }) {
+  if (categories.length === 0) return null;
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
+  return (
+    <div className="mb-4">
+      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: 8 }}>
+        Filter Categories
+      </label>
+      <div className="flex flex-wrap gap-1.5">
+        {sorted.map((c) => {
+          const active = selected.includes(c.id);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onChange(active ? selected.filter((id) => id !== c.id) : [...selected, c.id])}
+              style={{
+                fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.03em",
+                padding: "6px 13px", borderRadius: 999, cursor: "pointer", transition: "all 0.15s ease",
+                background: active ? "#14ADB5" : "transparent",
+                color: active ? "#0C1117" : "rgba(237,232,223,0.5)",
+                border: active ? "1px solid transparent" : "1px solid rgba(237,232,223,0.16)",
+              }}
+            >
+              {c.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1029,6 +1163,8 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         {effectiveFeatured.length} / {MAX_FEATURED} slots filled
       </div>
 
+      <ProjectCategoryManager data={data} onChange={onChange} />
+
       <CMSSectionHeading id="work-project-list">Project List</CMSSectionHeading>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "12px", color: "#8C9AA3", marginTop: "-8px", marginBottom: "16px", lineHeight: 1.5 }}>
         Controls how the &quot;View more projects&quot; list appears on the public Work page, underneath the Featured Grid.
@@ -1450,6 +1586,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
               <CMSArrayEditor label="Key Outcomes" items={cs.outcomes} onChange={(v) => updateCase(cs.id, { outcomes: v })} />
               <CMSChipEditor label="Tags" items={cs.tags} onChange={(v) => updateCase(cs.id, { tags: v })} />
+              <CategoryToggleRow
+                categories={data.projectCategories ?? []}
+                selected={cs.categories ?? []}
+                onChange={(next) => updateCase(cs.id, { categories: next })}
+              />
 
               <ViewMoreEditor
                 currentId={selfIdForCase(cs)}
@@ -1825,6 +1966,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
                 <CMSArrayEditor label="Key Outcomes" items={cs.outcomes} onChange={(v) => updateCase(cs.id, { outcomes: v })} />
                 <CMSChipEditor label="Tags" items={cs.tags} onChange={(v) => updateCase(cs.id, { tags: v })} />
+                <CategoryToggleRow
+                  categories={data.projectCategories ?? []}
+                  selected={cs.categories ?? []}
+                  onChange={(next) => updateCase(cs.id, { categories: next })}
+                />
 
                 <ViewMoreEditor
                   currentId={selfIdForCase(cs)}
@@ -2136,6 +2282,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
                 <CMSArrayEditor label="Key Outcomes" items={p.outcomes} onChange={(v) => updateProject(p.id, { outcomes: v })} />
                 <CMSChipEditor label="Tags" items={p.tags} onChange={(v) => updateProject(p.id, { tags: v })} />
+                <CategoryToggleRow
+                  categories={data.projectCategories ?? []}
+                  selected={p.categories ?? []}
+                  onChange={(next) => updateProject(p.id, { categories: next })}
+                />
 
                 <ViewMoreEditor
                   currentId={p.id}

@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300;1,9..40,400&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Manrope:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+/* Every font used sitewide is now self-hosted via next/font/google — see lib/fonts.ts, applied
+   in app/layout.tsx. Turbopack doesn't support remote/URL CSS @import (see node_modules/next/
+   dist/docs), so the external Google Fonts @import that used to live here was silently dropped:
+   every custom font on the site was falling back to system fonts, in both dev and production. */
 @import "tailwindcss";
 @import "tw-animate-css";
 

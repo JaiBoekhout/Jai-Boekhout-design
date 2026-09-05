@@ -180,6 +180,10 @@ export interface CMSCaseStudy {
   img3Scale?: number;
   outcomes: string[];
   tags: string[];
+  // Same CMSProjectCategory.id references as CMSProject.categories — a bare (not-yet-a-
+  // CMSProject) case study can still be featured directly (see caseStudyToProject below), so it
+  // needs its own copy of this field to be assignable a category in the CMS.
+  categories?: string[];
   liveUrl?: string;
 }
 
@@ -203,6 +207,12 @@ export interface CMSProject {
   // it via a picker in the Work tab; unset falls back to the fuzzy title match for old content.
   linkedCaseStudyId?: number;
   tags: string[];
+  // References CMSProjectCategory.id (CMSWork.projectCategories) — distinct from the freeform
+  // `tags` above. Unset/empty means "uncategorized": the project still shows under the public
+  // featured grid's built-in "All" filter, just without a category badge. Deliberately not
+  // merged in enrichProjectWithCaseStudy() — same scoping as viewMoreCategory below, a curation
+  // choice on this project row, independent of any linked case study's own content.
+  categories?: string[];
   desc: string;
   descMobile?: string;
   // Optional — the project detail page's <meta name="description"> falls back to an
@@ -265,6 +275,22 @@ export interface CMSWork {
   // project in List view, or one grid row (projectListColumns cards) in Card view. Clicking
   // Load more reveals the same number of additional rows each time.
   projectListRows: number;
+  // Curated categories for the public featured grid's filter bar — a small fixed taxonomy the
+  // admin maintains directly (add/rename/reorder/delete), separate from each project's own
+  // freeform `tags`. Optional/defaults to `[]` at every read site, so no migration is needed.
+  projectCategories?: CMSProjectCategory[];
+}
+
+// A category in the featured grid's filter bar (see CMSWork.projectCategories above). The
+// built-in "All" filter is never stored here — it's synthesized first, always, in both the CMS
+// category manager (WorkSection.tsx) and the public render (FeaturedProjects.tsx), so a real
+// category can never collide with it except by name (blocked in the CMS editor). Unlike
+// CMSFaqCategory, a project can belong to more than one of these at once (see
+// CMSProject.categories, a string[] rather than a single id).
+export interface CMSProjectCategory {
+  id: string;
+  name: string;
+  order: number;
 }
 
 export interface CMSStat {
@@ -593,6 +619,9 @@ export const CUSTOM_HEADING_FONTS: FontOption[] = [
   { label: "Work Sans", css: "'Work Sans', sans-serif" },
   { label: "Manrope", css: "'Manrope', sans-serif" },
   { label: "DM Sans", css: "'DM Sans', sans-serif" },
+  // Single-weight (400) display serif — only regular/italic, no bold/medium variants exist,
+  // so this reads thin and elegant at large heading sizes rather than needing a weight choice.
+  { label: "Instrument Serif", css: "'Instrument Serif', serif" },
 ];
 
 export const CUSTOM_BODY_FONTS: FontOption[] = [
@@ -1614,6 +1643,7 @@ function caseStudyToProject(cs: CMSCaseStudy): CMSProject {
     clientMode: cs.clientMode,
     companyId: cs.companyId,
     tags: cs.tags || [],
+    categories: cs.categories || [],
     desc: cs.summary || "",
     metaDescription: cs.metaDescription,
     outcomes: cs.outcomes || [],
