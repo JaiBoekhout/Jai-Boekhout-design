@@ -138,7 +138,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               className="group relative"
               style={{
                 aspectRatio: "16/9",
-                borderRadius: 16,
+                borderRadius: 0,
                 background: "var(--c-bg-card)",
                 border: "0.5px solid var(--c-border-soft)",
                 outline: "none",
@@ -356,7 +356,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   <motion.div
                     key={p.id}
                     className="group relative"
-                    style={{ aspectRatio: "4/3", borderRadius: 12, background: "var(--c-bg-card)" }}
+                    style={{ aspectRatio: "4/3", borderRadius: 0, background: "var(--c-bg-card)" }}
                   >
                     {/* Inner clip so the cover image respects the card's rounded corners */}
                     <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "inherit" }}>
