@@ -682,42 +682,32 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.qualificationsHeading || "Education & Qualifications"}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {cms.qualifications.map((q, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-5"
-                style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
-              >
-                {q.org && (
-                  <div className="flex items-start justify-between gap-3" style={{ marginBottom: "4px" }}>
-                    <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-teal)", fontWeight: 500 }}>
-                      {q.org}
-                    </p>
-                    {q.year && (
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                        {q.year}
-                      </span>
+          {/* Flush divided list — same table-like row treatment as Professional Experience
+              (date column, title as the primary heading with institution/major/minor below),
+              instead of individually bordered/backgrounded cards. */}
+          <div className="mb-6" style={{ borderTop: "0.5px solid var(--c-divider)" }}>
+            {cms.qualifications.map((q, i) => {
+              const subtitle = [q.org, q.major && `Major: ${q.major}`, q.minor && `Minor: ${q.minor}`]
+                .filter(Boolean)
+                .join(" — ");
+              return (
+                <div key={i} className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6 py-5" style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
+                    {q.year}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400, marginBottom: "3px" }}>
+                      {q.title}
+                    </h3>
+                    {subtitle && (
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                        {subtitle}
+                      </p>
                     )}
                   </div>
-                )}
-                <div className="flex items-start justify-between gap-3" style={{ marginBottom: "6px" }}>
-                  <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
-                    {q.title}
-                  </h3>
-                  {!q.org && q.year && (
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-teal)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                      {q.year}
-                    </span>
-                  )}
                 </div>
-                {(q.major || q.minor) && (
-                  <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300, marginTop: "4px" }}>
-                    {[q.major && `Major: ${q.major}`, q.minor && `Minor: ${q.minor}`].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
@@ -732,7 +722,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     fontSize: "12px",
                     color: "var(--c-text)",
                     border: "1px solid rgba(20,173,181,0.2)",
-                    borderRadius: 999,
+                    borderRadius: 0,
                     padding: "6px 14px",
                     background: "rgba(20,173,181,0.05)",
                   }}
