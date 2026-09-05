@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useContentStore } from "@/store/contentStore";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { PathCTA } from "@/components/PathCTA";
+import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
 
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) — the
 // stepper sticks right below it when shown, and slides up to top:0 when the bar hides, using
@@ -71,67 +72,80 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
       className="min-h-screen pb-32"
       style={{ background: "var(--c-bg)" }}
     >
-      {/* Hero */}
-      <div className="px-8 md:px-16 pt-20 pb-16 border-b" style={{ borderColor: "var(--c-border-soft)" }}>
-        {/* Wayfinding label, not a heading — the real page heading is the statement below.
-            (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
-            actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            color: "var(--c-teal)",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            display: "block",
-            marginBottom: "20px",
-          }}
-        >
-          Path 03 — Process
-        </motion.p>
-        <motion.h1
-          className={content.process.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          style={{
-            fontFamily: "var(--font-heading)",
-            // Not the actual rendered size (every span in this rich-text field carries its own
-            // explicit font-size) — small and neutral so it never inflates the invisible per-line
-            // "strut" CSS reserves for a line whose real content is smaller than this. See the
-            // matching comment in ExperienceWork.tsx for the full explanation.
-            fontSize: "16px",
-            color: "var(--c-text)",
-            lineHeight: 1.1,
-            fontWeight: 400,
-            maxWidth: "700px",
-          }}
-          dangerouslySetInnerHTML={{ __html: content.process.heroStatement }}
-        />
-        {content.process.heroStatementMobile && (
+      {/* Hero — falls back to today's plain background when no photo is set in the CMS. With a
+          photo set, the photo + colour overlay sit behind the hero copy, so text switches to a
+          fixed light tone instead of the theme-flipping var(--c-text) — a dark overlay needs
+          light text regardless of which site theme is active. Same composited-hero pattern as
+          ExperienceStory.tsx/ExperienceWork.tsx/ExperienceRecruiter.tsx. */}
+      <div
+        className={`relative px-8 md:px-16 ${content.process.heroImageUrl ? "pt-28 pb-16 md:pt-36 md:pb-20" : "pt-20 pb-16 border-b"} overflow-hidden`}
+        style={{ borderColor: content.process.heroImageUrl ? undefined : "var(--c-border-soft)" }}
+      >
+        <HeroOverlayLayer data={content.process} />
+        {/* Capped and centered independently of the full-bleed photo above, which stays edge to
+            edge — see the same pattern in ExperienceStory.tsx/ExperienceWork.tsx/
+            ExperienceRecruiter.tsx. */}
+        <div className="relative max-w-[1280px] mx-auto">
+          {/* Wayfinding label, not a heading — the real page heading is the statement below.
+              (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
+              actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              color: "var(--c-teal)",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              display: "block",
+              marginBottom: "20px",
+            }}
+          >
+            Path 03 — Process
+          </motion.p>
           <motion.h1
-            className="block md:hidden"
+            className={content.process.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
             style={{
               fontFamily: "var(--font-heading)",
-              fontSize: "clamp(32px, 5vw, 64px)",
-              color: "var(--c-text)",
+              // Not the actual rendered size (every span in this rich-text field carries its own
+              // explicit font-size) — small and neutral so it never inflates the invisible per-line
+              // "strut" CSS reserves for a line whose real content is smaller than this. See the
+              // matching comment in ExperienceWork.tsx for the full explanation.
+              fontSize: "16px",
+              color: content.process.heroImageUrl ? "#F5F1EA" : "var(--c-text)",
               lineHeight: 1.1,
               fontWeight: 400,
               maxWidth: "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: content.process.heroStatementMobile }}
+            dangerouslySetInnerHTML={{ __html: content.process.heroStatement }}
           />
-        )}
+          {content.process.heroStatementMobile && (
+            <motion.h1
+              className="block md:hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "clamp(32px, 5vw, 64px)",
+                color: content.process.heroImageUrl ? "#F5F1EA" : "var(--c-text)",
+                lineHeight: 1.1,
+                fontWeight: 400,
+                maxWidth: "700px",
+              }}
+              dangerouslySetInnerHTML={{ __html: content.process.heroStatementMobile }}
+            />
+          )}
+        </div>
       </div>
 
       {/* Process Steps */}
-      <div className="px-8 md:px-16 mt-12 flex flex-col items-center">
+      <div className="px-8 md:px-16 mt-12 flex flex-col items-center max-w-[1280px] mx-auto">
         {/* Flow connector — sticky, functioning as a mini nav while scrolling the accordion
             below. Follows the top bar's own hide/show state (same hook, independently
             computed from the same scroll position) so it slides up to fill the gap once

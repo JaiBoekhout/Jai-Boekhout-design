@@ -261,6 +261,18 @@ export type ProjectListLayout = "list" | "card";
 export interface CMSWork {
   heroStatement: string;
   heroStatementMobile?: string;
+  // Optional full-bleed photo + colour-overlay gradient behind the hero copy — see
+  // HeroOverlayData in components/HeroOverlayFields.tsx for the shared field set/semantics used
+  // by every path page's hero (Work/Evaluate/Story/Process).
+  heroImageUrl?: string;
+  heroImagePosition?: string;
+  heroImageScale?: number;
+  heroOverlayColor1?: string;
+  heroOverlayColor2?: string;
+  heroOverlayColor2Transparent?: boolean;
+  heroOverlayRatio?: number;
+  heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
+  heroOverlayMidpoint?: number;
   caseStudies: CMSCaseStudy[];
   homeStats: CMSWorkStatsConfig;
   projects: CMSProject[];
@@ -429,11 +441,13 @@ export interface CMSEvaluate {
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
   heroStatementMobile?: string;
-  // Wide banner photo shown just below the hero copy — optional, same position/scale convention
-  // used for every other image field in this store (e.g. CMSStory.portraitImageUrl). A color
-  // overlay can be layered on top as a top-to-bottom gradient: heroOverlayColor1 at the top,
-  // fading to either heroOverlayColor2 or fully transparent (heroOverlayColor2Transparent) at
-  // heroOverlayRatio% down the image.
+  // Full-bleed photo behind the hero copy — optional, same position/scale convention used for
+  // every other image field in this store (e.g. CMSStory.portraitImageUrl). A colour overlay can
+  // be layered on top as a 2-stop gradient along heroOverlayDirection: heroOverlayColor1 at the
+  // 0% end, fading to either heroOverlayColor2 or fully transparent (heroOverlayColor2Transparent)
+  // at heroOverlayRatio% along the gradient. heroOverlayMidpoint (0-100, default 50) biases where
+  // the 50/50 blend between the two falls within that 0%→ratio% span — mirrors Photoshop's
+  // gradient midpoint diamond; 50 = the plain arithmetic middle (a linear transition).
   heroImageUrl?: string;
   heroImagePosition?: string;
   heroImageScale?: number;
@@ -441,6 +455,8 @@ export interface CMSEvaluate {
   heroOverlayColor2?: string;
   heroOverlayColor2Transparent?: boolean;
   heroOverlayRatio?: number; // 0-100, defaults to 60
+  heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left"; // defaults to "to-bottom"
+  heroOverlayMidpoint?: number; // 0-100, defaults to 50 (centered/linear)
   bio: string;
   bioMobile?: string;
   industries: string[];
@@ -518,6 +534,18 @@ export interface CMSProcess {
   // CMSWork's heroStatement, rather than two separate fields.
   heroStatement: string;
   heroStatementMobile?: string;
+  // Optional full-bleed photo + colour-overlay gradient behind the hero copy — see
+  // HeroOverlayData in components/HeroOverlayFields.tsx for the shared field set/semantics used
+  // by every path page's hero (Work/Evaluate/Story/Process).
+  heroImageUrl?: string;
+  heroImagePosition?: string;
+  heroImageScale?: number;
+  heroOverlayColor1?: string;
+  heroOverlayColor2?: string;
+  heroOverlayColor2Transparent?: boolean;
+  heroOverlayRatio?: number;
+  heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
+  heroOverlayMidpoint?: number;
   steps: CMSProcessStep[];
   // Quote box shown at the bottom of the page, above the CTA — same pattern as CMSStory's
   // closingQuote.
@@ -546,10 +574,19 @@ export interface CMSStory {
   subheadlineMobile?: string;
   // Full-bleed background photo behind the hero text — optional, same position/scale
   // convention as portraitImageUrl below. Unset renders the hero exactly as it always has (a
-  // plain background), so this is purely opt-in.
+  // plain background), so this is purely opt-in. The colour-overlay fields (see HeroOverlayData
+  // in components/HeroOverlayFields.tsx) are optional too — when unset, ExperienceStory.tsx
+  // supplies this page's original hardcoded dark-fade-upward look as its render defaults, so
+  // existing Story content saved before these fields existed doesn't change appearance.
   heroImageUrl?: string;
   heroImagePosition?: string;
   heroImageScale?: number;
+  heroOverlayColor1?: string;
+  heroOverlayColor2?: string;
+  heroOverlayColor2Transparent?: boolean;
+  heroOverlayRatio?: number;
+  heroOverlayDirection?: "to-bottom" | "to-top" | "to-right" | "to-left";
+  heroOverlayMidpoint?: number;
   portraitImageUrl?: string;
   portraitImagePosition?: string;
   portraitImageScale?: number;

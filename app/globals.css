@@ -253,18 +253,6 @@
      System's "Divider" color picker controls. Scoped, theme-specific values here instead of
      editing those shared tokens, so only this section's outlines are affected. */
   .pro-exp-outline { border: 1px solid rgba(237, 232, 223, 0.18) !important; }
-  /* At a Glance stat cards — every card lifts slightly with a soft teal glow on hover, purely as
-     a bit of life; only the ones actually wired to jump to another section (see the scrollTarget
-     lookup in ExperienceRecruiter.tsx) additionally reveal "View section" in the bottom corner. */
-  .stat-card { position: relative; overflow: hidden; transition: transform 0.25s ease, border-color 0.25s ease; }
-  .stat-card:hover { transform: translateY(-4px); }
-  .stat-card-glow {
-    position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s ease;
-    background: radial-gradient(circle at 25% 0%, rgba(var(--c-teal-rgb), 0.16), transparent 65%);
-  }
-  .stat-card:hover .stat-card-glow { opacity: 1; }
-  .stat-card-view-section { opacity: 0.55; transition: opacity 0.25s ease; }
-  .stat-card:hover .stat-card-view-section { opacity: 1; }
   :root[data-theme="light"] .pro-exp-outline { border-color: rgba(26, 33, 40, 0.3) !important; }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on

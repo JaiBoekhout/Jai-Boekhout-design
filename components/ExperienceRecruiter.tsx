@@ -2,15 +2,16 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, Download, ArrowRight } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
-import { useContentStore, resolveExperienceProjects, projectUrlSlug, resolveStatValue } from "@/store/contentStore";
+import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
 import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
+import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
+import { StatsBar } from "@/components/StatsBar";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { SkillNetwork } from "@/components/SkillNetwork";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
-import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
@@ -169,6 +170,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   }
   const { content } = useContentStore();
   const cms = content.evaluate;
+  const hasHeroPhoto = !!cms.heroImageUrl;
   const publishedFaqs = [...(cms.faqItems ?? [])].filter((f) => f.published).sort((a, b) => a.order - b.order);
   const faqLayoutMode = cms.faqLayoutMode ?? "list";
   const faqCategoriesSorted = [...(cms.faqCategories ?? [])].sort((a, b) => a.order - b.order);
@@ -212,6 +214,15 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
+  // Keyed by the stat's stable id, not its (admin-editable) label — "countries" started life as
+  // "Countries Worked In" and is now relabeled "Testimonials" on the live site, which would have
+  // silently broken a label-based match. Every other stat stays purely informational, no
+  // hover/click treatment. Shared by the "At a Glance" StatsBar below.
+  const statScrollTargets: Record<string, React.RefObject<HTMLDivElement | null>> = {
+    qualifications: qualificationsRef,
+    "years-design": experienceRef,
+    countries: testimonialsRef,
+  };
 
   // Lands on a specific section when arriving via a #hash — e.g. the Work page's stat cards
   // link here as /evaluate#qualifications. Sections above the target keep reflowing for a
@@ -253,109 +264,90 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
       className="min-h-screen pb-32"
       style={{ background: "var(--c-bg)", transition: "background 0.3s ease" }}
     >
-      {/* Hero */}
-      <div className="px-8 md:px-16 pt-20 pb-16 border-b" style={{ borderColor: "var(--c-border-soft)" }}>
-        <PathCTA
-          currentPath="recruit"
-          onNavigate={onNavigate}
-          compact
-          heroContent={
-            <>
-              {/* Wayfinding label, not a heading — the real page heading is the statement below.
-                  (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
-                  actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  color: "var(--c-teal)",
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: "20px",
-                }}
-              >
-                Path 02 — Evaluate
-              </motion.p>
-              <motion.h1
-                className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  // Not the actual rendered size (every span in this rich-text field carries its
-                  // own explicit font-size) — small and neutral so it never inflates the
-                  // invisible per-line "strut" CSS reserves for a line whose real content is
-                  // smaller than this. See the matching comment in ExperienceWork.tsx.
-                  fontSize: "16px",
-                  color: "var(--c-text)",
-                  lineHeight: 1.1,
-                  fontWeight: 400,
-                }}
-                dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
-              />
-              {cms.heroStatementMobile && (
+      {/* Hero — falls back to today's plain background when no photo is set in the CMS. With a
+          photo set, the photo + colour overlay sit behind the hero copy (not a separate banner
+          below it), so text switches to a fixed light tone instead of the theme-flipping
+          var(--c-text) — a dark overlay needs light text regardless of which site theme is
+          active. Same composited-hero pattern as ExperienceStory.tsx. */}
+      <div
+        className={`relative px-8 md:px-16 ${hasHeroPhoto ? "pt-32 pb-20 md:pt-44 md:pb-24" : "pt-20 pb-16 border-b"} overflow-hidden`}
+        style={{ borderColor: hasHeroPhoto ? undefined : "var(--c-border-soft)" }}
+      >
+        <HeroOverlayLayer data={cms} />
+        <div className="relative max-w-[1280px] mx-auto">
+          <PathCTA
+            currentPath="recruit"
+            onNavigate={onNavigate}
+            compact
+            heroContent={
+              <>
+                {/* Wayfinding label, not a heading — the real page heading is the statement below.
+                    (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
+                    actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    color: "var(--c-teal)",
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    display: "block",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Path 02 — Evaluate
+                </motion.p>
                 <motion.h1
-                  className="block md:hidden"
+                  className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.6 }}
                   style={{
                     fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(28px, 4.5vw, 58px)",
-                    color: "var(--c-text)",
+                    // Not the actual rendered size (every span in this rich-text field carries its
+                    // own explicit font-size) — small and neutral so it never inflates the
+                    // invisible per-line "strut" CSS reserves for a line whose real content is
+                    // smaller than this. See the matching comment in ExperienceWork.tsx.
+                    fontSize: "16px",
+                    color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
                     lineHeight: 1.1,
                     fontWeight: 400,
                   }}
-                  dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+                  dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
                 />
-              )}
-            </>
-          }
-        />
-      </div>
-
-      {/* Hero Image — a wide banner shown just below the hero copy, optional (nothing renders
-          when unset). Color overlay is a plain top-to-bottom gradient: Colour 1 at the top,
-          giving way to either Colour 2 or full transparency (heroOverlayColor2Transparent) by
-          heroOverlayRatio% down the image — same position/scale convention as every other image
-          field in this store (e.g. CMSStory's hero/portrait photos). */}
-      {cms.heroImageUrl && (
-        <div className="relative w-full" style={{ aspectRatio: "21/9", overflow: "hidden" }}>
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${cms.heroImageUrl})`,
-              backgroundSize: "cover",
-              backgroundPosition: cms.heroImagePosition || "center",
-              transform: `scale(${cms.heroImageScale ?? 1})`,
-              transformOrigin: cms.heroImagePosition || "center",
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(to bottom, ${cms.heroOverlayColor1 ?? "#000000"} 0%, ${
-                cms.heroOverlayColor2Transparent ? "transparent" : (cms.heroOverlayColor2 ?? "#000000")
-              } ${cms.heroOverlayRatio ?? 60}%)`,
-            }}
+                {cms.heroStatementMobile && (
+                  <motion.h1
+                    className="block md:hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontSize: "clamp(28px, 4.5vw, 58px)",
+                      color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
+                      lineHeight: 1.1,
+                      fontWeight: 400,
+                    }}
+                    dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+                  />
+                )}
+              </>
+            }
           />
         </div>
-      )}
+      </div>
 
-      <div className="px-8 md:px-16">
+      <div className="px-8 md:px-16 max-w-[1280px] mx-auto">
 
         {/* Section 1 — Professional Snapshot */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-14 mb-14 grid md:grid-cols-2 gap-10 pb-14 border-b"
-          style={{ borderColor: "var(--c-border-soft)" }}
+          className="mt-14 grid md:grid-cols-2 gap-10 pb-10"
         >
           <div>
             <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
@@ -378,7 +370,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
               {cms.industriesHeading || "Industries"}
             </h2>
-            <div className="flex flex-wrap gap-2 mb-10">
+            <div className="flex flex-wrap gap-2">
               {cms.industries.map((ind) => (
                 <span
                   key={ind}
@@ -396,97 +388,46 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </span>
               ))}
             </div>
-
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
-              {cms.statsHeading || "At a Glance"}
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-              {cms.stats.map((stat) => {
-                const { id, label, sub, icon } = stat;
-                const value = resolveStatValue(stat, cms);
-                // Keyed by the stat's stable id, not its (admin-editable) label — "countries"
-                // started life as "Countries Worked In" and is now relabeled "Testimonials" on
-                // the live site, which would have silently broken a label-based match. Every
-                // other stat stays purely informational, no hover/click treatment.
-                const scrollTarget = (
-                  { qualifications: qualificationsRef, "years-design": experienceRef, countries: testimonialsRef } as Record<string, React.RefObject<HTMLDivElement | null>>
-                )[id];
-                const isClickable = !!scrollTarget;
-                const handleActivate = () => scrollTarget?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
-                const labelBlock = (
-                  <div>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "11px", color: "var(--c-text)", fontWeight: 300 }}>
-                      {label}
-                    </span>
-                    {sub && (
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-text)", display: "block", marginTop: "2px" }}>
-                        {sub}
-                      </span>
-                    )}
-                  </div>
-                );
-                return (
-                  <div
-                    key={id}
-                    role={isClickable ? "button" : undefined}
-                    tabIndex={isClickable ? 0 : undefined}
-                    onClick={isClickable ? handleActivate : undefined}
-                    onKeyDown={isClickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
-                    className="stat-card rounded-lg p-3"
-                    style={{
-                      background: "var(--c-bg-card)",
-                      border: "1px solid var(--c-border-soft)",
-                      cursor: isClickable ? "pointer" : undefined,
-                    }}
-                    onMouseEnter={isClickable ? (e) => { e.currentTarget.style.borderColor = "rgba(20,173,181,0.4)"; } : undefined}
-                    onMouseLeave={isClickable ? (e) => { e.currentTarget.style.borderColor = "var(--c-border-soft)"; } : undefined}
-                  >
-                    {/* Absolutely positioned, so it never affects layout — see .stat-card-glow
-                        in globals.css for the actual gradient + hover-reveal. */}
-                    <div className="stat-card-glow" />
-                    <div className="flex items-center gap-1.5" style={{ marginBottom: "4px" }}>
-                      <Icon size={15} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
-                      <span style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(16px, 1.8vw, 22px)", color: "var(--c-teal)", fontWeight: 600, lineHeight: 1 }}>
-                        {value}
-                      </span>
-                    </div>
-                    {isClickable ? (
-                      <div className="flex items-end justify-between gap-2" style={{ marginTop: "10px" }}>
-                        {labelBlock}
-                        <span
-                          className="stat-card-view-section flex items-center gap-1"
-                          style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
-                        >
-                          View section <ArrowRight size={11} />
-                        </span>
-                      </div>
-                    ) : (
-                      labelBlock
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {cms.resumeUrl && (
-              <a
-                href={cms.resumeUrl}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "16px",
-                  fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.04em",
-                  background: "var(--btn-color)", color: "var(--c-bg)", border: "1px solid var(--btn-color)",
-                  borderRadius: "8px", padding: "9px 16px", textDecoration: "none",
-                }}
-              >
-                <Download size={13} /> Download Resume
-              </a>
-            )}
           </div>
+        </motion.div>
+
+        {/* Section 1b — At a Glance: a full-width single-row stats bar beneath the About Me /
+            Industries columns (previously a boxed 2/3-column grid squeezed into the Industries
+            column) — shares StatsBar with the Work page's own stats bar so both use one visual
+            language. Download Resume now sits directly under it. */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mb-14 pb-14 border-b"
+          style={{ borderColor: "var(--c-border-soft)" }}
+        >
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
+            {cms.statsHeading || "At a Glance"}
+          </p>
+          <StatsBar
+            stats={cms.stats}
+            evaluate={cms}
+            isClickable={(id) => !!statScrollTargets[id]}
+            onActivate={(id) => statScrollTargets[id]?.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          />
+          {cms.resumeUrl && (
+            <a
+              href={cms.resumeUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "20px",
+                fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.04em",
+                background: "var(--btn-color)", color: "var(--c-bg)", border: "1px solid var(--btn-color)",
+                borderRadius: "8px", padding: "9px 16px", textDecoration: "none",
+              }}
+            >
+              <Download size={13} /> Download Resume
+            </a>
+          )}
         </motion.div>
 
         {/* Section 3 — Professional Experience */}

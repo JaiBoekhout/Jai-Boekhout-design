@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSArrayEditor, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
+import { HeroImageOverlayEditor } from "@/components/HeroOverlayFields";
 import type { CMSProcess, CMSProcessStep } from "@/store/contentStore";
 
 function newStepId(): string {
@@ -47,6 +48,7 @@ export function ProcessSection({ data, savedData, onChange }: Props) {
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
+      <HeroImageOverlayEditor data={data} onChange={onChange} />
 
       <CMSSectionHeading id="process-steps">Process Steps</CMSSectionHeading>
       {data.steps.map((step, i) => (

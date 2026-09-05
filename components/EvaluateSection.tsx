@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2, ArrowUp, ArrowDown, X, Eye, EyeOf
 import { CMSInput, CMSUrlInput, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
+import { HeroImageOverlayEditor } from "@/components/HeroOverlayFields";
 import { Switch } from "@/components/SiteKit";
 import { STAT_ICON_OPTIONS } from "@/lib/statIcons";
 import type { CMSEvaluate, CMSClient, CMSCompany, CMSProject, CMSExperience, CMSStat, CMSFaqCategory } from "@/store/contentStore";
@@ -464,36 +465,6 @@ function FaqCategoryManager({
   );
 }
 
-// Plain hex swatch + text input — same shape as DesignSystemSection.tsx's own ColorInput, just a
-// local copy here since that one isn't exported and this is the only place in this file that
-// needs it. No alpha channel (native <input type="color"> doesn't support one), which is why the
-// hero overlay's "fade to transparent" is its own explicit checkbox rather than an opacity slider.
-function ColorInput({ label, value, onChange, disabled }: { label: string; value: string; onChange: (v: string) => void; disabled?: boolean }) {
-  return (
-    <div className="flex items-center gap-2" style={{ flex: 1, opacity: disabled ? 0.4 : 1 }}>
-      <input
-        type="color"
-        value={/^#[0-9A-Fa-f]{6}$/.test(value) ? value : "#000000"}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        style={{ width: 34, height: 34, borderRadius: 8, border: "1px solid rgba(237,232,223,0.15)", padding: 2, background: "none", cursor: disabled ? "default" : "pointer", flexShrink: 0 }}
-      />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 3 }}>{label}</p>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          style={{ width: "100%", background: "rgba(237,232,223,0.04)", border: "1px solid rgba(237,232,223,0.1)", borderRadius: 6, padding: "5px 8px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none" }}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.4)")}
-          onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.1)")}
-        />
-      </div>
-    </div>
-  );
-}
-
 export function EvaluateSection({ data, savedData, companies, projects, onChange }: Props) {
   const [openExp, setOpenExp] = useState<number | null>(null);
   const statsDrag = useDragReorder(data.stats, (v) => onChange({ ...data, stats: v }));
@@ -523,53 +494,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
-      <ImagePicker
-        label="Hero Image · wide banner, optional — shown below the hero copy"
-        previewRatio="21/9"
-        value={data.heroImageUrl}
-        position={data.heroImagePosition}
-        scale={data.heroImageScale}
-        onChange={(url) => onChange({ ...data, heroImageUrl: url })}
-        onPositionChange={(pos) => onChange({ ...data, heroImagePosition: pos })}
-        onScaleChange={(s) => onChange({ ...data, heroImageScale: s })}
-      />
-      {data.heroImageUrl && (
-        <div className="flex flex-col mb-6 p-4 rounded-xl" style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)" }}>
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
-            Colour Overlay
-          </label>
-          <div className="flex gap-3 mb-3">
-            <ColorInput label="Colour 1 (top)" value={data.heroOverlayColor1 ?? "#000000"} onChange={(v) => onChange({ ...data, heroOverlayColor1: v })} />
-            <ColorInput label="Colour 2" value={data.heroOverlayColor2 ?? "#000000"} onChange={(v) => onChange({ ...data, heroOverlayColor2: v })} disabled={!!data.heroOverlayColor2Transparent} />
-          </div>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, cursor: "pointer", userSelect: "none" }}>
-            <input
-              type="checkbox"
-              checked={!!data.heroOverlayColor2Transparent}
-              onChange={(e) => onChange({ ...data, heroOverlayColor2Transparent: e.target.checked })}
-              style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-            />
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-              Fade Colour 2 to transparent instead
-            </span>
-          </label>
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "10px" }}>
-            Gradient Ratio — Colour 1 fully gives way to Colour 2 at {data.heroOverlayRatio ?? 60}% down the image
-          </label>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={data.heroOverlayRatio ?? 60}
-            onChange={(e) => onChange({ ...data, heroOverlayRatio: Number(e.target.value) })}
-            style={{ width: "100%", accentColor: "#14ADB5" }}
-          />
-          <div className="flex justify-between mt-1">
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>0% (top)</span>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>100% (bottom)</span>
-          </div>
-        </div>
-      )}
+      <HeroImageOverlayEditor data={data} onChange={onChange} />
 
       <CMSSectionHeading id="eval-who-i-am">Who I Am</CMSSectionHeading>
       <CMSInput label="Section Heading (public page)" value={data.bioHeading ?? "About Me"} onChange={(v) => onChange({ ...data, bioHeading: v })} dirty={(data.bioHeading ?? "About Me") !== (savedData.bioHeading ?? "About Me")} />

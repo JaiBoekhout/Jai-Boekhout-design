@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide
 import { CMSInput, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
+import { HeroImageOverlayEditor, STORY_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import type { CMSStory } from "@/store/contentStore";
 
 // Drives the Story tab's sidebar sub-section list in AdminCMS.tsx (same pattern as
@@ -99,15 +100,11 @@ export function StorySection({ data, savedData, onChange }: Props) {
         onMobileChange={(v) => onChange({ ...data, subheadlineMobile: v })}
         dirty={data.subheadline !== savedData.subheadline || data.subheadlineMobile !== savedData.subheadlineMobile}
       />
-      <ImagePicker
-        label="Hero Background Photo · wide, optional — leave empty to keep the plain hero background"
-        previewRatio="21/9"
-        value={data.heroImageUrl}
-        position={data.heroImagePosition}
-        scale={data.heroImageScale}
-        onChange={(url) => onChange({ ...data, heroImageUrl: url })}
-        onPositionChange={(pos) => onChange({ ...data, heroImagePosition: pos })}
-        onScaleChange={(s) => onChange({ ...data, heroImageScale: s })}
+      <HeroImageOverlayEditor
+        data={data}
+        onChange={onChange}
+        imageLabel="Hero Background Photo · wide, optional — leave empty to keep the plain hero background"
+        defaults={STORY_HERO_OVERLAY_DEFAULTS}
       />
       <ImagePicker
         label="Portrait Photo · 3:4 portrait"

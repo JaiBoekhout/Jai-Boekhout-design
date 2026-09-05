@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useContentStore } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
+import { HeroOverlayLayer, STORY_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 
 export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => void }) {
   const { content } = useContentStore();
@@ -117,99 +118,68 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         className={`relative px-8 md:px-16 ${hasHeroPhoto ? "pt-32 pb-20 md:pt-44 md:pb-24" : "pt-20 pb-16 border-b"} overflow-hidden`}
         style={{ borderColor: hasHeroPhoto ? undefined : "var(--c-border-soft)" }}
       >
-        {hasHeroPhoto && (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `url(${cms.heroImageUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: cms.heroImagePosition || "center",
-                transform: `scale(${cms.heroImageScale ?? 1})`,
-                transformOrigin: cms.heroImagePosition || "center",
-              }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(to top, rgba(6,9,12,0.98) 0%, rgba(6,9,12,0.85) 32%, rgba(6,9,12,0.28) 62%, transparent 100%)" }}
-            />
-          </>
-        )}
-        {/* Wayfinding label, not a heading — the real page heading is the statement below.
-            (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
-            actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="relative"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            color: "var(--c-teal)",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            display: "block",
-            marginBottom: "20px",
-          }}
-        >
-          Path 04 — Story
-        </motion.p>
-        <motion.h1
-          className={`relative ${cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          style={{
-            fontFamily: "var(--font-heading)",
-            // Not the actual rendered size (every span in this rich-text field carries its own
-            // explicit font-size) — small and neutral so it never inflates the invisible per-line
-            // "strut" CSS reserves for a line whose real content is smaller than this. See the
-            // matching comment in ExperienceWork.tsx for the full explanation.
-            fontSize: hasHeroPhoto ? "clamp(36px, 5.5vw, 68px)" : "16px",
-            color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
-            lineHeight: 1.1,
-            fontWeight: 400,
-            maxWidth: hasHeroPhoto ? "800px" : "700px",
-          }}
-          dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
-        />
-        {cms.heroStatementMobile && (
+        <HeroOverlayLayer data={cms} defaults={STORY_HERO_OVERLAY_DEFAULTS} />
+        {/* Capped and centered independently of the full-bleed photo above, which stays edge to
+            edge — see the same pattern in ExperienceWork.tsx/ExperienceProcess.tsx/
+            ExperienceRecruiter.tsx. */}
+        <div className="relative max-w-[1280px] mx-auto">
+          {/* Wayfinding label, not a heading — the real page heading is the statement below.
+              (.hero-mobile-h2 below is a Design-System font-size TIER name, unrelated to the
+              actual tag; see the comment on buildDesignSystemCss in store/contentStore.ts.) */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              color: "var(--c-teal)",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              display: "block",
+              marginBottom: "20px",
+            }}
+          >
+            Path 04 — Story
+          </motion.p>
           <motion.h1
-            className="relative block md:hidden"
+            className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
             style={{
               fontFamily: "var(--font-heading)",
-              fontSize: "clamp(32px, 5vw, 64px)",
+              // Not the actual rendered size (every span in this rich-text field carries its own
+              // explicit font-size) — small and neutral so it never inflates the invisible per-line
+              // "strut" CSS reserves for a line whose real content is smaller than this. See the
+              // matching comment in ExperienceWork.tsx for the full explanation.
+              fontSize: hasHeroPhoto ? "clamp(36px, 5.5vw, 68px)" : "16px",
               color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
               lineHeight: 1.1,
               fontWeight: 400,
-              maxWidth: "700px",
+              maxWidth: hasHeroPhoto ? "800px" : "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+            dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
           />
-        )}
-        <motion.p
-          className={`relative ${cms.subheadlineMobile ? "hidden md:block" : ""}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "16px",
-            color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
-            lineHeight: 1.7,
-            fontWeight: 300,
-            maxWidth: "480px",
-            marginTop: "16px",
-          }}
-          dangerouslySetInnerHTML={{ __html: cms.subheadline }}
-        />
-        {cms.subheadlineMobile && (
+          {cms.heroStatementMobile && (
+            <motion.h1
+              className="block md:hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "clamp(32px, 5vw, 64px)",
+                color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
+                lineHeight: 1.1,
+                fontWeight: 400,
+                maxWidth: "700px",
+              }}
+              dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+            />
+          )}
           <motion.p
-            className="relative block md:hidden"
+            className={cms.subheadlineMobile ? "hidden md:block" : ""}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -222,12 +192,30 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               maxWidth: "480px",
               marginTop: "16px",
             }}
-            dangerouslySetInnerHTML={{ __html: cms.subheadlineMobile }}
+            dangerouslySetInnerHTML={{ __html: cms.subheadline }}
           />
-        )}
+          {cms.subheadlineMobile && (
+            <motion.p
+              className="block md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "16px",
+                color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
+                lineHeight: 1.7,
+                fontWeight: 300,
+                maxWidth: "480px",
+                marginTop: "16px",
+              }}
+              dangerouslySetInnerHTML={{ __html: cms.subheadlineMobile }}
+            />
+          )}
+        </div>
       </div>
 
-      <div className="px-8 md:px-16 mt-16 grid md:grid-cols-5 gap-16">
+      <div className="px-8 md:px-16 mt-16 grid md:grid-cols-5 gap-16 max-w-[1280px] mx-auto">
         {/* Timeline */}
         <div className="md:col-start-1 md:col-span-3">
           <p

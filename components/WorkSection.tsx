@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight
 import { CMSInput, CMSUrlInput, CMSSlugInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
+import { HeroImageOverlayEditor } from "@/components/HeroOverlayFields";
 import { Switch } from "@/components/SiteKit";
 import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout, CMSProjectCategory } from "@/store/contentStore";
 import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug } from "@/store/contentStore";
@@ -990,6 +991,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
       />
+      <HeroImageOverlayEditor data={data} onChange={onChange} />
 
       <CMSSectionHeading id="work-stats-bar">Stats Bar</CMSSectionHeading>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>
