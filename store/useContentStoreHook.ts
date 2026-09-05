@@ -88,11 +88,25 @@ export function useContentStore() {
   // call was part of: the caller's own "saving…"/error state update never ran, callers awaiting
   // it inside a loop never continued, and the admin saw no error at all — just a save that
   // appeared to do nothing.
+  //
+  // Updates THIS hook instance's own content/savedContent/isDirty synchronously the moment the
+  // save actually lands, rather than waiting on the "cms_content_updated" listener's own
+  // fetchContent() round trip below (that event still fires too, for any *other* independent
+  // useContentStore() instance elsewhere in the tree — e.g. HistorySection, MediaSection — to
+  // catch up, since each call to this hook holds its own separate state). Without this, isDirty
+  // stayed true for the length of that extra network round trip after a successful save, so the
+  // Save button flipped back to its orange "unsaved" look for a moment before settling on
+  // "Saved!" — reading as though the save had silently failed and prompting another click.
   async function persistContent(overrides?: Partial<CMSContent>): Promise<boolean> {
     const toSave = overrides ? deepMerge(content, overrides) : content;
     try {
       const ok = await saveCmsContentAction(toSave);
-      if (ok) window.dispatchEvent(new Event("cms_content_updated"));
+      if (ok) {
+        setContentState(toSave);
+        setSavedContent(toSave);
+        setIsDirty(false);
+        window.dispatchEvent(new Event("cms_content_updated"));
+      }
       return ok;
     } catch {
       return false;
