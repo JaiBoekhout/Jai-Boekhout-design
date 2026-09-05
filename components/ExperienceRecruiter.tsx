@@ -334,6 +334,40 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
                   />
                 )}
+                {/* Industries — moved here from the About Me section so it sits over the hero
+                    photo instead of squeezed into a side column; square-cornered chips (matching
+                    the same tag treatment now used across Experience/Education/Testimonials), in
+                    a light tone over a photo or the original teal tint over a plain background. */}
+                {cms.industries.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    style={{ marginTop: "24px" }}
+                  >
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
+                      {cms.industriesHeading || "Industries"}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {cms.industries.map((ind) => (
+                        <span
+                          key={ind}
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            fontSize: "12px",
+                            color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
+                            border: hasHeroPhoto ? "1px solid rgba(245,241,234,0.35)" : "1px solid rgba(20,173,181,0.2)",
+                            borderRadius: 0,
+                            padding: "6px 14px",
+                            background: hasHeroPhoto ? "rgba(6,9,12,0.35)" : "rgba(20,173,181,0.05)",
+                          }}
+                        >
+                          {ind}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </>
             }
           />
@@ -347,48 +381,23 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-14 grid md:grid-cols-2 gap-10 pb-10"
+          className="mt-14 pb-10"
         >
-          <div>
-            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
-              {cms.bioHeading || "About Me"}
-            </h2>
+          <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
+            {cms.bioHeading || "About Me"}
+          </h2>
+          <div
+            className={cms.bioMobile ? "rte-content hidden md:block" : "rte-content"}
+            style={{ fontSize: "16px", color: "var(--c-text-body)" }}
+            dangerouslySetInnerHTML={{ __html: cms.bio }}
+          />
+          {cms.bioMobile && (
             <div
-              className={cms.bioMobile ? "rte-content hidden md:block" : "rte-content"}
+              className="rte-content block md:hidden"
               style={{ fontSize: "16px", color: "var(--c-text-body)" }}
-              dangerouslySetInnerHTML={{ __html: cms.bio }}
+              dangerouslySetInnerHTML={{ __html: cms.bioMobile }}
             />
-            {cms.bioMobile && (
-              <div
-                className="rte-content block md:hidden"
-                style={{ fontSize: "16px", color: "var(--c-text-body)" }}
-                dangerouslySetInnerHTML={{ __html: cms.bioMobile }}
-              />
-            )}
-          </div>
-          <div>
-            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
-              {cms.industriesHeading || "Industries"}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {cms.industries.map((ind) => (
-                <span
-                  key={ind}
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "13px",
-                    color: "var(--c-text)",
-                    border: "1px solid rgba(20,173,181,0.2)",
-                    borderRadius: 999,
-                    padding: "6px 14px",
-                    background: "rgba(20,173,181,0.05)",
-                  }}
-                >
-                  {ind}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
         </motion.div>
 
         {/* Section 1b — At a Glance: a full-width single-row stats bar beneath the About Me /
@@ -747,19 +756,17 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
             {cms.testimonialsHeading || "Why Teams Like Working With Me"}
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Flush divided list — same treatment as Professional Experience/Education: thin
+              dividers between entries instead of individually bordered/backgrounded cards. */}
+          <div style={{ borderTop: "0.5px solid var(--c-divider)" }}>
             {cms.testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-6"
-                style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
-              >
+              <div key={i} className="py-8" style={{ borderBottom: "0.5px solid var(--c-divider)", maxWidth: "720px" }}>
                 {t.eyebrow ? (
                   // A fact about what Jai was trusted to do, not a quote from someone else — no
                   // name attribution, so it never reads as a quote from a named person. The
                   // eyebrow caption sits right above the tags (mirroring where the testimonial
                   // branch's Role/Company caption lands below) so the headline + copy — the
-                  // actual substance — leads the card instead.
+                  // actual substance — leads the entry instead.
                   <>
                     {t.headline && (
                       <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
@@ -843,7 +850,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         fontSize: "11px",
                         color: "var(--c-teal)",
                         border: "1px solid rgba(20,173,181,0.2)",
-                        borderRadius: 999,
+                        borderRadius: 0,
                         padding: "6px 14px",
                         background: "rgba(20,173,181,0.05)",
                       }}
