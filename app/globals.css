@@ -254,6 +254,17 @@
      editing those shared tokens, so only this section's outlines are affected. */
   .pro-exp-outline { border: 1px solid rgba(237, 232, 223, 0.18) !important; }
   :root[data-theme="light"] .pro-exp-outline { border-color: rgba(26, 33, 40, 0.3) !important; }
+  /* StatsBar.tsx's "At a Glance" tiles — !important overrides the tile's own inline
+     `background: var(--c-bg)` (inline styles otherwise beat any stylesheet selector). The "View
+     section" copy is collapsed to zero width at rest (only the arrow, already the highlight
+     colour, shows) and grows in on hover — it's pinned via `right`, not `left`, so the arrow
+     itself never moves; the reveal grows leftward from it. */
+  .stats-tile-clickable:hover { background: #1A2127 !important; }
+  .stats-view-text {
+    display: inline-block; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
+    transition: max-width 0.25s ease, opacity 0.2s ease, margin-right 0.25s ease;
+  }
+  .stats-tile-clickable:hover .stats-view-text { max-width: 100px; opacity: 1; margin-right: 4px; }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
