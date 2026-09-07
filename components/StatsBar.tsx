@@ -5,18 +5,22 @@ import type { CMSStat, CMSEvaluate } from "@/store/contentStore";
 import { resolveStatValue } from "@/store/contentStore";
 import { STAT_ICON_MAP, DEFAULT_STAT_ICON } from "@/lib/statIcons";
 
-// Literal Tailwind class strings (not built via template interpolation) so the JIT scanner picks
-// them up. Column count is always 1, 2, or 4 — never 3, which reads as an awkward, unbalanced
-// row (and, worse, orphans a lone 4th item alone on its own line). 2 items stay 2-wide, 3 also
-// stay 2-wide (a normal partial last row), 4+ go to 4-wide (also a partial last row once there
-// are 5 or 6). Mobile caps at 2-wide regardless, since 4 columns is too cramped on a phone.
-function colsFor(n: number, maxCols: 2 | 4): 1 | 2 | 4 {
-  if (n <= 1) return 1;
-  if (maxCols === 4 && n >= 4) return 4;
-  return 2;
-}
-const BASE_COLS_CLASS: Record<1 | 2 | 4, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 4: "grid-cols-2" };
-const MD_COLS_CLASS: Record<1 | 2 | 4, string> = { 1: "md:grid-cols-1", 2: "md:grid-cols-2", 4: "md:grid-cols-4" };
+// Column count is always an exact divisor of the stat count, so a row is either completely full
+// or the grid is a single column — never a partial row with an orphaned last item (e.g. 4 stats
+// showing as 3-then-1). Worked out by hand for every count from 1-6 (Work's own stats selector
+// already caps at 6): base is always a single column; md allows 2-up when the count is even;
+// lg allows up to 4-up, preferring whatever divides the count evenly (4 stats → 4-up, 6 stats →
+// 3-up, since 6 doesn't divide evenly by 4). Literal strings, not built via template
+// interpolation, so Tailwind's JIT scanner can actually find them.
+const COLS_CLASS: Record<number, { base: string; md: string; lg: string }> = {
+  1: { base: "grid-cols-1", md: "md:grid-cols-1", lg: "lg:grid-cols-1" },
+  2: { base: "grid-cols-1", md: "md:grid-cols-2", lg: "lg:grid-cols-2" },
+  3: { base: "grid-cols-1", md: "md:grid-cols-1", lg: "lg:grid-cols-3" },
+  4: { base: "grid-cols-1", md: "md:grid-cols-2", lg: "lg:grid-cols-4" },
+  5: { base: "grid-cols-1", md: "md:grid-cols-1", lg: "lg:grid-cols-1" },
+  6: { base: "grid-cols-1", md: "md:grid-cols-2", lg: "lg:grid-cols-3" },
+};
+const FALLBACK_COLS = { base: "grid-cols-1", md: "md:grid-cols-1", lg: "lg:grid-cols-1" };
 
 export interface StatsBarProps {
   stats: CMSStat[];
@@ -28,42 +32,31 @@ export interface StatsBarProps {
   onActivate?: (id: string) => void;
 }
 
-// Flush divided-strip stats row — full-width top/bottom rule, a divider between every cell.
-// Shared by the Work page's stats bar and the Evaluate page's "At a Glance" row so both stay in
-// one visual language rather than two competing "stats" treatments (extracted from
-// ExperienceWork.tsx, which had this first).
+// Flush divided-strip stats row — full-width top/bottom rule, a divider between every cell, open
+// (no closing border) at the very start and end of the row, like a plain table. Shared by the
+// Work page's stats bar and the Evaluate page's "At a Glance" row so both stay in one visual
+// language rather than two competing "stats" treatments (extracted from ExperienceWork.tsx,
+// which had this first).
 //
-// Dividers are drawn with the "coloured gap" trick (container background = divider colour, each
-// cell repaints the page background, a 1px `gap` between cells lets that colour show through)
-// instead of a `borderRight` on every-item-but-the-last. A last-child border only draws a
-// correct line when every stat fits on one row — the moment stats wrap (2 columns on mobile, 3 on
-// tablet), whichever cell happens to be last overall is no longer necessarily last in ITS row, so
-// a stray divider shows up mid-row or a real one goes missing depending on the count. The gap
-// trick draws a divider only between cells that are actually adjacent, at any column count,
-// including a horizontal line between wrapped rows for free.
+// Dividers are drawn with the "coloured gap" trick: the container's own background is the
+// divider colour, each cell repaints the page background over it, and a hairline `gap` between
+// cells lets that colour show through only in the seams — which is exactly the cells that are
+// actually adjacent, at any column count, including a horizontal line between wrapped rows for
+// free. This only stays artifact-free because the column count above is always an exact divisor
+// of the stat count — every row is completely full, so there's never an empty trailing grid
+// track with nothing to paint over that background (which would otherwise show through as a
+// solid block of divider colour).
 export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarProps) {
   if (stats.length === 0) return null;
-  const mdCols = colsFor(stats.length, 4);
-  const mobileCols = colsFor(stats.length, 2);
-  // Pads out an incomplete last row with invisible filler cells (page-background, no border/
-  // content) rather than leaving those grid tracks empty — an empty track has no child to paint
-  // over the container's divider-coloured background (the "coloured gap" trick below), which
-  // would otherwise show up as a solid block of divider colour instead of blank space.
-  const paddedLength = Math.ceil(stats.length / mdCols) * mdCols;
-  const fillerCount = paddedLength - stats.length;
+  const cols = COLS_CLASS[stats.length] ?? FALLBACK_COLS;
   return (
     <div
-      className={`grid ${BASE_COLS_CLASS[mobileCols]} ${MD_COLS_CLASS[mdCols]}`}
+      className={`grid ${cols.base} ${cols.md} ${cols.lg}`}
       style={{
         background: "var(--c-divider)",
         gap: "0.5px",
         borderTop: "0.5px solid var(--c-divider)",
         borderBottom: "0.5px solid var(--c-divider)",
-        // Closes off the right edge of whichever cell(s) land last in their row — without this,
-        // only the gaps *between* cells get a divider, so the rightmost column looks like it's
-        // missing its closing line compared to every other cell, which does get one on its right
-        // (its neighbour's gap) or left.
-        borderRight: "0.5px solid var(--c-divider)",
       }}
     >
       {stats.map((stat) => {
@@ -129,9 +122,6 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
           </div>
         );
       })}
-      {Array.from({ length: fillerCount }, (_, i) => (
-        <div key={`filler-${i}`} aria-hidden="true" style={{ background: "var(--c-bg)" }} />
-      ))}
     </div>
   );
 }
