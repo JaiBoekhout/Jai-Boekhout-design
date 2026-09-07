@@ -210,7 +210,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
     <motion.button
       ref={btnRef}
       layout
-      onClick={handleOpen}
+      onClick={open ? handleClose : handleOpen}
       className={`flex items-center gap-3${stackedButtons ? " w-full justify-center" : ""}`}
       style={{
         ...(open || animating
@@ -223,7 +223,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
         fontWeight: 400,
         textTransform: primaryStyle.uppercase ? "uppercase" : "none",
         letterSpacing: primaryStyle.uppercase ? "0.06em" : "normal",
-        cursor: open || animating ? "default" : "pointer",
+        cursor: animating ? "default" : "pointer",
         transition: "background 0.4s ease, color 0.4s ease, border 0.4s ease",
       }}
     >
@@ -246,7 +246,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
       {open && (
         <motion.div
           key="form-panel"
-          className="relative rounded-2xl"
+          className="relative"
           style={{
             background: "var(--c-bg-deep)",
             transformOrigin: "top center",
@@ -278,7 +278,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
             }}
           >
             <motion.rect
-              x="0.75" y="0.75" width="98.5" height="98.5" rx="7" ry="7"
+              x="0.75" y="0.75" width="98.5" height="98.5" rx="0" ry="0"
               fill="none" stroke="var(--c-teal)" strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
               initial={{ pathLength: 0 }}
@@ -335,16 +335,16 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
                   {pending ? "Sending…" : justSent ? "Message sent" : "Send message"}
                 </Button>
                 <div className="hidden sm:block flex-shrink-0" style={{ width: "1px", height: "28px", background: "var(--c-border)" }} />
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                   <a href={`tel:${PHONE_RAW}`} className="flex items-center gap-2 transition-opacity hover:opacity-70"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", textDecoration: "none" }}>
-                    <Phone size={12} style={{ color: "var(--c-teal)" }} />{PHONE}
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "14px", color: "var(--c-text-muted)", textDecoration: "none" }}>
+                    <Phone size={17} style={{ color: "var(--c-teal)" }} />{PHONE}
                   </a>
                   <span className="hidden sm:inline" style={{ color: "var(--c-border-med)", fontSize: "12px" }}>·</span>
                   <a href={`https://wa.me/${PHONE_RAW.replace("+", "")}`} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 transition-opacity hover:opacity-70"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", textDecoration: "none" }}>
-                    <MessageCircle size={12} style={{ color: "var(--c-teal)" }} />WhatsApp
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "14px", color: "var(--c-text-muted)", textDecoration: "none" }}>
+                    <MessageCircle size={17} style={{ color: "var(--c-teal)" }} />WhatsApp
                   </a>
                 </div>
               </div>

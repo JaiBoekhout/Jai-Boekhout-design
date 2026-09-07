@@ -76,7 +76,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
               padding: clickable ? "26px 22px 40px" : "26px 22px",
               cursor: clickable ? "pointer" : undefined,
             }}
-            onMouseEnter={clickable ? (e) => { e.currentTarget.style.background = "rgba(20,173,181,0.05)"; } : undefined}
+            onMouseEnter={clickable ? (e) => { e.currentTarget.style.background = "#1A2127"; } : undefined}
             onMouseLeave={clickable ? (e) => { e.currentTarget.style.background = "var(--c-bg)"; } : undefined}
           >
             <div className="flex items-baseline gap-1.5" style={{ marginBottom: 9 }}>

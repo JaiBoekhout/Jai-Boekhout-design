@@ -2,10 +2,10 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
 import { useContentStore, resolveExperienceProjects, projectUrlSlug } from "@/store/contentStore";
-import type { CMSProject, CMSFaqItem } from "@/store/contentStore";
+import type { CMSProject } from "@/store/contentStore";
 import { PathCTA } from "@/components/PathCTA";
 import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
 import { StatsBar } from "@/components/StatsBar";
@@ -122,18 +122,6 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
     setShowAllFaqs(false);
     setOpenFaqs(new Set());
   }
-  // Tracked in JS (not left to a CSS breakpoint) so the FAQ column split below can collapse to a
-  // single column on mobile — otherwise "2 columns" would still split items into two arrays that
-  // then just stack in the wrong order (all of column 1, then all of column 2) once the layout
-  // goes single-column.
-  const [faqDesktop, setFaqDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    const update = () => setFaqDesktop(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
   function toggleFaq(i: number) {
     setOpenFaqs((prev) => {
       const next = new Set(prev);
@@ -188,19 +176,9 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   const tabFilteredFaqs = faqLayoutMode === "tabs" && activeFaqTab !== "all"
     ? publishedFaqs.filter((f) => f.category === activeFaqTab)
     : publishedFaqs;
-  const faqColumns = cms.faqColumns ?? 2;
-  const faqVisibleCount = faqColumns * (cms.faqRows ?? 3);
+  const faqVisibleCount = cms.faqRows ?? 3;
   const visibleFaqs = showAllFaqs ? tabFilteredFaqs : tabFilteredFaqs.slice(0, faqVisibleCount);
-  // Independent columns rather than a CSS grid: a grid's rows are shared across both columns, so
-  // opening a card on the left grows that whole row and shoves every card to its right down too.
-  // Splitting into separate arrays up front (one flex column each) means each column's own
-  // content height is all that ever moves it — the other column never reflows. The split itself
-  // is fixed by array position (i % columns), not by current open/closed height, so cards never
-  // jump between columns as they expand.
-  const effectiveFaqColumns = faqDesktop ? faqColumns : 1;
-  const faqColumnGroups: { faq: CMSFaqItem; idx: number }[][] = Array.from({ length: effectiveFaqColumns }, () => []);
-  visibleFaqs.forEach((faq, i) => faqColumnGroups[i % effectiveFaqColumns].push({ faq, idx: i }));
-  // Pins the grid's height to whatever "All" needs, so switching to a tab with fewer questions
+  // Pins the list's height to whatever "All" needs, so switching to a tab with fewer questions
   // doesn't shrink the section and jolt everything below it upward — only remeasured while
   // actually on "All" (the only tab whose full item set is ever in the DOM to measure), which
   // is also the default landing tab, so a baseline exists before any tab switch can happen.
@@ -210,7 +188,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
     if (activeFaqTab !== "all") return;
     const el = faqGridRef.current;
     if (el) setFaqAllHeight(el.scrollHeight);
-  }, [activeFaqTab, showAllFaqs, openFaqs, effectiveFaqColumns, visibleFaqs.length]);
+  }, [activeFaqTab, showAllFaqs, openFaqs, visibleFaqs.length]);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -909,10 +887,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                           fontSize: 12,
                           letterSpacing: "0.04em",
                           padding: "9px 16px",
-                          borderRadius: 999,
+                          borderRadius: 0,
                           cursor: "pointer",
-                          background: active ? "rgba(20,173,181,0.15)" : "var(--c-bg-card)",
-                          border: `1px solid ${active ? "rgba(20,173,181,0.4)" : "var(--c-border-soft)"}`,
+                          background: "transparent",
+                          border: `1px solid ${active ? "var(--c-teal)" : "var(--c-border-med)"}`,
                           color: active ? "var(--c-teal)" : "var(--c-text-muted)",
                           transition: "all 0.2s ease",
                         }}
@@ -924,61 +902,51 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 </div>
               );
             })()}
+            {/* Flush divided list — same treatment as Professional Experience/Education: thin
+                dividers instead of individually bordered/backgrounded cards, +/- instead of a
+                chevron. */}
             <div
               ref={faqGridRef}
-              className="flex gap-3 items-start"
-              style={faqLayoutMode === "tabs" ? { minHeight: faqAllHeight } : undefined}
+              style={{ borderTop: "0.5px solid var(--c-divider)", minHeight: faqLayoutMode === "tabs" ? faqAllHeight : undefined }}
               {...(faqLayoutMode === "tabs" ? { role: "tabpanel" as const, id: "faq-tabpanel", "aria-labelledby": `faq-tab-${activeFaqTab}` } : {})}
             >
-              {faqColumnGroups.map((col, ci) => (
-                <div key={ci} className="flex flex-col gap-3" style={{ flex: 1, minWidth: 0 }}>
-                  {col.map(({ faq, idx }) => (
-                    <div
-                      key={faq.id}
-                      className="rounded-xl border overflow-hidden"
-                      style={{
-                        background: "var(--c-bg-card)",
-                        borderColor: openFaqs.has(idx) ? "rgba(20,173,181,0.25)" : "var(--c-border-soft)",
-                        transition: "border-color 0.3s",
-                      }}
-                    >
-                      <button
-                        className="w-full text-left flex items-center justify-between gap-4 p-5"
-                        onClick={() => toggleFaq(idx)}
+              {visibleFaqs.map((faq, idx) => (
+                <div key={faq.id} style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
+                  <button
+                    className="w-full text-left flex items-center justify-between gap-4 py-5"
+                    onClick={() => toggleFaq(idx)}
+                  >
+                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
+                      {faq.question}
+                    </span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
+                      {openFaqs.has(idx) ? "−" : "+"}
+                    </span>
+                  </button>
+                  <AnimatePresence>
+                    {openFaqs.has(idx) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
                       >
-                        <span style={{ fontFamily: "var(--font-heading)", fontSize: "15px", color: "var(--c-text)", fontWeight: 400 }}>
-                          {faq.question}
-                        </span>
-                        <motion.div animate={{ rotate: openFaqs.has(idx) ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ flexShrink: 0 }}>
-                          <ChevronDown size={15} style={{ color: "var(--c-text-muted)" }} />
-                        </motion.div>
-                      </button>
-                      <AnimatePresence>
-                        {openFaqs.has(idx) && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div
-                              className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
-                              style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                              dangerouslySetInnerHTML={{ __html: faq.answer }}
-                            />
-                            {faq.answerMobile && (
-                              <div
-                                className="rte-content block md:hidden"
-                                style={{ padding: "0 20px 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                                dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
-                              />
-                            )}
-                          </motion.div>
+                        <div
+                          className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
+                          style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                          dangerouslySetInnerHTML={{ __html: faq.answer }}
+                        />
+                        {faq.answerMobile && (
+                          <div
+                            className="rte-content block md:hidden"
+                            style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                            dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
+                          />
                         )}
-                      </AnimatePresence>
-                    </div>
-                  ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ))}
             </div>

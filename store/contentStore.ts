@@ -513,11 +513,10 @@ export interface CMSEvaluate {
   // treats schema for content that isn't actually visible as cloaking, so both need to check
   // this same flag, not just whether faqItems has entries.
   faqSectionEnabled?: boolean;
-  // Same "columns + rows, then reveal the rest" idea as CMSWork's projectListColumns/Rows, but
-  // simpler: only 1 or 2 columns (no card/list layout choice), and the reveal is a one-shot
-  // "Show All" rather than Projects' repeatable "Load more" — there's no realistic case for
-  // paging through FAQs in batches.
-  faqColumns?: number;
+  // Same "show N, then reveal the rest" idea as CMSWork's projectListRows, but simpler: always a
+  // single flush-divided column (no card/list layout choice), and the reveal is a one-shot "Show
+  // All" rather than Projects' repeatable "Load more" — there's no realistic case for paging
+  // through FAQs in batches.
   faqRows?: number;
   // "list" (default, current behavior) or "tabs" (category tab bar — see faqCategories below).
   // Left unset rather than written as "list" wherever this ships, so nothing on the live site
@@ -1367,7 +1366,6 @@ export const DEFAULT_CONTENT: CMSContent = {
     beyondDesignHidden: true,
     faqItems: [],
     faqSectionEnabled: false,
-    faqColumns: 2,
     faqRows: 3,
   },
   process: {

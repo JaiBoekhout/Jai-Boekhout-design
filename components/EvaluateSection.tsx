@@ -1153,45 +1153,20 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 mb-2">
-        <div>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Columns (larger screens)</p>
-          <div className="flex gap-2">
-            {[1, 2].map((n) => {
-              const active = (data.faqColumns ?? 2) === n;
-              return (
-                <button
-                  key={n}
-                  onClick={() => onChange({ ...data, faqColumns: n })}
-                  style={{
-                    fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.04em",
-                    padding: "8px 14px", borderRadius: 8, cursor: "pointer",
-                    background: active ? "#14ADB5" : "rgba(237,232,223,0.04)",
-                    border: `1px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.1)"}`,
-                    color: active ? "#0C1117" : "#EDE8DF",
-                  }}
-                >
-                  {n} column{n > 1 ? "s" : ""}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Rows to show</p>
-          <select
-            value={data.faqRows ?? 3}
-            onChange={(e) => onChange({ ...data, faqRows: parseInt(e.target.value) })}
-            style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 8, padding: "8px 10px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none", cursor: "pointer", ...selectArrowStyle }}
-          >
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <option key={n} value={n}>{n} row{n > 1 ? "s" : ""}</option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-2">
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>Questions to show initially</p>
+        <select
+          value={data.faqRows ?? 3}
+          onChange={(e) => onChange({ ...data, faqRows: parseInt(e.target.value) })}
+          style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 8, padding: "8px 10px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none", cursor: "pointer", ...selectArrowStyle }}
+        >
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+            <option key={n} value={n}>{n} question{n > 1 ? "s" : ""}</option>
+          ))}
+        </select>
       </div>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11px", color: "#6B7E8A", marginTop: "-2px", marginBottom: "20px", lineHeight: 1.5 }}>
-        Shows {(data.faqColumns ?? 2) * (data.faqRows ?? 3)} question{(data.faqColumns ?? 2) * (data.faqRows ?? 3) > 1 ? "s" : ""} at a time ({data.faqRows ?? 3} row{(data.faqRows ?? 3) > 1 ? "s" : ""} × {data.faqColumns ?? 2} column{(data.faqColumns ?? 2) > 1 ? "s" : ""}). In Tabs mode this counts only the active tab&apos;s questions, not every published question at once. If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
+        Shows {data.faqRows ?? 3} question{(data.faqRows ?? 3) > 1 ? "s" : ""} at a time. In Tabs mode this counts only the active tab&apos;s questions, not every published question at once. If more are published than that, a &quot;Show All&quot; button reveals the rest at once.
       </p>
 
       <FaqCategoryManager
