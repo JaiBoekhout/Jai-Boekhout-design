@@ -115,7 +115,7 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: 999, padding: "7px 12px", cursor: "pointer" }}
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: 0, padding: "7px 12px", cursor: "pointer" }}
           >
             <ArrowLeft size={11} /> Back to Projects
           </button>

@@ -270,7 +270,7 @@ export function ProjectDetailBody({
               display: "inline-flex", alignItems: "center", gap: 6,
               fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
               color: TEAL, background: "rgba(6,9,12,0.75)",
-              border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 999,
+              border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
               padding: "7px 13px", backdropFilter: "blur(8px)", textDecoration: "none",
             }}
           >
@@ -286,7 +286,7 @@ export function ProjectDetailBody({
             style={{
               position: "absolute", top: 20, left: 20, zIndex: 4,
               fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
-              color: "#0C1117", background: TEAL, border: "none", borderRadius: 999,
+              color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
               padding: "7px 12px", cursor: "pointer",
             }}
           >
@@ -298,7 +298,7 @@ export function ProjectDetailBody({
           position: "absolute", top: 60, left: 20,
           fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
           color: TEAL, background: "rgba(6,9,12,0.75)",
-          border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 999,
+          border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
           padding: "5px 13px", backdropFilter: "blur(8px)",
         }}>
           {project.num} — {project.tags[0]?.toUpperCase()}

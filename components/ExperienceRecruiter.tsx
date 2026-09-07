@@ -25,29 +25,26 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// Single-project "card" display mode — the same rich image-card treatment as a tile in the
-// Work page's featured grid (cover image, gradient, tags/year, name, description), just
-// standalone rather than part of a 9-up grid.
+// Single-project "card" display mode — same image-on-top/content-below treatment as a tile in
+// the Work page's featured grid (FeaturedProjects.tsx), just standalone rather than part of a
+// 9-up grid.
 function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; onNavigate: () => void }) {
   const coverSrc = project.coverImageUrl || project.imgs?.[0] || null;
-  const year = project.client.match(/\d{4}/)?.[0] ?? null;
   return (
     <button
       type="button"
       onClick={onNavigate}
-      className="group relative w-full text-left overflow-hidden"
+      className="group relative w-full text-left flex flex-col overflow-hidden"
       style={{
-        aspectRatio: "16/9",
-        borderRadius: 16,
+        borderRadius: 0,
         background: "var(--c-bg-card)",
         border: "0.5px solid var(--c-border-soft)",
         cursor: "pointer",
-        display: "block",
         padding: 0,
       }}
     >
-      {coverSrc ? (
-        <>
+      <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
+        {coverSrc ? (
           <div
             className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.05]"
             style={{
@@ -58,31 +55,31 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
               transformOrigin: project.coverImagePosition || "center",
             }}
           />
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to top, rgba(6,9,12,0.97) 0%, rgba(6,9,12,0.72) 32%, rgba(6,9,12,0.12) 62%, transparent 100%)" }}
-          />
-        </>
-      ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-        </div>
-      )}
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
+          </div>
+        )}
+      </div>
 
-      <div className="absolute left-5 right-5 bottom-5" style={{ zIndex: 2 }}>
-        <div className="flex items-center justify-between mb-2">
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em", color: TEAL, textTransform: "uppercase" }}>
-            {project.tags.slice(0, 2).join(" · ")}
-          </span>
-          {year && (
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "rgba(255,255,255,0.28)", letterSpacing: "0.06em" }}>
-              {year}
-            </span>
-          )}
-        </div>
+      <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px" }}>
+        {project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
+            {project.tags.slice(0, 2).map((t, ti) => (
+              <span key={`${t}-${ti}`} style={{
+                fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
+                color: TEAL, background: "transparent", textTransform: "uppercase",
+                border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                padding: "4px 11px",
+              }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
         <div
           style={{
-            fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "#fff", lineHeight: 1.2,
+            fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--c-text)", lineHeight: 1.2,
             marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}
         >
@@ -90,14 +87,19 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
         </div>
         <div
           style={{
-            fontFamily: "var(--font-body)", fontSize: 12, color: "rgba(255,255,255,0.48)", lineHeight: 1.55, marginBottom: 11,
+            fontFamily: "var(--font-body)", fontSize: 12, color: "var(--c-text-70)", lineHeight: 1.55,
             display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}
         >
           {stripHtml(project.desc)}
         </div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}>
-          VIEW PROJECT <span>→</span>
+        <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
+          <div
+            className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
+          >
+            View project <span>→</span>
+          </div>
         </div>
       </div>
     </button>
@@ -409,7 +411,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "20px",
                 fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.04em",
                 background: "var(--btn-color)", color: "var(--c-bg)", border: "1px solid var(--btn-color)",
-                borderRadius: "8px", padding: "9px 16px", textDecoration: "none",
+                borderRadius: 0, padding: "9px 16px", textDecoration: "none",
               }}
             >
               <Download size={13} /> Download Resume
@@ -547,13 +549,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                       type="button"
                                       onClick={() => onNavigate("work", projectUrlSlug(p))}
                                       className="group flex items-center gap-3 w-full text-left transition-opacity hover:opacity-75 pro-exp-outline"
-                                      style={{ background: "var(--c-bg-card)", borderRadius: "8px", padding: "6px", cursor: "pointer" }}
+                                      style={{ background: "var(--c-bg-card)", borderRadius: 0, padding: "6px", cursor: "pointer" }}
                                     >
                                       {(p.coverImageUrl || p.heroImageUrl || p.imgs[0]) ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" style={{ width: 44, height: 32, borderRadius: 5, objectFit: "cover", flexShrink: 0 }} />
+                                        <img src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" style={{ width: 44, height: 32, borderRadius: 0, objectFit: "cover", flexShrink: 0 }} />
                                       ) : (
-                                        <div style={{ width: 44, height: 32, borderRadius: 5, background: "var(--c-border-soft)", flexShrink: 0 }} />
+                                        <div style={{ width: 44, height: 32, borderRadius: 0, background: "var(--c-border-soft)", flexShrink: 0 }} />
                                       )}
                                       {/* Swap the name for "View Project" on hover — relative/absolute stack keeps
                                           both in the same box so the row's height never jumps between states. */}
@@ -683,7 +685,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     {q.year}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400, marginBottom: "3px" }}>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
                       {q.title}
                     </h3>
                     {subtitle && (
