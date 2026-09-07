@@ -1,18 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
 import type { CMSSkillGroup } from "@/store/contentStore";
 
 // Interactive visualization of the same cms.skills groups the Core Strengths list above already
 // renders — no separate content to maintain. Main nodes sit on a circle around a center "JAI"
 // node, fully interconnected (every main node to every other, plus the center) rather than just
-// spokes, matching the reference design's dense crossing web. Clicking a main node zooms the
-// whole layer in on it (a single CSS transform-origin + scale on the wrapping div — everything
-// inside, including label font sizes, scales together, which is what makes the newly-revealed
-// skill labels read at a legible size once zoomed), highlights every line touching it, and
-// reveals its own satellite dots (one per `skills` entry) with labels. Clicking the same node
-// again (or the close button) zooms back out.
+// spokes, matching the reference design's dense crossing web. All connecting lines are visible
+// at rest (not just on interaction) so the web itself reads clearly before anyone touches it.
+// Hovering (or, on touch, tapping) a main node highlights every line touching it in the site's
+// teal, dims everything else, and reveals its own satellite dots' labels — no zoom/scale effect,
+// so labels stay legible at the diagram's normal size rather than needing to enlarge to be read.
 interface SkillNetworkProps {
   groups: CMSSkillGroup[];
 }
@@ -21,8 +19,6 @@ const CENTER = { x: 50, y: 50 };
 const MAIN_RADIUS_PCT = 32;
 const SATELLITE_RADIUS_PCT = 15;
 const SATELLITE_FAN_DEGREES = 36;
-const ZOOM_SCALE = 2.15;
-const ZOOM_TRANSITION = "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform-origin 0.6s cubic-bezier(0.22, 1, 0.36, 1)";
 
 function polar(cx: number, cy: number, radiusPct: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -47,24 +43,19 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
 
   return (
     <div className="relative w-full mx-auto" style={{ maxWidth: 720, aspectRatio: "1", overflow: "hidden" }}>
-      <div
-        className="absolute inset-0"
-        style={{
-          transform: `scale(${active ? ZOOM_SCALE : 1})`,
-          transformOrigin: active ? `${active.x}% ${active.y}%` : "50% 50%",
-          transition: ZOOM_TRANSITION,
-        }}
-      >
-        {/* Lines layer */}
+      <div className="absolute inset-0">
+        {/* Lines layer — visible by default (not just while a node is active), so the web itself
+            reads clearly at rest; the active node's own lines brighten to teal and everything
+            else dims, rather than lines appearing from nothing. */}
         <svg className="absolute inset-0" width="100%" height="100%" style={{ overflow: "visible" }}>
           {/* Center to each main node */}
           {mainNodes.map((n, i) => (
             <line
               key={`c-${i}`}
               x1={`${CENTER.x}%`} y1={`${CENTER.y}%`} x2={`${n.x}%`} y2={`${n.y}%`}
-              stroke={activeIndex === i ? "var(--c-teal)" : "var(--c-border-soft)"}
-              strokeWidth={activeIndex === i ? 1.5 : 0.75}
-              opacity={active && activeIndex !== i ? 0.3 : 1}
+              stroke={activeIndex === i ? "var(--c-teal)" : "var(--c-border-med)"}
+              strokeWidth={activeIndex === i ? 1.5 : 1}
+              opacity={active && activeIndex !== i ? 0.35 : 1}
               style={{ transition: "all 0.4s ease" }}
             />
           ))}
@@ -77,9 +68,9 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
                 <line
                   key={`m-${i}-${j}`}
                   x1={`${n.x}%`} y1={`${n.y}%`} x2={`${m.x}%`} y2={`${m.y}%`}
-                  stroke={touchesActive ? "var(--c-teal)" : "var(--c-border-soft)"}
-                  strokeWidth={touchesActive ? 1.5 : 0.5}
-                  opacity={active ? (touchesActive ? 0.9 : 0.2) : 0.45}
+                  stroke={touchesActive ? "var(--c-teal)" : "var(--c-border-med)"}
+                  strokeWidth={touchesActive ? 1.5 : 0.75}
+                  opacity={active ? (touchesActive ? 0.9 : 0.25) : 0.7}
                   style={{ transition: "all 0.4s ease" }}
                 />
               );
@@ -89,14 +80,15 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
           {mainNodes.map((n, i) =>
             n.skills.map((_, si) => {
               const dotPos = polar(n.x, n.y, SATELLITE_RADIUS_PCT, satelliteAngle(n.angle, si, n.skills.length));
+              const isActiveGroup = activeIndex === i;
               return (
                 <line
                   key={`s-${i}-${si}`}
                   x1={`${n.x}%`} y1={`${n.y}%`} x2={`${dotPos.x}%`} y2={`${dotPos.y}%`}
-                  stroke="var(--c-border-soft)"
-                  strokeWidth={0.5}
-                  opacity={activeIndex === i ? 0.7 : 0.3}
-                  style={{ transition: "opacity 0.4s ease" }}
+                  stroke={isActiveGroup ? "var(--c-teal)" : "var(--c-border-med)"}
+                  strokeWidth={isActiveGroup ? 1 : 0.75}
+                  opacity={active ? (isActiveGroup ? 0.9 : 0.25) : 0.6}
+                  style={{ transition: "all 0.4s ease" }}
                 />
               );
             })
@@ -108,14 +100,15 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
           className="absolute rounded-full flex items-center justify-center"
           style={{
             left: `${CENTER.x}%`, top: `${CENTER.y}%`, transform: "translate(-50%, -50%)",
-            width: 60, height: 60,
+            width: 88, height: 88,
             background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)",
           }}
         >
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>JAI</span>
+          <span style={{ fontFamily: "var(--font-heading)", fontSize: 17, color: "var(--c-text)", letterSpacing: "0.04em" }}>JAI</span>
         </div>
 
-        {/* Main nodes */}
+        {/* Main nodes — hover highlights (desktop); click/tap toggles too, since touch devices
+            have no hover state to highlight-then-release with. */}
         {mainNodes.map((n, i) => {
           const isActive = activeIndex === i;
           const isDimmed = active !== null && !isActive;
@@ -123,6 +116,8 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
             <button
               key={i}
               type="button"
+              onMouseEnter={() => setActiveIndex(i)}
+              onMouseLeave={() => setActiveIndex((cur) => (cur === i ? null : cur))}
               onClick={() => setActiveIndex(isActive ? null : i)}
               aria-pressed={isActive}
               className="absolute rounded-full flex items-center justify-center text-center"
@@ -174,22 +169,6 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
           })
         )}
       </div>
-
-      {active && (
-        <button
-          type="button"
-          onClick={() => setActiveIndex(null)}
-          aria-label="Close"
-          className="absolute top-3 right-3 flex items-center justify-center transition-opacity hover:opacity-70"
-          style={{
-            width: 30, height: 30, borderRadius: "50%",
-            background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)",
-            color: "var(--c-text-muted)", cursor: "pointer",
-          }}
-        >
-          <X size={14} />
-        </button>
-      )}
     </div>
   );
 }
