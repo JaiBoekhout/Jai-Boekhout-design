@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -19,7 +19,6 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
   const { content } = useContentStore();
   const logoUrl = content.branding.logoUrl || DEFAULT_LOGO_URL;
   const pathname = usePathname();
-  const router = useRouter();
   const selectedPath = pathKeyFromPathname(pathname);
 
   return (
@@ -119,7 +118,7 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
 
       {children}
 
-      {selectedPath && <PathSwitcher selectedPath={selectedPath} onSwitch={() => router.push("/")} />}
+      {selectedPath && <PathSwitcher selectedPath={selectedPath} />}
     </div>
   );
 }
