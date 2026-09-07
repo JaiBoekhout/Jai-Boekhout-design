@@ -600,6 +600,7 @@ export function EvaluateSection({ data, savedData, companies, projects, onChange
                 <CMSInput label="" value={stat.value} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], value: v }; onChange({ ...data, stats: s }); }} />
               )}
             </div>
+            <CMSInput label="Unit (opt, shown right after the value)" value={stat.unit || ""} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], unit: v || undefined }; onChange({ ...data, stats: s }); }} />
             <CMSInput label="Label" value={stat.label} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], label: v }; onChange({ ...data, stats: s }); }} />
             <CMSInput label="Sub-label (opt)" value={stat.sub || ""} onChange={(v) => { const s = [...data.stats]; s[i] = { ...s[i], sub: v || undefined }; onChange({ ...data, stats: s }); }} />
           </div>

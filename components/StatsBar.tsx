@@ -28,37 +28,38 @@ export interface StatsBarProps {
   onActivate?: (id: string) => void;
 }
 
-// Flush divided-strip stats row — full-width top/bottom rule, a vertical rule between each item.
+// Flush divided-strip stats row — full-width top/bottom rule, a divider between every cell.
 // Shared by the Work page's stats bar and the Evaluate page's "At a Glance" row so both stay in
 // one visual language rather than two competing "stats" treatments (extracted from
 // ExperienceWork.tsx, which had this first).
+//
+// Dividers are drawn with the "coloured gap" trick (container background = divider colour, each
+// cell repaints the page background, a 1px `gap` between cells lets that colour show through)
+// instead of a `borderRight` on every-item-but-the-last. A last-child border only draws a
+// correct line when every stat fits on one row — the moment stats wrap (2 columns on mobile, 3 on
+// tablet), whichever cell happens to be last overall is no longer necessarily last in ITS row, so
+// a stray divider shows up mid-row or a real one goes missing depending on the count. The gap
+// trick draws a divider only between cells that are actually adjacent, at any column count,
+// including a horizontal line between wrapped rows for free.
 export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarProps) {
   if (stats.length === 0) return null;
   const cols = STATS_LG_COLS[stats.length] ?? STATS_LG_COLS[6];
   return (
     <div
-      className={`grid grid-cols-2 ${cols}`}
-      style={{ borderTop: "0.5px solid var(--c-divider)", borderBottom: "0.5px solid var(--c-divider)" }}
+      className={`grid grid-cols-2 md:grid-cols-3 ${cols}`}
+      style={{
+        background: "var(--c-divider)",
+        gap: "0.5px",
+        borderTop: "0.5px solid var(--c-divider)",
+        borderBottom: "0.5px solid var(--c-divider)",
+      }}
     >
-      {stats.map((stat, i) => {
-        const { id, label, sub, icon } = stat;
+      {stats.map((stat) => {
+        const { id, unit, label, sub, icon } = stat;
         const value = resolveStatValue(stat, evaluate);
         const clickable = isClickable?.(id) ?? false;
         const handleActivate = () => onActivate?.(id);
-        const isLast = i === stats.length - 1;
         const Icon = (icon && STAT_ICON_MAP[icon]) || DEFAULT_STAT_ICON;
-        const labelBlock = (
-          <div>
-            <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--c-text)", fontWeight: 300 }}>
-              {label}
-            </span>
-            {sub && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-text)", display: "block", marginTop: "4px" }}>
-                {sub}
-              </span>
-            )}
-          </div>
-        );
         return (
           <div
             key={id}
@@ -66,33 +67,51 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
             tabIndex={clickable ? 0 : undefined}
             onClick={clickable ? handleActivate : undefined}
             onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
-            className="transition-colors"
+            className="relative transition-colors"
             style={{
-              padding: "26px 22px",
-              borderRight: isLast ? "none" : "0.5px solid var(--c-divider)",
+              background: "var(--c-bg)",
+              // Extra bottom room on clickable tiles reserves space for the "View section" link
+              // pinned to the corner below, so it never sits on top of a label that wraps to
+              // more than one line.
+              padding: clickable ? "26px 22px 40px" : "26px 22px",
               cursor: clickable ? "pointer" : undefined,
             }}
             onMouseEnter={clickable ? (e) => { e.currentTarget.style.background = "rgba(20,173,181,0.05)"; } : undefined}
-            onMouseLeave={clickable ? (e) => { e.currentTarget.style.background = "transparent"; } : undefined}
+            onMouseLeave={clickable ? (e) => { e.currentTarget.style.background = "var(--c-bg)"; } : undefined}
           >
-            <div className="flex items-center gap-1.5" style={{ marginBottom: 9 }}>
-              <Icon size={16} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
-              <div style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
-                {value}
-              </div>
-            </div>
-            {clickable ? (
-              <div className="flex items-end justify-between gap-2">
-                {labelBlock}
-                <span
-                  className="flex items-center gap-1"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text)", letterSpacing: "0.02em", whiteSpace: "nowrap", flexShrink: 0 }}
-                >
-                  View section <ArrowRight size={11} />
+            <div className="flex items-baseline gap-1.5" style={{ marginBottom: 9 }}>
+              <div className="flex items-center gap-1.5">
+                <Icon size={16} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
+                <span style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--c-text)", fontWeight: 400, lineHeight: 1 }}>
+                  {value}
                 </span>
               </div>
-            ) : (
-              labelBlock
+              {unit && (
+                <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-muted)", fontWeight: 400 }}>
+                  {unit}
+                </span>
+              )}
+            </div>
+            <div>
+              <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--c-text)", fontWeight: 600 }}>
+                {label}
+              </span>
+              {sub && (
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--c-text)", display: "block", marginTop: "4px" }}>
+                  {sub}
+                </span>
+              )}
+            </div>
+            {clickable && (
+              <span
+                className="flex items-center gap-1"
+                style={{
+                  position: "absolute", right: 16, bottom: 14,
+                  fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text)", letterSpacing: "0.02em", whiteSpace: "nowrap",
+                }}
+              >
+                View section <ArrowRight size={11} />
+              </span>
             )}
           </div>
         );

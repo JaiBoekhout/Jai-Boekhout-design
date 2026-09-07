@@ -255,12 +255,16 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     {stripHtml(p.desc)}
                   </div>
 
-                  {/* VIEW PROJECT → — collapsed (zero height, invisible) by default so the name/
-                      description sit lower in the panel, and smoothly expands/fades in on hover.
-                      max-height (not height:auto) so the transition has explicit start/end
-                      values to animate between. */}
-                  <div className="overflow-hidden max-h-0 opacity-0 group-hover:max-h-8 group-hover:opacity-100 transition-all duration-300 ease-out">
-                    <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5, marginTop: 11 }}>
+                  {/* VIEW PROJECT → — the slot is always reserved (fixed height, not max-h-0→N)
+                      so hovering only fades/slides the text in rather than growing the card
+                      itself; animating height here made every card in the same grid row jump
+                      when just one of them was hovered, since the grid track sizes to the
+                      tallest cell. */}
+                  <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
+                    <div
+                      className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
+                      style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
+                    >
                       View case study <span>→</span>
                     </div>
                   </div>

@@ -312,6 +312,11 @@ export interface CMSStat {
   // identity rather than copying its value/label text — see CMSWorkStatsConfig below.
   id: string;
   value: string;
+  // Optional short word/phrase shown right after the value on the same line (e.g. value "8",
+  // unit "Years" renders as "8 Years") — lets a long label like "Years Professional Design
+  // Experience" split into a compact headline + a shorter, bolder caption below instead of
+  // wrapping across several lines in a narrow column.
+  unit?: string;
   label: string;
   sub?: string;
   // Optional icon (a key into STAT_ICON_MAP, lib/statIcons.ts) shown next to this stat
