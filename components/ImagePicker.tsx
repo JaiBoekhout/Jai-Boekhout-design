@@ -37,6 +37,11 @@ interface Props {
    *  column, up to 440px) so the box reflects the image's actual rendered size on the site —
    *  e.g. a 24px logo mark or a 32px favicon, rather than a large blown-up crop preview. */
   previewMaxWidth?: number;
+  /** Composited on top of the preview image (e.g. a CSS gradient) so an effect that only applies
+   *  on the public site — like the hero colour overlay — can be previewed live here instead of
+   *  only being visible after a save + real page visit. Absolutely positioned over the whole
+   *  preview box, pointer-events disabled so it never blocks the drag-to-reposition handle. */
+  previewOverlayStyle?: React.CSSProperties;
 }
 
 // An image is "tall" once its natural aspect ratio exceeds the recommended 3:4 (1200×1600)
@@ -99,7 +104,7 @@ const INPUT: React.CSSProperties = {
   outline: "none",
 };
 
-export function ImagePicker({ value, position, scale, previewRatio = "16/9", label = "Cover Image", onChange, onPositionChange, onScaleChange, allowTallScroll = false, previewFit = "cover", previewBackground = "#0C1117", previewMaxWidth }: Props) {
+export function ImagePicker({ value, position, scale, previewRatio = "16/9", label = "Cover Image", onChange, onPositionChange, onScaleChange, allowTallScroll = false, previewFit = "cover", previewBackground = "#0C1117", previewMaxWidth, previewOverlayStyle }: Props) {
   const { content, updateContent, persistContent } = useContentStore();
   const isTall = useIsTallImage(allowTallScroll ? value : undefined);
 
@@ -401,6 +406,9 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={value} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
+                {previewOverlayStyle && (
+                  <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...previewOverlayStyle }} />
+                )}
               </div>
             ) : (
               <div
@@ -436,6 +444,9 @@ export function ImagePicker({ value, position, scale, previewRatio = "16/9", lab
                     pointerEvents: "none",
                   }}
                 />
+                {previewOverlayStyle && (
+                  <div style={{ position: "absolute", inset: 0, pointerEvents: "none", ...previewOverlayStyle }} />
+                )}
                 {onPositionChange && (
                   <>
                     <div style={{ position: "absolute", left: `${px}%`, top: `${py}%`, transform: "translate(-50%,-50%)", width: 18, height: 18, borderRadius: "50%", border: "2px solid #fff", boxShadow: "0 0 0 1.5px rgba(0,0,0,0.6)", pointerEvents: "none" }} />

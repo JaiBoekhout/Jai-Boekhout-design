@@ -1,6 +1,7 @@
 "use client";
 
 import { ImagePicker } from "@/components/ImagePicker";
+import { Switch } from "@/components/SiteKit";
 
 // Shared shape for every "path" page's optional full-bleed hero photo + colour-overlay gradient
 // (Work/Evaluate/Story/Process all structurally satisfy this once their CMS interfaces carry
@@ -15,6 +16,10 @@ export interface HeroOverlayData {
   heroImageUrl?: string;
   heroImagePosition?: string;
   heroImageScale?: number;
+  // Master on/off for the gradient below — undefined behaves as "on" so existing content saved
+  // before this switch existed (every page that already has overlay colours set) renders
+  // unchanged; only an explicit `false` turns the gradient off.
+  heroOverlayEnabled?: boolean;
   heroOverlayColor1?: string;
   heroOverlayColor1Opacity?: number;
   heroOverlayColor2?: string;
@@ -109,6 +114,7 @@ export function buildHeroOverlayGradient(data: HeroOverlayData, defaults: Partia
 // paints it above these two layers — extracted from the pattern ExperienceStory.tsx used first.
 export function HeroOverlayLayer({ data, defaults }: { data: HeroOverlayData; defaults?: Partial<HeroOverlayData> }) {
   if (!data.heroImageUrl) return null;
+  const overlayEnabled = data.heroOverlayEnabled ?? true;
   return (
     <>
       <div
@@ -121,7 +127,9 @@ export function HeroOverlayLayer({ data, defaults }: { data: HeroOverlayData; de
           transformOrigin: data.heroImagePosition || "center",
         }}
       />
-      <div className="absolute inset-0" style={{ background: buildHeroOverlayGradient(data, defaults) }} />
+      {overlayEnabled && (
+        <div className="absolute inset-0" style={{ background: buildHeroOverlayGradient(data, defaults) }} />
+      )}
     </>
   );
 }
@@ -196,6 +204,7 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
   defaults?: Partial<HeroOverlayData>;
 }) {
   const { color1, color1Opacity, color2, color2Opacity, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
+  const overlayEnabled = data.heroOverlayEnabled ?? true;
   return (
     <>
       <ImagePicker
@@ -207,13 +216,19 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
         onChange={(url) => onChange({ ...data, heroImageUrl: url })}
         onPositionChange={(pos) => onChange({ ...data, heroImagePosition: pos })}
         onScaleChange={(s) => onChange({ ...data, heroImageScale: s })}
+        previewOverlayStyle={overlayEnabled ? { background: buildHeroOverlayGradient(data, defaults) } : undefined}
       />
       {data.heroImageUrl && (
         <div className="flex flex-col mb-6 p-4 rounded-xl" style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)" }}>
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
-            Colour Overlay
-          </label>
+          <div className="flex items-center justify-between" style={{ marginBottom: overlayEnabled ? 12 : 0 }}>
+            <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              Colour Overlay
+            </label>
+            <Switch checked={overlayEnabled} onChange={(checked) => onChange({ ...data, heroOverlayEnabled: checked })} />
+          </div>
 
+          {overlayEnabled && (
+          <>
           {/* Direction — which edge Colour 1 anchors to; flipping this is how you move the solid
               colour off one edge (e.g. Bottom → Top anchors Colour 1 at the bottom instead). */}
           <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "8px" }}>
@@ -305,6 +320,8 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Sooner</span>
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Later</span>
           </div>
+          </>
+          )}
         </div>
       )}
     </>

@@ -103,7 +103,7 @@ export function CaseStudyDetailBody({ project, onOpenLightbox, openAttributionId
         {/* Header — title/client/credit on the left, tags right-aligned alongside it */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6" style={{ marginBottom: 40, paddingBottom: 40, borderBottom: "0.5px solid rgba(237,232,223,0.06)" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px,4.5vw,52px)", fontWeight: 500, color: TEAL, lineHeight: 1.1, marginBottom: 8, letterSpacing: "-0.02em" }}>
+            <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(28px,4.5vw,52px)", fontWeight: 500, color: "var(--c-heading)", lineHeight: 1.1, marginBottom: 8, letterSpacing: "-0.02em" }}>
               {project.name}
             </h1>
             <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)", marginBottom: 6 }}>
