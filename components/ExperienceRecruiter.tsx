@@ -446,7 +446,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     {job.period}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-text)", fontWeight: 400, marginBottom: "3px" }}>
+                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
                       {job.role}
                     </h3>
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>

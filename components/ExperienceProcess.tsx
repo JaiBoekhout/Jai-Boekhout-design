@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown } from "lucide-react";
 import { useContentStore } from "@/store/contentStore";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { PathCTA } from "@/components/PathCTA";
@@ -178,9 +177,9 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 <div
                   className="w-6 h-6 md:w-9 md:h-9"
                   style={{
-                    borderRadius: "50%",
+                    borderRadius: 0,
                     border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
-                    background: openSteps.has(step.id) ? "rgba(160,142,200,0.12)" : "transparent",
+                    background: openSteps.has(step.id) ? "rgba(20,173,181,0.12)" : "transparent",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -238,10 +237,11 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               style={{ scrollMarginTop: TOP_BAR_HEIGHT + stepperHeight + 16 }}
             >
               <button
-                className="w-full text-left p-5 rounded-xl border transition-colors"
+                className="w-full text-left p-5 border transition-colors"
                 style={{
-                  background: "rgba(160,142,200,0.06)",
-                  borderColor: "rgba(160,142,200,0.3)",
+                  borderRadius: 0,
+                  background: "rgba(20,173,181,0.03)",
+                  borderColor: "rgba(20,173,181,0.25)",
                 }}
                 onClick={() => toggleStep(step.id)}
               >
@@ -274,12 +274,9 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                       </p>
                     </div>
                   </div>
-                  <motion.div
-                    animate={{ rotate: openSteps.has(step.id) ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown size={16} style={{ color: "var(--c-text-muted)" }} />
-                  </motion.div>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 19, color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
+                    {openSteps.has(step.id) ? "−" : "+"}
+                  </span>
                 </div>
 
                 <AnimatePresence>
@@ -336,8 +333,8 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                           ))}
                         </div>
                         <div
-                          className="md:col-span-2 p-4 rounded-lg"
-                          style={{ background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
+                          className="md:col-span-2 p-4"
+                          style={{ borderRadius: 0, background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
                         >
                           <p
                             style={{

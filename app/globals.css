@@ -328,7 +328,7 @@
   /* Collapsible panel — native <details>/<summary>, so open/close needs no JS.
      Icon rotates on [open]; the rotation angle differs per icon glyph so each
      one reads as "open" (chevron flips, plus becomes a cross, arrow points down). */
-  .rte-content details.rte-collapsible { border: 1px solid rgba(20,173,181,0.25); border-radius: 10px; margin: 16px 0; overflow: hidden; background: rgba(20,173,181,0.03); }
+  .rte-content details.rte-collapsible { border: 1px solid rgba(20,173,181,0.25); border-radius: 0; margin: 16px 0; overflow: hidden; background: rgba(20,173,181,0.03); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::marker { content: ""; }
