@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, type KeyboardEvent, type CSSProperties } from "react";
+import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type CSSProperties } from "react";
 import { motion, AnimatePresence, animate } from "motion/react";
 import NextImage from "next/image";
 import Link from "next/link";
-import { ArrowLeft, X, Lock, ChevronDown } from "lucide-react";
+import { ArrowLeft, X, ChevronDown } from "lucide-react";
 import type { CMSProject } from "@/store/contentStore";
-import { useContentStore, resolveLinkedCaseStudy, isCaseStudyLive, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
+import { useContentStore, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { TALL_RATIO_THRESHOLD } from "@/components/ImagePicker";
 import { CompanyCredit } from "@/components/CompanyCredit";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
@@ -20,6 +20,22 @@ const TAG_STYLE: CSSProperties = {
 };
 
 const TEAL = "var(--c-teal)";
+
+// Shared heading style for every named section in the details column (Summary, Role, the 3
+// admin-labelled rich-text sections, View More Projects) — pulled out once so it's obviously the
+// same treatment everywhere rather than five copies that could quietly drift apart.
+const SECTION_HEADING_STYLE: CSSProperties = {
+  fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL,
+  textTransform: "uppercase", marginTop: 40, marginBottom: 10, fontWeight: 700,
+};
+
+// Contents nav clears the sticky top bar by a different amount depending on mode — a modal's
+// details column scrolls inside its own bounded row (ProjectDetailChrome's h-full lg:overflow-
+// hidden split), while page mode is the real, normally-scrolling document with a persistent
+// header the hero itself already clears via lg:top-16 (64px).
+function contentsNavTopOffset(mode: "modal" | "page") {
+  return mode === "page" ? 80 : 12;
+}
 
 // A next/image `fill` that starts invisible and fades in on its own load, instead of popping in
 // the instant it's decoded — used anywhere a batch of images can appear together (the gallery,
@@ -68,7 +84,6 @@ export interface ProjectDetailBodyProps {
   mode: "modal" | "page";
   onClose: () => void;
   onSelectProject: (id: string) => void;
-  onViewCaseStudy: (project: CMSProject) => void;
   onOpenLightbox: (src: string) => void;
   viewMoreProjects: CMSProject[];
   showExtras: boolean;
@@ -80,14 +95,15 @@ export interface ProjectDetailBodyProps {
 // column (tags/title/desc/outcomes/buttons/view-more grid). Keyed off `project.id` by the caller
 // (ProjectDetailChrome remounts per project), so every hook below resets cleanly per project.
 export function ProjectDetailBody({
-  project, mode, onClose, onSelectProject, onViewCaseStudy, onOpenLightbox, viewMoreProjects, showExtras, openAttributionId, onToggleAttribution,
+  project, mode, onClose, onSelectProject, onOpenLightbox, viewMoreProjects, showExtras, openAttributionId, onToggleAttribution,
 }: ProjectDetailBodyProps) {
   const { content } = useContentStore();
 
-  const linkedCS = resolveLinkedCaseStudy(project, content.work.caseStudies) ?? null;
+  // project arrives already enriched (via enrichProjectWithCaseStudy, called upstream by
+  // getPublishedProjects/getPublishedProjectBySlug) — its own coverImageUrl already carries
+  // whatever a linked case study set, so no separate lookup is needed here.
   const heroSrc = project.heroImageUrl ?? project.imgs[0];
-  const coverSrc = linkedCS?.coverImageUrl || project.coverImageUrl || project.imgs?.[0] || null;
-  const caseStudyLive = isCaseStudyLive(linkedCS ?? undefined);
+  const coverSrc = project.coverImageUrl || project.imgs?.[0] || null;
 
   // Renders as the normal cropped 3:4 panel immediately (no separate hidden probe image to wait
   // on) and upgrades to the natural-size scrollable layout only if the same image we're already
@@ -179,6 +195,67 @@ export function ProjectDetailBody({
     return () => { controls.stop(); isNudging.current = false; clearTimeout(settleTimer); };
   }, [isHeroTall, heroSrc, project.hideScrollIndicator]);
   useEffect(() => () => { if (heroIdleTimer.current) clearTimeout(heroIdleTimer.current); }, []);
+
+  // Role/Contents-nav — every project now gets the same optional sections (previously exclusive
+  // to a separate "full case study" page); each is hidden unless it actually has content, and the
+  // side nav itself only shows once there's enough of them to be worth navigating (Summary/
+  // Gallery/Outcomes alone don't warrant it — see showContentsNav below).
+  const roleCards = useMemo(
+    () =>
+      [
+        { key: "role", label: "Role", value: project.fullCaseStudyRole },
+        { key: "client", label: "Client", value: project.client },
+        { key: "platform", label: "Platform", value: project.fullCaseStudyPlatform },
+        { key: "scope", label: "Scope", value: project.fullCaseStudyScope },
+      ].filter((c) => c.value && c.value.trim().length > 0),
+    [project.fullCaseStudyRole, project.client, project.fullCaseStudyPlatform, project.fullCaseStudyScope]
+  );
+  const showRole = !!(project.fullCaseStudyRole || project.fullCaseStudyPlatform || project.fullCaseStudyScope);
+  const showSection1 = !!project.fullContent;
+  const showSection2 = !!project.fullCaseStudyContent;
+  const showSection3 = !!project.section3Content;
+  const showContentsNav = showRole || showSection1 || showSection2 || showSection3;
+
+  const navItems = useMemo(
+    () =>
+      [
+        showRole && { id: "role", label: "Role" },
+        showSection1 && { id: "section1", label: project.section1Heading || "Project Detail" },
+        showSection2 && { id: "section2", label: project.section2Heading || "Process" },
+        // Section 3 has no heading fallback — with nothing to label the nav entry, the content
+        // still renders inline on the page, just without its own jump-to link.
+        showSection3 && project.section3Heading && { id: "section3", label: project.section3Heading },
+      ].filter(Boolean) as { id: string; label: string }[],
+    [showRole, showSection1, showSection2, showSection3, project.section1Heading, project.section2Heading, project.section3Heading]
+  );
+
+  const [activeId, setActiveId] = useState<string | undefined>(navItems[0]?.id);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const navTopOffset = contentsNavTopOffset(mode);
+
+  useEffect(() => {
+    if (!showContentsNav) return;
+    const ids = ["role", "section1", "section2", "section3"];
+    const els = ids.map((id) => sectionRefs.current[id]).filter(Boolean) as HTMLElement[];
+    if (els.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length === 0) return;
+        const topMost = visible.reduce((a, b) => (a.boundingClientRect.top < b.boundingClientRect.top ? a : b));
+        const id = topMost.target.getAttribute("data-section-id");
+        if (id) setActiveId(id);
+      },
+      { rootMargin: `-${navTopOffset + 12}px 0px -65% 0px`, threshold: 0 }
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showContentsNav, project.id]);
+
+  function scrollToSection(id: string) {
+    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <>
@@ -417,140 +494,247 @@ export function ProjectDetailBody({
           </div>
         )}
 
-        {/* Description */}
-        {project.desc && (
-          <>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginTop: 40, marginBottom: 10, fontWeight: 700 }}>
-              Summary
-            </div>
-            <div
-              className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
-              dangerouslySetInnerHTML={{ __html: project.desc }}
-              style={{ marginBottom: 22 }}
-            />
-            {project.descMobile && (
-              <div
-                className="rte-content block md:hidden"
-                dangerouslySetInnerHTML={{ __html: project.descMobile }}
-                style={{ marginBottom: 22 }}
-              />
-            )}
-          </>
-        )}
+        <div className={`grid grid-cols-1 ${showContentsNav ? "xl:grid-cols-[120px_minmax(0,1fr)] xl:gap-8" : ""}`}>
+          {/* Contents nav — desktop only, scroll-spy highlighted; only shown once there's real
+              content beyond Summary/Gallery/Outcomes worth jumping between. */}
+          {showContentsNav && (
+            <nav className="hidden xl:block" style={{ position: "sticky", top: navTopOffset, alignSelf: "start" }}>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>
+                Contents
+              </p>
+              <ul style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {navItems.map((item) => {
+                  const isActive = activeId === item.id;
+                  return (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => scrollToSection(item.id)}
+                        className="hover:opacity-100 transition-opacity"
+                        style={{
+                          display: "block", width: "100%", textAlign: "left",
+                          fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.02em",
+                          color: isActive ? TEAL : "var(--c-text-70)",
+                          opacity: isActive ? 1 : 0.75,
+                          background: "none", border: "none", cursor: "pointer",
+                          padding: "6px 0 6px 12px",
+                          borderLeft: isActive ? `2px solid ${TEAL}` : "2px solid var(--c-border-soft)",
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          )}
 
-        {/* Live site — placed right after Summary, above the gallery, so the one link
-            visitors actually want to click doesn't get buried below the images/outcomes/tags. */}
-        {project.live && (
-          <a href={project.live} target="_blank" rel="noreferrer"
-            className="hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: 0, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
-            View Live Site →
-          </a>
-        )}
-
-        {/* Gallery — each image starts invisible and fades in on its own load, rather
-            than popping in the instant it's decoded (which is what actually read as
-            glitchy — the fix is a graceful reveal, not a slower fetch). */}
-        {project.imgs.length > 1 && (
-          <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 22 }}>
-            {([
-              { src: project.imgs[1], pos: project.img1Position, scale: project.img1Scale },
-              { src: project.imgs[2], pos: project.img2Position, scale: project.img2Scale },
-              { src: project.imgs[3], pos: project.img3Position, scale: project.img3Scale },
-            ] as { src?: string; pos?: string; scale?: number }[]).filter(item => item.src).map((item, k) => (
-              <button
-                key={k}
-                onClick={() => onOpenLightbox(item.src!)}
-                style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
-              >
-                <FadeInImage
-                  src={item.src!}
-                  alt={content.mediaMeta?.[item.src!]?.alt || `${project.name} — highlight photo ${k + 1}`}
-                  sizes="(min-width: 1024px) 20vw, 33vw"
-                  objectPosition={item.pos || "center"}
-                  scale={item.scale ?? 1}
+          <div style={{ minWidth: 0 }}>
+            {/* Description */}
+            {project.desc && (
+              <>
+                <div style={SECTION_HEADING_STYLE}>Summary</div>
+                <div
+                  className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: project.desc }}
+                  style={{ marginBottom: 22 }}
                 />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Rich text project detail — after gallery */}
-        {project.fullContent && (
-          <>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginTop: 40, marginBottom: 10, fontWeight: 700 }}>
-              Project Description
-            </div>
-            <div
-              className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
-              dangerouslySetInnerHTML={{ __html: project.fullContent }}
-              style={{ marginBottom: 22 }}
-            />
-            {project.fullContentMobile && (
-              <div
-                className="rte-content block md:hidden"
-                dangerouslySetInnerHTML={{ __html: project.fullContentMobile }}
-                style={{ marginBottom: 22 }}
-              />
+                {project.descMobile && (
+                  <div
+                    className="rte-content block md:hidden"
+                    dangerouslySetInnerHTML={{ __html: project.descMobile }}
+                    style={{ marginBottom: 22 }}
+                  />
+                )}
+              </>
             )}
-          </>
-        )}
 
-        {/* Outcomes */}
-        {project.outcomes.length > 0 && (
-          <>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
-              Key Outcomes
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: project.fullCaseStudy ? 16 : 24 }}>
-              {project.outcomes.map((o, k) => (
-                <div key={k} style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                  <span style={{ color: TEAL, fontFamily: "var(--font-mono)", fontSize: 13, flexShrink: 0 }}>—</span>
-                  <span style={{ fontFamily: "var(--font-body)", fontSize: 13.5, lineHeight: 1.55, color: "var(--c-text)" }}>{o}</span>
+            {/* Live site — placed right after Summary, above everything else, so the one link
+                visitors actually want to click doesn't get buried below the sections/tags. */}
+            {project.live && (
+              <a href={project.live} target="_blank" rel="noreferrer"
+                className="hover:opacity-80 transition-opacity"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: 0, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
+                View Live Site →
+              </a>
+            )}
+
+            {/* Role — small info-card grid (Role/Client/Platform/Scope); hidden unless at least
+                one of Role/Platform/Scope is actually filled in (Client alone isn't enough, it's
+                already shown in the byline above). */}
+            {showRole && (
+              <section
+                id="role"
+                data-section-id="role"
+                ref={(el) => { sectionRefs.current.role = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
+                <div style={SECTION_HEADING_STYLE}>Role</div>
+                <div
+                  className="grid grid-cols-2"
+                  style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
+                >
+                  {roleCards.map((card) => (
+                    <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px" }}>
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                        {card.label}
+                      </p>
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
+                        {card.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              </section>
+            )}
+
+            {/* Section 1 — "Project Detail" in the CMS (project.fullContent) */}
+            {showSection1 && (
+              <section
+                id="section1"
+                data-section-id="section1"
+                ref={(el) => { sectionRefs.current.section1 = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
+                <div style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</div>
+                <div
+                  className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: project.fullContent || "" }}
+                  style={{ marginBottom: 22 }}
+                />
+                {project.fullContentMobile && (
+                  <div
+                    className="rte-content block md:hidden"
+                    dangerouslySetInnerHTML={{ __html: project.fullContentMobile }}
+                    style={{ marginBottom: 22 }}
+                  />
+                )}
+              </section>
+            )}
+
+            {/* Section 2 — "Project section 2" in the CMS (project.fullCaseStudyContent — field
+                name unchanged from before the merge to avoid migrating existing content) */}
+            {showSection2 && (
+              <section
+                id="section2"
+                data-section-id="section2"
+                ref={(el) => { sectionRefs.current.section2 = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
+                <div style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</div>
+                <div
+                  className={`rte-content ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent || "" }}
+                  style={{ marginBottom: 22, maxWidth: "none" }}
+                />
+                {project.fullCaseStudyContentMobile && (
+                  <div
+                    className="rte-content block md:hidden"
+                    dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContentMobile }}
+                    style={{ marginBottom: 22, maxWidth: "none" }}
+                  />
+                )}
+              </section>
+            )}
+
+            {/* Gallery — each image starts invisible and fades in on its own load, rather
+                than popping in the instant it's decoded (which is what actually read as
+                glitchy — the fix is a graceful reveal, not a slower fetch). */}
+            {project.imgs.length > 1 && (
+              <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 22 }}>
+                {([
+                  { src: project.imgs[1], pos: project.img1Position, scale: project.img1Scale },
+                  { src: project.imgs[2], pos: project.img2Position, scale: project.img2Scale },
+                  { src: project.imgs[3], pos: project.img3Position, scale: project.img3Scale },
+                ] as { src?: string; pos?: string; scale?: number }[]).filter(item => item.src).map((item, k) => (
+                  <button
+                    key={k}
+                    onClick={() => onOpenLightbox(item.src!)}
+                    style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
+                  >
+                    <FadeInImage
+                      src={item.src!}
+                      alt={content.mediaMeta?.[item.src!]?.alt || `${project.name} — highlight photo ${k + 1}`}
+                      sizes="(min-width: 1024px) 20vw, 33vw"
+                      objectPosition={item.pos || "center"}
+                      scale={item.scale ?? 1}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Section 3 — "Project section 3" in the CMS, new field with no legacy content to
+                preserve, so unlike sections 1/2 there's no fallback heading: a blank heading
+                renders no heading at all rather than a generic placeholder. */}
+            {showSection3 && (
+              <section
+                id="section3"
+                data-section-id="section3"
+                ref={(el) => { sectionRefs.current.section3 = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
+                {project.section3Heading && <div style={SECTION_HEADING_STYLE}>{project.section3Heading}</div>}
+                <div
+                  className={`rte-content ${project.section3ContentMobile ? "hidden md:block" : ""}`}
+                  dangerouslySetInnerHTML={{ __html: project.section3Content || "" }}
+                  style={{ marginBottom: 22, marginTop: project.section3Heading ? 0 : 40 }}
+                />
+                {project.section3ContentMobile && (
+                  <div
+                    className="rte-content block md:hidden"
+                    dangerouslySetInnerHTML={{ __html: project.section3ContentMobile }}
+                    style={{ marginBottom: 22 }}
+                  />
+                )}
+              </section>
+            )}
+
+            {/* Outcomes — numbered flush-divided list */}
+            {project.outcomes.length > 0 && (
+              <>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+                  Key Outcomes
+                </div>
+                <div style={{ borderTop: "0.5px solid var(--c-divider)", marginBottom: 24 }}>
+                  {project.outcomes.map((o, k) => (
+                    <div key={k} className="flex items-baseline gap-3" style={{ padding: "10px 0", borderBottom: "0.5px solid var(--c-divider)" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: TEAL, flexShrink: 0, width: 22 }}>
+                        {String(k + 1).padStart(2, "0")}
+                      </span>
+                      <span style={{ fontFamily: "var(--font-body)", fontSize: 13.5, lineHeight: 1.55, color: "var(--c-text)" }}>{o}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Tags */}
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+              Tags
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+              {project.tags.map((t, ti) => (
+                <span key={`${t}-${ti}`} style={TAG_STYLE}>
+                  {t}
+                </span>
               ))}
             </div>
-          </>
-        )}
 
-        {/* Tags */}
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
-          Tags
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
-          {project.tags.map((t, ti) => (
-            <span key={`${t}-${ti}`} style={TAG_STYLE}>
-              {t}
-            </span>
-          ))}
-        </div>
-
-        {/* Buttons — View Full Case Study (View Live Site moved up above the gallery, see Summary) */}
-        {(() => {
-          const hasCaseStudy = (project.fullCaseStudy || project.fullCaseStudyContent) && caseStudyLive;
-          if (!hasCaseStudy && !project.caseStudy) return null;
-          return (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 40, marginBottom: 8 }}>
-              {/* Case study is always primary (filled) when present */}
-              {hasCaseStudy && (
-                <button
-                  onClick={() => onViewCaseStudy(project)}
-                  className="hover:opacity-80 transition-opacity"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0C1117", background: TEAL, border: "none", borderRadius: 0, padding: "8px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em" }}>
-                  {project.fullCaseStudyLocked && <Lock size={11} />}
-                  View Full Case Study →
-                </button>
-              )}
-              {project.caseStudy && (
+            {/* External case study link only — the in-house "View Full Case Study" button is
+                gone now that its content lives inline on this same page. */}
+            {project.caseStudy && (
+              <div style={{ marginTop: 40, marginBottom: 8 }}>
                 <a href={project.caseStudy} target="_blank" rel="noreferrer"
                   className="hover:opacity-70 transition-opacity"
                   style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-50)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
                   External case study →
                 </a>
-              )}
-            </div>
-          );
-        })()}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* View More Projects — 1 row of 3 on larger screens, stacked on mobile.
             Padding to clear the floating "Current Path" pill comes from the panel's

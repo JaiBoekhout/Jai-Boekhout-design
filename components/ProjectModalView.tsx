@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
-  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
+  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore,
 } from "@/store/contentStore";
-import type { CMSProject } from "@/store/contentStore";
 import { ProjectDetailChrome } from "@/components/ProjectDetailChrome";
 import { ProjectDetailBody } from "@/components/ProjectDetailBody";
 import { CaseStudyLockGate } from "@/components/CaseStudyLockGate";
@@ -22,7 +21,9 @@ export function ProjectModalView({ slug }: { slug: string }) {
   const { content } = useContentStore();
   const [openAttributionId, setOpenAttributionId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [lockGateProject, setLockGateProject] = useState<CMSProject | null>(null);
+  // No persisted "remembered unlock" — reopening this modal fresh always re-asks for the
+  // password if still locked, matching the pre-merge case-study modal.
+  const [unlocked, setUnlocked] = useState(false);
 
   function close() {
     router.back();
@@ -32,16 +33,19 @@ export function ProjectModalView({ slug }: { slug: string }) {
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
       if (lightbox) setLightbox(null);
-      else if (lockGateProject) setLockGateProject(null);
       else close();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lightbox, lockGateProject]);
+  }, [lightbox]);
 
   const project = getPublishedProjectBySlug(content, slug);
   if (!project) return null;
+
+  if (project.fullCaseStudyLocked && !unlocked) {
+    return <CaseStudyLockGate project={project} onClose={close} onUnlocked={() => setUnlocked(true)} />;
+  }
 
   // Published-only and enriched (case study status included) — an unpublished project must
   // never show up in another project's "View More" list, whether pinned by id or auto-filled.
@@ -72,10 +76,6 @@ export function ProjectModalView({ slug }: { slug: string }) {
           // router.back() only ever undoes one hop at a time instead of returning to wherever
           // the visitor actually started (the grid, an Evaluate link, etc.) in a single click.
           onSelectProject={(id) => router.replace(`/work/${id}`)}
-          onViewCaseStudy={(p) => {
-            if (p.fullCaseStudyLocked) setLockGateProject(p);
-            else router.push(`/work/${projectUrlSlug(p)}/case-study`);
-          }}
           onOpenLightbox={setLightbox}
           viewMoreProjects={viewMoreProjects}
           showExtras
@@ -83,14 +83,6 @@ export function ProjectModalView({ slug }: { slug: string }) {
           onToggleAttribution={setOpenAttributionId}
         />
       </ProjectDetailChrome>
-
-      {lockGateProject && (
-        <CaseStudyLockGate
-          project={lockGateProject}
-          onClose={() => setLockGateProject(null)}
-          onUnlocked={() => router.push(`/work/${projectUrlSlug(lockGateProject)}/case-study`)}
-        />
-      )}
 
       <Lightbox src={lightbox} onClose={() => setLightbox(null)} fallbackAlt={`${project.name} — enlarged`} />
     </>

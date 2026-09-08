@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublishedProjects, getPublishedProjectBySlug, projectHasLiveCaseStudy, projectUrlSlug } from "@/store/contentStore";
+import { getPublishedProjects, getPublishedProjectBySlug, projectUrlSlug } from "@/store/contentStore";
 import { getContent } from "@/store/serverContent";
 import { stripHtml, truncateAtWord, breadcrumbJsonLd } from "@/lib/utils";
 import { ProjectPageView } from "@/components/ProjectPageView";
@@ -17,23 +17,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const project = getPublishedProjectBySlug(content, slug);
   if (!project) return {};
   const image = project.heroImageUrl ?? project.coverImageUrl ?? project.imgs[0];
-  // A case-study-only entry (no real CMSProject record of its own, synthesized by
-  // caseStudyToProject — see contentStore.ts) has project.metaDescription literally sourced from
-  // the *same* case study record the deeper /case-study page also reads its own metaDescription
-  // from. Using it here too would just duplicate that page's text, so skip it in that situation
-  // and fall back to the auto-truncated summary instead — a real, independent project record
-  // (like Evolve) has no such collision and can set its own metaDescription freely even when it
-  // also has a linked case study.
-  const isSyntheticFromCaseStudy = project.id.startsWith("cs-");
-  const hasCaseStudy = projectHasLiveCaseStudy(project, content.work.caseStudies);
-  const description =
-    (!(isSyntheticFromCaseStudy && hasCaseStudy) && project.metaDescription) ||
-    truncateAtWord(stripHtml(project.desc), 155);
+  const description = project.metaDescription || truncateAtWord(stripHtml(project.desc), 155);
   return {
     title: project.name,
     description,
     alternates: { canonical: `/work/${slug}` },
     openGraph: image ? { images: [image] } : undefined,
+    // A locked project's whole page is now gated behind the password prompt — nothing to index.
+    ...(project.fullCaseStudyLocked ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore, projectUrlSlug,
+  useContentStore, getPublishedProjects, getPublishedProjectBySlug, resolveViewMore,
 } from "@/store/contentStore";
-import type { CMSProject } from "@/store/contentStore";
 import { ProjectDetailChrome } from "@/components/ProjectDetailChrome";
 import { ProjectDetailBody } from "@/components/ProjectDetailBody";
 import { CaseStudyLockGate } from "@/components/CaseStudyLockGate";
@@ -35,15 +34,25 @@ export function ProjectPageView({ slug }: { slug: string }) {
   const { content } = useContentStore();
   const [openAttributionId, setOpenAttributionId] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  // Only shown once the visitor actively clicks "View Full Case Study" — a locked project's
-  // own page must stay fully visible/crawlable; only the case study behind it is gated.
-  const [lockGateProject, setLockGateProject] = useState<CMSProject | null>(null);
+  // No persisted "remembered unlock" — arriving at this URL fresh (typed, refreshed, bookmarked)
+  // always re-asks for the password if still locked, matching the pre-merge case-study page.
+  const [unlocked, setUnlocked] = useState(false);
 
   const project = getPublishedProjectBySlug(content, slug);
   if (!project) {
     // Only reachable if this exact project was unpublished from another tab after this page
     // loaded — the server component already gated on DEFAULT_CONTENT via notFound().
     return null;
+  }
+
+  if (project.fullCaseStudyLocked && !unlocked) {
+    return (
+      <CaseStudyLockGate
+        project={project}
+        onClose={() => router.push("/work")}
+        onUnlocked={() => setUnlocked(true)}
+      />
+    );
   }
 
   // Published-only and enriched (case study status included) — an unpublished project must
@@ -63,10 +72,6 @@ export function ProjectPageView({ slug }: { slug: string }) {
           mode="page"
           onClose={() => router.push("/work")}
           onSelectProject={(id) => goHard(`/work/${id}`)}
-          onViewCaseStudy={(p) => {
-            if (p.fullCaseStudyLocked) setLockGateProject(p);
-            else goHard(`/work/${projectUrlSlug(p)}/case-study`);
-          }}
           onOpenLightbox={setLightbox}
           viewMoreProjects={viewMoreProjects}
           showExtras
@@ -74,14 +79,6 @@ export function ProjectPageView({ slug }: { slug: string }) {
           onToggleAttribution={setOpenAttributionId}
         />
       </ProjectDetailChrome>
-
-      {lockGateProject && (
-        <CaseStudyLockGate
-          project={lockGateProject}
-          onClose={() => setLockGateProject(null)}
-          onUnlocked={() => goHard(`/work/${projectUrlSlug(lockGateProject)}/case-study`)}
-        />
-      )}
 
       <Lightbox src={lightbox} onClose={() => setLightbox(null)} fallbackAlt={`${project.name} — enlarged`} />
     </>

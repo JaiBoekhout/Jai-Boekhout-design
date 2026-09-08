@@ -55,10 +55,10 @@ export function CaseStudyLockGate({ project, onClose, onUnlocked }: CaseStudyLoc
 
         {/* Heading */}
         <h3 style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 400, color: "#EDE8DF", textAlign: "center", marginBottom: 8, lineHeight: 1.2 }}>
-          Private Case Study
+          Private Project
         </h3>
         <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "#EDE8DF", textAlign: "center", lineHeight: 1.7, fontWeight: 300, marginBottom: 28 }}>
-          This case study is protected. Enter the access code below, or get in touch with me directly to request access.
+          This project is protected. Enter the access code below, or get in touch with me directly to request access.
         </p>
 
         {/* Password input */}
@@ -85,7 +85,7 @@ export function CaseStudyLockGate({ project, onClose, onUnlocked }: CaseStudyLoc
           style={{ width: "100%", background: TEAL, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", fontFamily: "var(--font-mono)", fontSize: 12, color: "#0C1117", letterSpacing: "0.08em", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
           className="hover:opacity-80 transition-opacity"
         >
-          <Lock size={12} /> Unlock case study
+          <Lock size={12} /> Unlock project
         </button>
 
         {/* Divider */}

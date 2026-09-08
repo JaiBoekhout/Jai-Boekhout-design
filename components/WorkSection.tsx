@@ -21,7 +21,6 @@ export const WORK_SECTIONS: { id: string; label: string }[] = [
   { id: "work-stats-bar", label: "Stats Bar" },
   { id: "work-featured-grid", label: "Featured Grid" },
   { id: "work-project-list", label: "Project List" },
-  { id: "work-case-studies", label: "Case Studies" },
   { id: "work-projects", label: "Projects" },
 ];
 
@@ -760,8 +759,6 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
   const [deleteConfirmProjId, setDeleteConfirmProjId] = useState<string | null>(null);
   const [justAddedId, setJustAddedId] = useState<number | null>(null);
   const newCardRef = useRef<HTMLDivElement>(null);
-  const [csSearch, setCsSearch] = useState("");
-  const [csSort, setCsSort] = useState<SortMode>("newest");
   const [projSearch, setProjSearch] = useState("");
   const [projSort, setProjSort] = useState<SortMode>("newest");
 
@@ -911,27 +908,17 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
     .filter(Boolean) as typeof data.projects;
   const unfeaturedRows = data.projects.filter((p) => !effectiveFeatured.includes(p.id));
 
-  // Split case studies: only those with fullCaseStudy checked go in the Case Studies section
-  const fullCaseStudies = data.caseStudies.filter((cs) => cs.fullCaseStudy);
-  const draftCaseStudies = data.caseStudies.filter((cs) => !cs.fullCaseStudy);
-
   // CMSProject entries without a linked case study — shown in the "Projects" section
   const standaloneProjects = data.projects.filter((p) => !resolveLinkedCaseStudy(p, data.caseStudies));
 
-  // Search + sort. "Case Studies" toolbar covers only full case studies.
-  const filteredFullCaseStudies = applySort(
-    fullCaseStudies.filter((cs) => matchesSearch(csSearch, cs.title, cs.client, ...cs.tags)),
-    csSort,
-    (cs) => cs.title
-  );
-
-  // "Projects" toolbar covers BOTH draft case studies and standalone CMSProjects, merged
-  // into one interleaved list (not two lists concatenated) so sort/search behave as a
-  // single "Projects" section the way they visually appear under one heading.
+  // "Projects" toolbar covers BOTH case studies and standalone CMSProjects, merged into one
+  // interleaved list (not two lists concatenated) so sort/search behave as a single "Projects"
+  // section the way they visually appear under one heading — there's no more separate "Case
+  // Studies" section; every entry has the same fields/capabilities now.
   type ProjectsEntry = { kind: "cs"; cs: CMSCaseStudy } | { kind: "proj"; p: (typeof data.projects)[0] };
   const projectsListEntries: ProjectsEntry[] = (() => {
     const all: ProjectsEntry[] = [
-      ...draftCaseStudies.map((cs): ProjectsEntry => ({ kind: "cs", cs })),
+      ...data.caseStudies.map((cs): ProjectsEntry => ({ kind: "cs", cs })),
       ...standaloneProjects.map((p): ProjectsEntry => ({ kind: "proj", p })),
     ];
     const name = (e: ProjectsEntry) => (e.kind === "cs" ? e.cs.title : e.p.name);
@@ -947,7 +934,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
     }
   })();
   const projResultCount = projectsListEntries.length;
-  const projTotalCount = draftCaseStudies.length + standaloneProjects.length;
+  const projTotalCount = data.caseStudies.length + standaloneProjects.length;
 
   // Every project + case study, unified into one id space (project id, or "cs-<id>" for
   // case-study-only entries) — feeds the View More Projects pinned-picker and category list.
@@ -1229,410 +1216,28 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         Shows {data.projectListRows ?? 3} row{(data.projectListRows ?? 3) > 1 ? "s" : ""} at a time, with a &quot;Load more Projects&quot; button to reveal the next {data.projectListRows ?? 3}.
       </p>
 
-      <CMSSectionHeading id="work-case-studies">Case Studies</CMSSectionHeading>
+      <CMSSectionHeading id="work-projects">Projects</CMSSectionHeading>
       <button
         onClick={addCase}
         className="flex items-center gap-2 mb-4 transition-opacity hover:opacity-80"
         style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#0F1519", background: "#14ADB5", border: "none", borderRadius: "10px", cursor: "pointer", padding: "8px 14px" }}
       >
-        <Plus size={12} /> Add New Case Study
+        <Plus size={12} /> Add New Project
       </button>
 
       <ListToolbar
-        search={csSearch}
-        onSearchChange={setCsSearch}
-        sort={csSort}
-        onSortChange={setCsSort}
-        placeholder="Search case studies…"
-        resultCount={filteredFullCaseStudies.length}
-        totalCount={fullCaseStudies.length}
+        search={projSearch}
+        onSearchChange={setProjSearch}
+        sort={projSort}
+        onSortChange={setProjSort}
+        placeholder="Search projects…"
+        resultCount={projResultCount}
+        totalCount={projTotalCount}
       />
-      {csSearch && filteredFullCaseStudies.length === 0 && (
+      {projSearch && projResultCount === 0 && (
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "rgba(140,154,163,0.5)", padding: "16px 4px" }}>
-          No case studies match &quot;{csSearch}&quot;.
+          No projects match &quot;{projSearch}&quot;.
         </p>
-      )}
-
-      {filteredFullCaseStudies.map((cs) => (
-        <CMSCard key={cs.id} ref={cs.id === justAddedId ? newCardRef : undefined} style={caseStudyDirtyStyle(cs)}>
-          <div className="w-full flex flex-col lg:flex-row lg:items-center gap-3" style={{ position: "sticky", top: 0, zIndex: 5, background: "#141D24", margin: "-20px -20px 0", padding: "20px 20px 14px", borderRadius: "12px 12px 0 0" }}>
-            {/* Clickable title area — stacks above the action row on narrow screens (a long
-                title wrapping to several lines would otherwise squeeze against and vertically
-                center oddly beside it); back to sitting alongside it, right-aligned, at lg. */}
-            <div
-              className="text-left w-full lg:flex-1 min-w-0"
-              style={{ cursor: "pointer" }}
-              onClick={() => setOpenId(openId === cs.id ? null : cs.id)}
-            >
-              <p style={{ fontFamily: "'Poppins', sans-serif", fontSize: "14px", color: "var(--c-heading)", fontWeight: 400, margin: 0 }}>
-                {cs.title || "Untitled"}
-              </p>
-              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF", margin: 0 }}>
-                {cs.client}{agencySuffix(companies, cs.clientMode, cs.companyId)}
-                <span style={{ marginLeft: 8, opacity: 0.45 }}>· {cs.updatedAt ? relativeTime(cs.updatedAt) : "—"}</span>
-              </p>
-            </div>
-
-            {/* Action row — underneath the title on narrow screens, back to the right of it at lg */}
-            <div className="w-full lg:w-auto flex items-center gap-3 flex-wrap lg:flex-nowrap">
-            <ViewPageButton id={selfIdForCase(cs)} />
-
-            {/* Status badge — automatic, read-only */}
-            {(() => {
-              const st = cs.status || "published";
-              const color = st === "updated" ? "#F59E0B" : st === "unpublished" ? "#E05252" : st === "saved" ? "#14ADB5" : "#4CAF80";
-              const bg    = st === "updated" ? "rgba(245,158,11,0.1)" : st === "unpublished" ? "rgba(224,82,82,0.1)" : st === "saved" ? "rgba(20,173,181,0.1)" : "rgba(76,175,128,0.1)";
-              const label = st === "updated" ? "Updated" : st === "unpublished" ? "Unpublished" : st === "saved" ? "Saved" : "Published";
-              return (
-                <div style={{ display: "flex", alignItems: "center", gap: 5, background: bg, border: `1px solid ${color}50`, borderRadius: 20, padding: "4px 10px", flexShrink: 0 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: color, flexShrink: 0 }} />
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color, letterSpacing: "0.08em", whiteSpace: "nowrap" }}>{label}</span>
-                </div>
-              );
-            })()}
-
-            {/* Save draft */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                updateCase(cs.id, { status: "saved" });
-                setSavedId(cs.id);
-                setTimeout(() => setSavedId((prev) => (prev === cs.id ? null : prev)), 1500);
-              }}
-              style={{
-                fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.06em",
-                padding: "5px 12px", borderRadius: 6, flexShrink: 0, whiteSpace: "nowrap", cursor: "pointer",
-                border: savedId === cs.id ? "1px solid rgba(20,173,181,0.4)" : "1px solid rgba(237,232,223,0.15)",
-                background: savedId === cs.id ? "rgba(20,173,181,0.15)" : "rgba(237,232,223,0.04)",
-                color: savedId === cs.id ? "#14ADB5" : "#EDE8DF",
-                transition: "all 0.2s ease",
-              }}
-            >
-              {savedId === cs.id ? "Saved ✓" : "Save"}
-            </button>
-
-            {/* Publish */}
-            <button
-              onClick={(e) => { e.stopPropagation(); updateCase(cs.id, { status: "published" }); }}
-              disabled={cs.status === "published" || !cs.status}
-              style={{
-                fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.06em",
-                padding: "5px 12px", borderRadius: 6, flexShrink: 0, whiteSpace: "nowrap",
-                border: "1px solid rgba(76,175,128,0.4)",
-                background: (cs.status === "published" || !cs.status) ? "rgba(76,175,128,0.08)" : "rgba(76,175,128,0.18)",
-                color: "#4CAF80",
-                cursor: (cs.status === "published" || !cs.status) ? "default" : "pointer",
-                opacity: (cs.status === "published" || !cs.status) ? 0.4 : 1,
-                transition: "all 0.15s ease",
-              }}
-            >Publish</button>
-
-            {/* Unpublish */}
-            <button
-              onClick={(e) => { e.stopPropagation(); updateCase(cs.id, { status: "unpublished" }); }}
-              disabled={cs.status === "unpublished"}
-              style={{
-                fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.06em",
-                padding: "5px 12px", borderRadius: 6, flexShrink: 0, whiteSpace: "nowrap",
-                border: `1px solid ${cs.status === "unpublished" ? "rgba(224,82,82,0.4)" : "rgba(237,232,223,0.12)"}`,
-                background: cs.status === "unpublished" ? "rgba(224,82,82,0.1)" : "none",
-                color: cs.status === "unpublished" ? "#E05252" : "#EDE8DF",
-                cursor: cs.status === "unpublished" ? "default" : "pointer",
-                opacity: cs.status === "unpublished" ? 0.5 : 1,
-                transition: "all 0.15s ease",
-              }}
-            >Unpublish</button>
-
-            {/* Duplicate + Delete */}
-            <div style={{ display: "flex", gap: 4, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => duplicateCase(cs)}
-                title="Duplicate case study"
-                style={{ background: "none", border: "1px solid rgba(237,232,223,0.1)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "#EDE8DF", display: "flex", alignItems: "center" }}
-              >
-                <Copy size={12} />
-              </button>
-              <button
-                onClick={() => {
-                  if (deleteConfirmId === cs.id) {
-                    onChange({ ...data, caseStudies: data.caseStudies.filter((c) => c.id !== cs.id) });
-                    setDeleteConfirmId(null);
-                    if (openId === cs.id) setOpenId(null);
-                  } else {
-                    setDeleteConfirmId(cs.id);
-                  }
-                }}
-                title={deleteConfirmId === cs.id ? "Click again to confirm" : "Delete case study"}
-                style={{
-                  background: deleteConfirmId === cs.id ? "rgba(192,57,43,0.15)" : "none",
-                  border: `1px solid ${deleteConfirmId === cs.id ? "rgba(192,57,43,0.4)" : "rgba(237,232,223,0.1)"}`,
-                  borderRadius: 6,
-                  padding: deleteConfirmId === cs.id ? "5px 10px" : "5px 8px",
-                  cursor: "pointer",
-                  color: deleteConfirmId === cs.id ? "#C0392B" : "#EDE8DF",
-                  display: "flex", alignItems: "center", gap: 5,
-                  fontFamily: "'DM Mono', monospace", fontSize: "10px", letterSpacing: "0.04em",
-                  transition: "all 0.15s ease", whiteSpace: "nowrap",
-                }}
-              >
-                <Trash2 size={12} />
-                {deleteConfirmId === cs.id && "Delete?"}
-              </button>
-            </div>
-
-            {/* Toggle chevron */}
-            <div
-              style={{ cursor: "pointer", flexShrink: 0, padding: "4px", color: "#EDE8DF" }}
-              onClick={() => setOpenId(openId === cs.id ? null : cs.id)}
-            >
-              {openId === cs.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </div>
-            </div>
-          </div>
-
-          {openId === cs.id && (
-            <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
-              {/* Full case study toggle */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
-                <input
-                  type="checkbox"
-                  checked={!!cs.fullCaseStudy}
-                  onChange={(e) => updateCase(cs.id, { fullCaseStudy: e.target.checked, ...(e.target.checked ? {} : { fullCaseStudyLocked: false, fullCaseStudyPassword: undefined }) })}
-                  style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-                />
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                  Create full case study
-                </span>
-              </label>
-
-              {/* Lock case study toggle — independent of "Create full case study"; locks the project popup itself */}
-              <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
-                <input
-                  type="checkbox"
-                  checked={!!cs.fullCaseStudyLocked}
-                  onChange={(e) => updateCase(cs.id, { fullCaseStudyLocked: e.target.checked, ...(!e.target.checked ? { fullCaseStudyPassword: undefined } : {}) })}
-                  style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-                />
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                  Lock case study
-                </span>
-              </label>
-              {cs.fullCaseStudyLocked && (
-                <div style={{ marginBottom: 12, marginLeft: 24 }}>
-                  <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", display: "block", marginBottom: 5 }}>
-                    Access password
-                  </label>
-                  <PasswordField
-                    value={cs.fullCaseStudyPassword || ""}
-                    onChange={(v) => updateCase(cs.id, { fullCaseStudyPassword: v || undefined })}
-                  />
-                </div>
-              )}
-
-              <div style={{ marginBottom: 24 }} />
-
-              <ClientField
-                mode={cs.clientMode ?? "custom"}
-                clientValue={cs.client}
-                companyId={cs.companyId}
-                companies={companies}
-                onModeChange={(m) => updateCase(cs.id, { clientMode: m })}
-                onClientChange={(v) => updateCase(cs.id, { client: v })}
-                onCompanyChange={(id) => updateCase(cs.id, { companyId: id })}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <CMSInput label="Title" value={cs.title} onChange={(v) => updateCase(cs.id, { title: v })} />
-                <CMSUrlInput label="Live URL (optional)" value={cs.liveUrl || ""} onChange={(v) => updateCase(cs.id, { liveUrl: v || undefined })} />
-              </div>
-              {(() => {
-                const dual = data.projects.find((p) => resolveLinkedCaseStudy(p, data.caseStudies)?.id === cs.id);
-                return dual ? (
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -8, marginBottom: 16, lineHeight: 1.5 }}>
-                    This case study shares its page with the linked project &ldquo;{dual.name}&rdquo; — set its URL Path in the project&rsquo;s own editor instead.
-                  </p>
-                ) : (
-                  <CMSSlugInput label="URL Path" value={cs.slug || ""} fallback={`cs-${cs.id}`} onChange={(v) => updateCase(cs.id, { slug: v || undefined })} />
-                );
-              })()}
-
-              <ResponsiveRichTextEditor
-                label="Summary"
-                value={cs.summary}
-                onChange={(v) => updateCase(cs.id, { summary: v })}
-                mobileValue={cs.summaryMobile}
-                onMobileChange={(v) => updateCase(cs.id, { summaryMobile: v })}
-              />
-              <CMSTextarea
-                label="SEO Meta Description (optional — under ~155 characters; falls back to the linked project's own description if left blank)"
-                value={cs.metaDescription || ""}
-                onChange={(v) => updateCase(cs.id, { metaDescription: v || undefined })}
-                rows={2}
-              />
-
-              <LinkedProjectField cs={cs} allCaseStudies={data.caseStudies} projects={data.projects} onLink={(projectId) => setLinkedProject(cs.id, projectId)} />
-
-              {/* ── Images ──────────────────────────────────────── */}
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#EDE8DF", letterSpacing: "0.1em", marginBottom: 8, marginTop: 4 }}>
-                IMAGES
-              </div>
-              {/* Row 1 — Cover + Cover Image (Hover) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                <ImagePicker
-                  label="Cover image · 16:9 (shown in grid card AND on the full case study page)"
-                  previewRatio="16/9"
-                  value={cs.coverImageUrl}
-                  position={cs.coverImagePosition}
-                  scale={cs.coverImageScale}
-                  onChange={(src) => updateCase(cs.id, { coverImageUrl: src })}
-                  onPositionChange={(pos) => updateCase(cs.id, { coverImagePosition: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { coverImageScale: s })}
-                />
-                <ImagePicker
-                  label="Cover image (hover) · 16:9 — optional, replaces cover image on hover"
-                  previewRatio="16/9"
-                  value={cs.coverImageHoverUrl}
-                  position={cs.coverImageHoverPosition}
-                  scale={cs.coverImageHoverScale}
-                  onChange={(src) => updateCase(cs.id, { coverImageHoverUrl: src })}
-                  onPositionChange={(pos) => updateCase(cs.id, { coverImageHoverPosition: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { coverImageHoverScale: s })}
-                />
-              </div>
-              {/* Row 1b — Hero image, on its own row underneath the covers */}
-              <div style={{ marginBottom: 16 }}>
-                <ImagePicker
-                  label="Hero image · 3:4 portrait (1200×1600)"
-                  previewRatio="3/4"
-                  allowTallScroll
-                  value={cs.heroImageUrl}
-                  position={cs.heroImagePosition}
-                  scale={cs.heroImageScale}
-                  onChange={(src) => updateCase(cs.id, { heroImageUrl: src || undefined })}
-                  onPositionChange={(pos) => updateCase(cs.id, { heroImagePosition: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { heroImageScale: s })}
-                />
-                {/* Auto-shown only when the hero image is tall enough to actually need
-                    scrolling (see FeaturedProjects.tsx) — this overrides that off when it
-                    still doesn't feel warranted, or forces it on. */}
-                <div style={{ marginTop: 8 }}>
-                  <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#8C9AA3", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                    Hide scroll indicator
-                  </label>
-                  <Switch
-                    checked={!!cs.hideScrollIndicator}
-                    onChange={(checked) => updateCase(cs.id, { hideScrollIndicator: checked })}
-                  />
-                </div>
-              </div>
-              {/* Row 2 — 3 Highlights */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 10, alignItems: "center" }}>
-                <ImagePicker
-                  label="Highlight 1 · 4:3 (800×600)"
-                  previewRatio="4/3"
-                  value={cs.img1Url}
-                  position={cs.img1Position}
-                  scale={cs.img1Scale}
-                  onChange={(src) => updateCase(cs.id, { img1Url: src || undefined })}
-                  onPositionChange={(pos) => updateCase(cs.id, { img1Position: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { img1Scale: s })}
-                />
-                <HighlightSwapButton onSwap={() => updateCase(cs.id, swapCaseHighlights(cs, 1, 2))} />
-                <ImagePicker
-                  label="Highlight 2 · 4:3 (800×600)"
-                  previewRatio="4/3"
-                  value={cs.img2Url}
-                  position={cs.img2Position}
-                  scale={cs.img2Scale}
-                  onChange={(src) => updateCase(cs.id, { img2Url: src || undefined })}
-                  onPositionChange={(pos) => updateCase(cs.id, { img2Position: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { img2Scale: s })}
-                />
-                <HighlightSwapButton onSwap={() => updateCase(cs.id, swapCaseHighlights(cs, 2, 3))} />
-                <ImagePicker
-                  label="Highlight 3 · 4:3 (800×600)"
-                  previewRatio="4/3"
-                  value={cs.img3Url}
-                  position={cs.img3Position}
-                  scale={cs.img3Scale}
-                  onChange={(src) => updateCase(cs.id, { img3Url: src || undefined })}
-                  onPositionChange={(pos) => updateCase(cs.id, { img3Position: pos })}
-                  onScaleChange={(s) => updateCase(cs.id, { img3Scale: s })}
-                />
-              </div>
-
-              <ResponsiveRichTextEditor
-                label="Project Detail (rich text — shown between summary and outcomes)"
-                value={cs.fullContent || ""}
-                onChange={(v) => updateCase(cs.id, { fullContent: v })}
-                mobileValue={cs.fullContentMobile}
-                onMobileChange={(v) => updateCase(cs.id, { fullContentMobile: v })}
-              />
-
-              {cs.fullCaseStudy && (
-                <div style={{ marginBottom: 8 }}>
-                  <ImagePicker
-                    label="Banner image · 2560×840px recommended (3:1 wide panoramic)"
-                    previewRatio="3/1"
-                    value={cs.fullCaseStudyBannerUrl}
-                    onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
-                    <CMSInput label="Role (optional — Role info card)" value={cs.fullCaseStudyRole || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyRole: v || undefined })} />
-                    <CMSInput label="Platform (optional — Role info card)" value={cs.fullCaseStudyPlatform || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyPlatform: v || undefined })} />
-                    <CMSInput label="Scope (optional — Role info card)" value={cs.fullCaseStudyScope || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyScope: v || undefined })} />
-                  </div>
-                  <ResponsiveRichTextEditor
-                    label="Full Case Study content (additional detail shown on the full case study page)"
-                    value={cs.fullCaseStudyContent || ""}
-                    onChange={(v) => updateCase(cs.id, { fullCaseStudyContent: v })}
-                    mobileValue={cs.fullCaseStudyContentMobile}
-                    onMobileChange={(v) => updateCase(cs.id, { fullCaseStudyContentMobile: v })}
-                  />
-                </div>
-              )}
-
-              <CMSArrayEditor label="Key Outcomes" items={cs.outcomes} onChange={(v) => updateCase(cs.id, { outcomes: v })} />
-              <CMSChipEditor label="Tags" items={cs.tags} onChange={(v) => updateCase(cs.id, { tags: v })} />
-              <CategoryToggleRow
-                categories={data.projectCategories ?? []}
-                selected={cs.categories ?? []}
-                onChange={(next) => updateCase(cs.id, { categories: next })}
-              />
-
-              <ViewMoreEditor
-                currentId={selfIdForCase(cs)}
-                heading={cs.viewMoreHeading || ""}
-                pinnedIds={cs.viewMorePinnedIds || []}
-                category={cs.viewMoreCategory}
-                sort={cs.viewMoreSort}
-                allEntries={allEntries}
-                allTags={allTags}
-                onChange={(patch) => updateCase(cs.id, patch)}
-              />
-            </div>
-          )}
-        </CMSCard>
-      ))}
-
-      {(draftCaseStudies.length > 0 || standaloneProjects.length > 0) && (
-        <>
-          <CMSSectionHeading id="work-projects">Projects</CMSSectionHeading>
-
-          <ListToolbar
-            search={projSearch}
-            onSearchChange={setProjSearch}
-            sort={projSort}
-            onSortChange={setProjSort}
-            placeholder="Search projects…"
-            resultCount={projResultCount}
-            totalCount={projTotalCount}
-          />
-          {projSearch && projResultCount === 0 && (
-            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "rgba(140,154,163,0.5)", padding: "16px 4px" }}>
-              No projects match &quot;{projSearch}&quot;.
-            </p>
-          )}
-        </>
       )}
 
       {projectsListEntries.map((entry) => {
@@ -1777,20 +1382,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
             {openId === cs.id && (
               <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
-                {/* Full case study toggle */}
-                <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
-                  <input
-                    type="checkbox"
-                    checked={!!cs.fullCaseStudy}
-                    onChange={(e) => updateCase(cs.id, { fullCaseStudy: e.target.checked, ...(e.target.checked ? {} : { fullCaseStudyLocked: false, fullCaseStudyPassword: undefined }) })}
-                    style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-                  />
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                    Create full case study
-                  </span>
-                </label>
-
-                {/* Lock case study toggle — independent of "Create full case study"; locks the project popup itself */}
+                {/* Lock toggle — locks the entire project page/popup behind a password prompt */}
                 <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
                   <input
                     type="checkbox"
@@ -1799,7 +1391,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                     style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
                   />
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                    Lock case study
+                    Lock project
                   </span>
                 </label>
                 {cs.fullCaseStudyLocked && (
@@ -1945,6 +1537,12 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
+                  <CMSInput label="Role (optional — Role info card)" value={cs.fullCaseStudyRole || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyRole: v || undefined })} />
+                  <CMSInput label="Platform (optional — Role info card)" value={cs.fullCaseStudyPlatform || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyPlatform: v || undefined })} />
+                  <CMSInput label="Scope (optional — Role info card)" value={cs.fullCaseStudyScope || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyScope: v || undefined })} />
+                </div>
+
                 <ResponsiveRichTextEditor
                   label="Project Detail (rich text — shown between summary and outcomes)"
                   value={cs.fullContent || ""}
@@ -1952,29 +1550,25 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   mobileValue={cs.fullContentMobile}
                   onMobileChange={(v) => updateCase(cs.id, { fullContentMobile: v })}
                 />
+                <CMSInput label={`Section 1 heading (optional — public heading, defaults to "Project Detail")`} value={cs.section1Heading || ""} onChange={(v) => updateCase(cs.id, { section1Heading: v || undefined })} />
 
-                {cs.fullCaseStudy && (
-                  <div style={{ marginBottom: 8 }}>
-                    <ImagePicker
-                      label="Banner image · 2560×840px recommended (3:1 wide panoramic)"
-                      previewRatio="3/1"
-                      value={cs.fullCaseStudyBannerUrl}
-                      onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
-                      <CMSInput label="Role (optional — Role info card)" value={cs.fullCaseStudyRole || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyRole: v || undefined })} />
-                      <CMSInput label="Platform (optional — Role info card)" value={cs.fullCaseStudyPlatform || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyPlatform: v || undefined })} />
-                      <CMSInput label="Scope (optional — Role info card)" value={cs.fullCaseStudyScope || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyScope: v || undefined })} />
-                    </div>
-                    <ResponsiveRichTextEditor
-                      label="Full Case Study content (additional detail shown on the full case study page)"
-                      value={cs.fullCaseStudyContent || ""}
-                      onChange={(v) => updateCase(cs.id, { fullCaseStudyContent: v })}
-                      mobileValue={cs.fullCaseStudyContentMobile}
-                      onMobileChange={(v) => updateCase(cs.id, { fullCaseStudyContentMobile: v })}
-                    />
-                  </div>
-                )}
+                <ResponsiveRichTextEditor
+                  label="Project section 2"
+                  value={cs.fullCaseStudyContent || ""}
+                  onChange={(v) => updateCase(cs.id, { fullCaseStudyContent: v })}
+                  mobileValue={cs.fullCaseStudyContentMobile}
+                  onMobileChange={(v) => updateCase(cs.id, { fullCaseStudyContentMobile: v })}
+                />
+                <CMSInput label={`Section 2 heading (optional — public heading, defaults to "Process")`} value={cs.section2Heading || ""} onChange={(v) => updateCase(cs.id, { section2Heading: v || undefined })} />
+
+                <ResponsiveRichTextEditor
+                  label="Project section 3 (shown underneath the gallery images)"
+                  value={cs.section3Content || ""}
+                  onChange={(v) => updateCase(cs.id, { section3Content: v })}
+                  mobileValue={cs.section3ContentMobile}
+                  onMobileChange={(v) => updateCase(cs.id, { section3ContentMobile: v })}
+                />
+                <CMSInput label="Section 3 heading (optional — blank shows no heading at all)" value={cs.section3Heading || ""} onChange={(v) => updateCase(cs.id, { section3Heading: v || undefined })} />
 
                 <CMSArrayEditor label="Key Outcomes" items={cs.outcomes} onChange={(v) => updateCase(cs.id, { outcomes: v })} />
                 <CMSChipEditor label="Tags" items={cs.tags} onChange={(v) => updateCase(cs.id, { tags: v })} />
@@ -2082,20 +1676,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
 
             {openProjId === p.id && (
               <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(237,232,223,0.06)" }}>
-                {/* Full case study toggle */}
-                <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
-                  <input
-                    type="checkbox"
-                    checked={!!p.fullCaseStudy}
-                    onChange={(e) => updateProject(p.id, { fullCaseStudy: e.target.checked, ...(e.target.checked ? {} : { fullCaseStudyLocked: false, fullCaseStudyPassword: undefined }) })}
-                    style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-                  />
-                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                    Create full case study
-                  </span>
-                </label>
-
-                {/* Lock case study toggle — independent of "Create full case study"; locks the project popup itself */}
+                {/* Lock toggle — locks the entire project page/popup behind a password prompt */}
                 <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, cursor: "pointer", userSelect: "none" }}>
                   <input
                     type="checkbox"
@@ -2104,7 +1685,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                     style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
                   />
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-                    Lock case study
+                    Lock project
                   </span>
                 </label>
                 {p.fullCaseStudyLocked && (
@@ -2266,6 +1847,12 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
+                  <CMSInput label="Role (optional — Role info card)" value={p.fullCaseStudyRole || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyRole: v || undefined })} />
+                  <CMSInput label="Platform (optional — Role info card)" value={p.fullCaseStudyPlatform || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyPlatform: v || undefined })} />
+                  <CMSInput label="Scope (optional — Role info card)" value={p.fullCaseStudyScope || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyScope: v || undefined })} />
+                </div>
+
                 <ResponsiveRichTextEditor
                   label="Project Detail (rich text — shown between summary and outcomes)"
                   value={p.fullContent || ""}
@@ -2273,29 +1860,25 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   mobileValue={p.fullContentMobile}
                   onMobileChange={(v) => updateProject(p.id, { fullContentMobile: v })}
                 />
+                <CMSInput label={`Section 1 heading (optional — public heading, defaults to "Project Detail")`} value={p.section1Heading || ""} onChange={(v) => updateProject(p.id, { section1Heading: v || undefined })} />
 
-                {p.fullCaseStudy && (
-                  <div style={{ marginBottom: 8 }}>
-                    <ImagePicker
-                      label="Banner image · 2560×840px recommended (3:1 wide panoramic)"
-                      previewRatio="3/1"
-                      value={p.fullCaseStudyBannerUrl}
-                      onChange={(src) => updateProject(p.id, { fullCaseStudyBannerUrl: src || undefined })}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
-                      <CMSInput label="Role (optional — Role info card)" value={p.fullCaseStudyRole || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyRole: v || undefined })} />
-                      <CMSInput label="Platform (optional — Role info card)" value={p.fullCaseStudyPlatform || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyPlatform: v || undefined })} />
-                      <CMSInput label="Scope (optional — Role info card)" value={p.fullCaseStudyScope || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyScope: v || undefined })} />
-                    </div>
-                    <ResponsiveRichTextEditor
-                      label="Full Case Study content (additional detail shown on the full case study page)"
-                      value={p.fullCaseStudyContent || ""}
-                      onChange={(v) => updateProject(p.id, { fullCaseStudyContent: v })}
-                      mobileValue={p.fullCaseStudyContentMobile}
-                      onMobileChange={(v) => updateProject(p.id, { fullCaseStudyContentMobile: v })}
-                    />
-                  </div>
-                )}
+                <ResponsiveRichTextEditor
+                  label="Project section 2"
+                  value={p.fullCaseStudyContent || ""}
+                  onChange={(v) => updateProject(p.id, { fullCaseStudyContent: v })}
+                  mobileValue={p.fullCaseStudyContentMobile}
+                  onMobileChange={(v) => updateProject(p.id, { fullCaseStudyContentMobile: v })}
+                />
+                <CMSInput label={`Section 2 heading (optional — public heading, defaults to "Process")`} value={p.section2Heading || ""} onChange={(v) => updateProject(p.id, { section2Heading: v || undefined })} />
+
+                <ResponsiveRichTextEditor
+                  label="Project section 3 (shown underneath the gallery images)"
+                  value={p.section3Content || ""}
+                  onChange={(v) => updateProject(p.id, { section3Content: v })}
+                  mobileValue={p.section3ContentMobile}
+                  onMobileChange={(v) => updateProject(p.id, { section3ContentMobile: v })}
+                />
+                <CMSInput label="Section 3 heading (optional — blank shows no heading at all)" value={p.section3Heading || ""} onChange={(v) => updateProject(p.id, { section3Heading: v || undefined })} />
 
                 <CMSArrayEditor label="Key Outcomes" items={p.outcomes} onChange={(v) => updateProject(p.id, { outcomes: v })} />
                 <CMSChipEditor label="Tags" items={p.tags} onChange={(v) => updateProject(p.id, { tags: v })} />
