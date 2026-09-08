@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type CSSProperties } from "react";
-import { motion, AnimatePresence, animate } from "motion/react";
 import NextImage from "next/image";
 import Link from "next/link";
-import { ArrowLeft, X, ChevronDown } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import type { CMSProject } from "@/store/contentStore";
-import { useContentStore, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
-import { TALL_RATIO_THRESHOLD } from "@/components/ImagePicker";
+import { useContentStore, projectUrlSlug } from "@/store/contentStore";
 import { CompanyCredit } from "@/components/CompanyCredit";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { stripHtml } from "@/lib/utils";
@@ -102,104 +100,11 @@ export function ProjectDetailBody({
   // project arrives already enriched (via enrichProjectWithCaseStudy, called upstream by
   // getPublishedProjects/getPublishedProjectBySlug) — its own coverImageUrl already carries
   // whatever a linked case study set, so no separate lookup is needed here.
+  // Used as the top banner source (see the return below) — a short, fixed-height strip, not the
+  // tall side-panel this page used to have, so there's no "tall image" crop-skipping/scroll-hint
+  // machinery to worry about here anymore.
   const heroSrc = project.heroImageUrl ?? project.imgs[0];
   const coverSrc = project.coverImageUrl || project.imgs?.[0] || null;
-  // No hero image at all (not even a gallery photo to fall back to) — rather than spend 44% of
-  // the page on an empty placeholder panel, drop the side-by-side split entirely and let the
-  // details column take the full width, matching the single-column layout the old standalone
-  // case-study page used before the projects/case-studies merge.
-  const hasHero = !!heroSrc;
-
-  // Renders as the normal cropped 3:4 panel immediately (no separate hidden probe image to wait
-  // on) and upgrades to the natural-size scrollable layout only if the same image we're already
-  // displaying turns out to be tall, learned from its own onLoad — never a second, redundant
-  // fetch just to measure it first. heroNatural carries the real dimensions over to the tall
-  // variant's next/image, which needs an intrinsic width/height to size its own request.
-  const [isHeroTall, setIsHeroTall] = useState(false);
-  const [heroNatural, setHeroNatural] = useState<{ w: number; h: number } | null>(null);
-  // Tied to an actual change (via ref), not just to the effect being invoked — this specifically
-  // guards against onLoad's setIsHeroTall(true) getting silently stomped back to false by this
-  // same effect re-firing for the *same* heroSrc a moment later (observed in practice: the
-  // dependency-array effect can re-run without heroSrc's value having changed at all). Resetting
-  // unconditionally on every invocation defeats onLoad's own detection race-free only by luck.
-  const prevHeroSrcRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    if (prevHeroSrcRef.current === heroSrc) return;
-    prevHeroSrcRef.current = heroSrc;
-    setIsHeroTall(false);
-    setHeroNatural(null);
-  }, [heroSrc]);
-
-  function applyTallCheck(img: HTMLImageElement) {
-    if (img.naturalWidth > 0 && img.naturalHeight / img.naturalWidth > TALL_RATIO_THRESHOLD) {
-      setHeroNatural({ w: img.naturalWidth, h: img.naturalHeight });
-      setIsHeroTall(true);
-    }
-  }
-  // On a hard-navigated /work/[slug] page, this image is already present in the server-rendered
-  // HTML — the browser can start (and for a small/cached image, finish) loading it before React
-  // finishes hydrating and attaches the onLoad listener below, so the load event fires into
-  // nothing and the tall check never runs. Same root cause as FadeInImage's cached-image note
-  // elsewhere in this file; the fix is the same shape — check .complete once mounted as a
-  // fallback for a load that already happened.
-  const heroFillImgRef = useRef<HTMLImageElement>(null);
-  useEffect(() => {
-    const img = heroFillImgRef.current;
-    if (img?.complete && img.naturalWidth > 0) applyTallCheck(img);
-  }, [heroSrc]);
-
-  // Scroll hint for the tall-hero case: a mouse-scroll indicator (a staggered 3-dot bounce trail —
-  // see the render below) that hides while the visitor is actively scrolling and reappears once
-  // they've been idle for a moment, plus a couple of real nudges of the image itself shortly
-  // after it mounts, starting at the same HERO_HINT_DELAY_MS offset as the dots' cascade. The
-  // nudge is driven by Motion's own imperative `animate()` writing straight to scrollTop, rather
-  // than the browser's native scrollTo({behavior:"smooth"}) — that native smooth-scroll has its
-  // own, browser-controlled easing/duration that isn't tunable to match anything else, which is
-  // exactly why the image used to feel disconnected from the icon. `isNudging` suppresses the
-  // scroll listener during the nudge so it doesn't itself count as "the visitor scrolled" and
-  // hide the hint.
-  const HERO_HINT_DELAY_MS = 400;
-  const HERO_HINT_CYCLE_MS = 1800;
-  const HERO_HINT_CYCLES = 2;
-  const DOT_CYCLE_MS = 1300;
-  const DOT_CYCLES_BEFORE_SETTLING = 3;
-  // isHeroTall (above) only means "this image's own aspect ratio skips the crop" — some hero
-  // images clear that bar without actually overflowing the popup by much once laid out, which is
-  // exactly what made the hint feel unwarranted on shorter images. Only worth hinting at when the
-  // image genuinely renders at least this much taller than the viewport.
-  const HERO_HINT_MIN_VIEWPORT_RATIO = 1.25;
-  const heroScrollRef = useRef<HTMLDivElement>(null);
-  const [heroHintVisible, setHeroHintVisible] = useState(true);
-  const [heroHintEligible, setHeroHintEligible] = useState(false);
-  // Once the dots have cascaded a few times, the motion has done its job of demonstrating this
-  // scrolls — settling into a plain static arrow reads as "yes, there's more" without asking for
-  // continued attention. Doesn't reset on later reappearances (see the onScroll idle-timer below):
-  // the cascade is a one-time introduction, not something to replay every time the hint returns.
-  const [dotsSettled, setDotsSettled] = useState(false);
-  const isNudging = useRef(false);
-  const heroIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    setHeroHintVisible(true);
-    setDotsSettled(false);
-    setHeroHintEligible(false);
-    if (!isHeroTall || project.hideScrollIndicator) return;
-    const el = heroScrollRef.current;
-    if (!el) return;
-    if (el.scrollHeight < window.innerHeight * HERO_HINT_MIN_VIEWPORT_RATIO) return;
-    setHeroHintEligible(true);
-    const settleTimer = setTimeout(() => setDotsSettled(true), HERO_HINT_DELAY_MS + DOT_CYCLE_MS * DOT_CYCLES_BEFORE_SETTLING);
-    isNudging.current = true;
-    const keyframes = Array.from({ length: HERO_HINT_CYCLES * 2 + 1 }, (_, i) => (i % 2 === 0 ? 0 : 20));
-    const controls = animate(0, keyframes, {
-      delay: HERO_HINT_DELAY_MS / 1000,
-      duration: (HERO_HINT_CYCLE_MS / 1000) * HERO_HINT_CYCLES,
-      ease: "easeInOut",
-      onUpdate: (latest) => { el.scrollTop = latest; },
-      onComplete: () => { isNudging.current = false; },
-    });
-    return () => { controls.stop(); isNudging.current = false; clearTimeout(settleTimer); };
-  }, [isHeroTall, heroSrc, project.hideScrollIndicator]);
-  useEffect(() => () => { if (heroIdleTimer.current) clearTimeout(heroIdleTimer.current); }, []);
 
   // Role/Contents-nav — every project now gets the same optional sections (previously exclusive
   // to a separate "full case study" page); each is hidden unless it actually has content, and the
@@ -263,202 +168,38 @@ export function ProjectDetailBody({
   }
 
   return (
-    <>
-      {/* Left — hero image. Full-width 3:4-ratio panel on mobile/tablet (matches the recommended portrait hero upload, so nothing gets cropped), 44%-width full-height panel on desktop.
-          A hero image taller than the 3:4 recommendation (1200×1600) skips cropping entirely: it renders at natural size in its own independently-scrollable box — h-[60vh] on
-          mobile (own scroll region, the rest of the page stays put).
-          Desktop "stays put while the details column scrolls" comes from two different
-          mechanisms depending on mode: the modal's panel is a fixed-height, non-scrolling row
-          (ProjectDetailChrome), so the hero simply flex-stretches to fill it (lg:h-auto) same as
-          the non-tall case. A real page has no such row — it's the normal, scrolling document —
-          so here the hero is pinned via position:sticky against the viewport instead (below the
-          persistent top bar, lg:top-16 = the 64px bar height), with its own height capped to the
-          visible viewport so a tall image's inner scroll region still has a real box to scroll
-          within while stuck. */}
-      {hasHero && (
-      <div
-        className={`w-full ${isHeroTall ? "h-[60vh]" : "aspect-[3/4]"} lg:aspect-auto ${
-          mode === "page" ? "lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)]" : "lg:h-auto"
-        } lg:w-[44%] flex-shrink-0 relative overflow-hidden`}
-      >
-        {(isHeroTall ? (
-          // overscrollBehavior deliberately left at its default ("auto") — once the visitor
-          // scrolls to the bottom of the image on mobile (stacked 1-column layout), the
-          // gesture should hand off naturally into scrolling the rest of the page rather
-          // than stopping dead at the image's edge. On desktop this box's scrollable
-          // ancestor is lg:overflow-hidden (the hero/details split doesn't scroll as a
-          // unit), so there's nothing for a chained scroll to reach — safe either way.
+    <div className="flex-1 lg:overflow-y-auto relative" style={{ minWidth: 0 }}>
+      {/* Top banner — a short, full-width strip (not the old tall side panel), matching the
+          single-column layout the standalone case-study page used before the projects/case-
+          studies merge. Edge-to-edge against this wrapper (no padding here), so it reaches the
+          true panel/page edges; the padded, centered column below is where the actual copy
+          lives. */}
+      {heroSrc && (
+        <div style={{ width: "100%", height: "clamp(200px, 38vh, 420px)", position: "relative", overflow: "hidden" }}>
           <div
-            ref={heroScrollRef}
-            onScroll={(e) => {
-              if (isNudging.current) return;
-              const el = e.currentTarget;
-              setHeroHintVisible(false);
-              if (heroIdleTimer.current) clearTimeout(heroIdleTimer.current);
-              // Reappear once scrolling has actually stopped for a moment — not on
-              // every scroll event — and only if there's still more image below to
-              // justify the hint; already at the bottom, there's nothing left to hint at.
-              heroIdleTimer.current = setTimeout(() => {
-                const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
-                if (!atBottom) setHeroHintVisible(true);
-              }, 900);
-            }}
-            style={{ position: "absolute", inset: 0, overflowY: "auto" }}
-          >
-            <NextImage
-              src={heroSrc}
-              alt={content.mediaMeta?.[heroSrc]?.alt || project.name}
-              width={heroNatural?.w ?? 1200}
-              height={heroNatural?.h ?? 1600}
-              sizes="(min-width: 1024px) 44vw, 100vw"
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-          </div>
-        ) : (
-          // Renders immediately (isHeroTall starts false) rather than waiting on a
-          // separate hidden probe image — onLoad reads the real natural dimensions off
-          // this same already-displayed image and upgrades to the tall variant above if
-          // warranted, so a large hero never blocks the popup's initial layout.
-          <NextImage
-            ref={heroFillImgRef}
-            src={heroSrc}
-            alt={content.mediaMeta?.[heroSrc]?.alt || project.name}
-            fill
-            sizes="(min-width: 1024px) 44vw, 100vw"
             style={{
-              objectFit: "cover",
-              objectPosition: project.heroImagePosition || "center",
+              position: "absolute", inset: 0,
+              backgroundImage: `url(${heroSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: project.heroImagePosition || "center",
               transform: `scale(${project.heroImageScale ?? 1})`,
-              transformOrigin: project.heroImagePosition || "50% 50%",
+              transformOrigin: project.heroImagePosition || "center",
             }}
-            onLoad={(e) => applyTallCheck(e.currentTarget)}
           />
-        ))}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(120deg, transparent 55%, rgba(6,9,12,0.4))", pointerEvents: "none" }} />
-        {/* Back control — lives inside the hero's own positioning context (absolute, not a row
-            above the flex layout) so it adds no flow height ahead of the sticky hero column; a
-            row there would push the hero's pre-stick offset past lg:top-16, delaying when it
-            (and the scroll hint pinned to its bottom edge) actually comes into view until the
-            visitor scrolled the page down by that row's height. Page mode links straight to
-            /work (a real, crawlable nav); modal mode closes the popup via the same onClose the
-            details column's X already uses — moved up here (out of the top-right details-column
-            block below) so both live in one place, stacked above the num/tag badge. */}
-        {mode === "page" ? (
-          <Link
-            href="/work"
-            className="hover:opacity-80 transition-opacity"
-            style={{
-              position: "absolute", top: 20, left: 20, zIndex: 4,
-              display: "inline-flex", alignItems: "center", gap: 6,
-              fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
-              color: TEAL, background: "rgba(6,9,12,0.75)",
-              border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
-              padding: "7px 13px", backdropFilter: "blur(8px)", textDecoration: "none",
-            }}
-          >
-            <ArrowLeft size={12} /> Back to Work
-          </Link>
-        ) : (
-          // Desktop only in modal mode — ProjectDetailChrome.tsx already renders a "Back to
-          // Projects" + close button pair at the top of the panel on mobile/tablet (lg:hidden
-          // there), so this hero-overlaid copy was showing twice on the same screen below lg:.
-          <button
-            onClick={onClose}
-            className="hidden lg:flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            style={{
-              position: "absolute", top: 20, left: 20, zIndex: 4,
-              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
-              color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
-              padding: "7px 12px", cursor: "pointer",
-            }}
-          >
-            <ArrowLeft size={11} /> Back to Projects
-          </button>
-        )}
-        {/* Badge — sits below the back control above, in both modes now. */}
-        <div style={{
-          position: "absolute", top: 60, left: 20,
-          fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
-          color: TEAL, background: "rgba(6,9,12,0.75)",
-          border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
-          padding: "5px 13px", backdropFilter: "blur(8px)",
-        }}>
-          {project.num} — {project.tags[0]?.toUpperCase()}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #0F1519 0%, rgba(15,21,25,0.3) 60%, transparent 100%)" }} />
         </div>
-
-        {/* Scroll hint — only when the hero image both skips the crop (isHeroTall) AND
-            genuinely renders 25%+ taller than the viewport (heroHintEligible), or an
-            admin's own hideScrollIndicator override rules it out entirely. Hides while
-            the visitor is actively scrolling and reappears once they've paused without
-            reaching the bottom (see the onScroll above). */}
-        <AnimatePresence>
-          {isHeroTall && heroHintEligible && heroHintVisible && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                position: "absolute",
-                bottom: 18,
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 3,
-                pointerEvents: "none",
-                width: 28,
-                height: 46,
-                borderRadius: 999,
-                background: "rgba(6,9,12,0.75)",
-                border: "0.5px solid rgba(20,173,181,0.4)",
-                backdropFilter: "blur(8px)",
-                boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
-              }}
-            >
-              {dotsSettled ? (
-                // After a few cascades the motion has made its point — settle into a
-                // plain static arrow rather than asking for continued attention.
-                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
-                  <ChevronDown size={14} color={TEAL} />
-                </div>
-              ) : (
-                // Three fixed dots pulsing in a staggered cascade (top → middle → bottom)
-                // rather than one dot translating — an afterimage "bounce trail" read,
-                // where more than one dot can be partially visible at once.
-                [8, 16, 24].map((top, i) => (
-                  <motion.div
-                    key={top}
-                    animate={{ opacity: [0.25, 1, 0.25], scale: [0.85, 1, 0.85] }}
-                    transition={{ duration: DOT_CYCLE_MS / 1000, repeat: Infinity, ease: "easeInOut", delay: HERO_HINT_DELAY_MS / 1000 + i * 0.3 }}
-                    // x (not a literal transform: translateX string) — Motion owns the
-                    // transform property once `scale` is animated, so a plain CSS
-                    // transform here gets silently overwritten; x merges into the same
-                    // managed transform instead, which is what actually centers this.
-                    style={{ position: "absolute", top, left: "50%", x: "-50%", width: 6, height: 6, borderRadius: "50%", background: TEAL }}
-                  />
-                ))
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-      </div>
       )}
 
-      {/* Right — scrollable details */}
-      <div
-        className="flex-1 lg:overflow-y-auto relative"
-        style={{ padding: "28px 32px 120px", minWidth: 0, maxWidth: hasHero ? undefined : 1160, margin: hasHero ? undefined : "0 auto" }}
-      >
-
-        {/* No-hero header — the hero column's overlaid back button/badge (below) doesn't exist in
-            this layout, so an inline equivalent sits at the top of the column instead. Modal mode
-            already gets a mobile/tablet back+close bar from ProjectDetailChrome regardless of hero
-            presence, so this stays desktop-only there — but page mode's chrome has no such bar at
-            any width (see ProjectDetailChrome's page branch), and the hero-overlaid link this
-            replaces was itself shown at every breakpoint for page mode, so this must be too or
-            mobile/tablet page visitors lose their only way back. */}
-        {!hasHero && (
-          <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3 mb-6`}>
+      <div style={{ maxWidth: 1160, margin: "0 auto", padding: "28px 32px 120px" }}>
+        {/* Header row — back control + num/tag badge on the left, close/X on the right. Used to
+            live overlaid on the hero image; now the hero is a plain banner with nothing overlaid
+            on it, so this is just a normal row at the top of the content column. Page mode's back
+            link shows at every breakpoint (there's no separate mobile bar for page mode — see
+            ProjectDetailChrome's page branch); modal mode's back button + the close X both stay
+            desktop-only there, since ProjectDetailChrome already renders a mobile/tablet back+close
+            bar of its own for modal mode. */}
+        <div className="flex items-center justify-between mb-6">
+          <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3`}>
             {mode === "page" ? (
               <Link
                 href="/work"
@@ -495,15 +236,11 @@ export function ProjectDetailBody({
               {project.num} — {project.tags[0]?.toUpperCase()}
             </div>
           </div>
-        )}
-
-        {/* Top-right actions — desktop only; the mobile/tablet equivalent lives at the very top of the panel, above the hero image. The "Back to Projects"/"Back to Work" text control that used to sit here moved to the hero's top-left, above the num/tag badge — just the close/X stays here. */}
-        <div className="hidden lg:flex items-center justify-end gap-2 lg:absolute" style={{ top: 18, right: 18 }}>
           <button
             onClick={onClose}
             aria-label="Close"
             data-popup-close
-            className="hover:opacity-60 transition-opacity flex items-center justify-center"
+            className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
             style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid var(--c-border-med)", background: "var(--c-surface-4)", color: "var(--c-text)", cursor: "pointer", flexShrink: 0 }}
           >
             <X size={14} />
@@ -513,7 +250,7 @@ export function ProjectDetailBody({
         {/* Title — the page's real heading (className is a Design-System font-size TIER name,
             unrelated to the tag itself; see the comment on buildDesignSystemCss in
             store/contentStore.ts). */}
-        <h1 className="lg:pr-[180px] hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
+        <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
           {project.name}
         </h1>
 
@@ -879,6 +616,6 @@ export function ProjectDetailBody({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
