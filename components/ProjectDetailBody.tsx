@@ -104,6 +104,11 @@ export function ProjectDetailBody({
   // whatever a linked case study set, so no separate lookup is needed here.
   const heroSrc = project.heroImageUrl ?? project.imgs[0];
   const coverSrc = project.coverImageUrl || project.imgs?.[0] || null;
+  // No hero image at all (not even a gallery photo to fall back to) — rather than spend 44% of
+  // the page on an empty placeholder panel, drop the side-by-side split entirely and let the
+  // details column take the full width, matching the single-column layout the old standalone
+  // case-study page used before the projects/case-studies merge.
+  const hasHero = !!heroSrc;
 
   // Renders as the normal cropped 3:4 panel immediately (no separate hidden probe image to wait
   // on) and upgrades to the natural-size scrollable layout only if the same image we're already
@@ -270,21 +275,13 @@ export function ProjectDetailBody({
           persistent top bar, lg:top-16 = the 64px bar height), with its own height capped to the
           visible viewport so a tall image's inner scroll region still has a real box to scroll
           within while stuck. */}
+      {hasHero && (
       <div
         className={`w-full ${isHeroTall ? "h-[60vh]" : "aspect-[3/4]"} lg:aspect-auto ${
           mode === "page" ? "lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)]" : "lg:h-auto"
         } lg:w-[44%] flex-shrink-0 relative overflow-hidden`}
-        style={{
-          background: !heroSrc ? "var(--c-bg-card)" : undefined,
-        }}
       >
-        {!heroSrc && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "45%", maxWidth: 160, opacity: 0.1, filter: "brightness(0) invert(1)" }} />
-          </div>
-        )}
-        {heroSrc && (isHeroTall ? (
+        {(isHeroTall ? (
           // overscrollBehavior deliberately left at its default ("auto") — once the visitor
           // scrolls to the bottom of the image on mobile (stacked 1-column layout), the
           // gesture should hand off naturally into scrolling the rest of the page rather
@@ -445,9 +442,60 @@ export function ProjectDetailBody({
         </AnimatePresence>
 
       </div>
+      )}
 
       {/* Right — scrollable details */}
-      <div className="flex-1 lg:overflow-y-auto relative" style={{ padding: "28px 32px 120px", minWidth: 0 }}>
+      <div
+        className="flex-1 lg:overflow-y-auto relative"
+        style={{ padding: "28px 32px 120px", minWidth: 0, maxWidth: hasHero ? undefined : 1160, margin: hasHero ? undefined : "0 auto" }}
+      >
+
+        {/* No-hero header — the hero column's overlaid back button/badge (below) doesn't exist in
+            this layout, so an inline equivalent sits at the top of the column instead. Modal mode
+            already gets a mobile/tablet back+close bar from ProjectDetailChrome regardless of hero
+            presence, so this stays desktop-only there — but page mode's chrome has no such bar at
+            any width (see ProjectDetailChrome's page branch), and the hero-overlaid link this
+            replaces was itself shown at every breakpoint for page mode, so this must be too or
+            mobile/tablet page visitors lose their only way back. */}
+        {!hasHero && (
+          <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3 mb-6`}>
+            {mode === "page" ? (
+              <Link
+                href="/work"
+                className="hover:opacity-80 transition-opacity"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
+                  color: TEAL, background: "rgba(6,9,12,0.75)",
+                  border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+                  padding: "7px 13px", textDecoration: "none",
+                }}
+              >
+                <ArrowLeft size={12} /> Back to Work
+              </Link>
+            ) : (
+              <button
+                onClick={onClose}
+                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+                style={{
+                  fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
+                  color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
+                  padding: "7px 12px", cursor: "pointer",
+                }}
+              >
+                <ArrowLeft size={11} /> Back to Projects
+              </button>
+            )}
+            <div style={{
+              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
+              color: TEAL, background: "rgba(6,9,12,0.75)",
+              border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+              padding: "5px 13px",
+            }}>
+              {project.num} — {project.tags[0]?.toUpperCase()}
+            </div>
+          </div>
+        )}
 
         {/* Top-right actions — desktop only; the mobile/tablet equivalent lives at the very top of the panel, above the hero image. The "Back to Projects"/"Back to Work" text control that used to sit here moved to the hero's top-left, above the num/tag badge — just the close/X stays here. */}
         <div className="hidden lg:flex items-center justify-end gap-2 lg:absolute" style={{ top: 18, right: 18 }}>
