@@ -442,14 +442,14 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   className="w-full text-left flex flex-col md:flex-row md:items-center gap-1 md:gap-6 py-5"
                   onClick={() => toggleJob(i)}
                 >
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
                     {job.period}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
+                    <h3 className="text-[18px] md:text-[24px]" style={{ fontFamily: "var(--font-heading)", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
                       {job.role}
                     </h3>
-                    <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                    <span style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                       {job.org}
                     </span>
                   </div>
@@ -603,7 +603,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {cms.skills.map((group) => (
               <div key={group.title} className="text-left">
-                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-teal)", fontWeight: 600, marginBottom: "12px" }}>
+                <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "20px", color: "var(--c-teal)", fontWeight: 600, marginBottom: "12px" }}>
                   {group.title}
                 </h3>
                 <div className="flex flex-col">
@@ -611,7 +611,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     <span
                       key={`${skill}-${si}`}
                       style={{
-                        fontFamily: "var(--font-body)", fontSize: "14px", color: "var(--c-text-muted)", fontWeight: 300,
+                        fontFamily: "var(--font-body)", fontSize: "15px", color: "var(--c-text-muted)", fontWeight: 300,
                         padding: "10px 0",
                         borderBottom: si < group.skills.length - 1 ? "1px solid var(--c-border-soft)" : "none",
                       }}
