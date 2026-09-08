@@ -532,7 +532,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                   <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
                                     Projects
                                   </p>
-                                  <ExperienceProjectCard project={featured} onNavigate={() => onNavigate("work", projectUrlSlug(featured))} />
+                                  {/* Capped to one grid-cell's width — ExperienceProjectCard has no
+                                      max-width of its own (it's designed to sit inside a multi-
+                                      column grid on the Work page), so a lone card here would
+                                      otherwise stretch to the full width of this column. */}
+                                  <div style={{ maxWidth: 380 }}>
+                                    <ExperienceProjectCard project={featured} onNavigate={() => onNavigate("work", projectUrlSlug(featured))} />
+                                  </div>
                                 </div>
                               );
                             }
@@ -681,15 +687,15 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 .join(" — ");
               return (
                 <div key={i} className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6 py-5" style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--c-text-muted)", whiteSpace: "nowrap", flexShrink: 0, width: 110 }}>
                     {q.year}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "18px", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
+                    <h3 className="text-[18px] md:text-[24px]" style={{ fontFamily: "var(--font-heading)", color: "var(--c-teal)", fontWeight: 400, marginBottom: "3px" }}>
                       {q.title}
                     </h3>
                     {subtitle && (
-                      <p style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text-muted)", fontWeight: 300 }}>
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: "16px", color: "var(--c-text-muted)", fontWeight: 300 }}>
                         {subtitle}
                       </p>
                     )}

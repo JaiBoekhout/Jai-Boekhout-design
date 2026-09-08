@@ -136,10 +136,12 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
           style={{
             left: `${CENTER.x}%`, top: `${CENTER.y}%`, transform: "translate(-50%, -50%)",
             width: 108 * scale, height: 108 * scale,
-            background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)",
+            background: "var(--c-bg-card)",
+            border: active ? "1.5px solid var(--c-teal)" : "1px solid var(--c-border-soft)",
+            transition: "border-color 0.4s ease",
           }}
         >
-          <span style={{ fontFamily: "var(--font-heading)", fontSize: 21 * scale, color: "var(--c-text)", letterSpacing: "0.04em" }}>JAI</span>
+          <span style={{ fontFamily: "var(--font-heading)", fontSize: 21 * scale, color: active ? "var(--c-teal)" : "var(--c-text)", letterSpacing: "0.04em", transition: "color 0.4s ease" }}>JAI</span>
         </div>
 
         {/* Main nodes — hover highlights (desktop); click/tap toggles too, since touch devices
@@ -187,10 +189,16 @@ export function SkillNetwork({ groups }: SkillNetworkProps) {
             const dx = Math.cos(rad);
             const dy = Math.sin(rad);
             const isActiveGroup = activeIndex === i;
+            // A narrow deadzone (not the ±0.3 this started with) — two satellites 20-30° apart
+            // can easily both land within a wide "basically vertical" band and then both render
+            // dead-centered on nearly the same x, overlapping regardless of how far apart their
+            // dots actually are. Past this much narrower threshold they instead extend away from
+            // each other (left one grows left, right one grows right), which is what actually
+            // keeps adjacent labels apart on a crowded (5-6 skill) fan.
             const horizontal: React.CSSProperties =
-              dx > 0.3
+              dx > 0.08
                 ? { left: 0, textAlign: "left" }
-                : dx < -0.3
+                : dx < -0.08
                 ? { right: 0, textAlign: "right" }
                 : { left: 0, transform: "translateX(-50%)", textAlign: "center" };
             const vertical: React.CSSProperties = dy > 0 ? { top: `calc(100% + ${4 * scale}px)` } : { bottom: `calc(100% + ${4 * scale}px)` };
