@@ -44,6 +44,21 @@ export const STORY_HERO_OVERLAY_DEFAULTS: Partial<HeroOverlayData> = {
   heroOverlayMidpoint: 50,
 };
 
+// A project's hero banner has title/tags/credit overlaid at the bottom-left (unlike the path-page
+// heroes, which center their copy) — dark at the bottom for that text to read against, fading to
+// fully transparent toward the top so the photo itself still shows through clearly. Applied the
+// same way STORY_HERO_OVERLAY_DEFAULTS is: a per-page baseline `resolve()` falls back to whenever
+// a project hasn't set its own overlay fields yet, so a brand-new project's hero doesn't render as
+// a flat, un-faded photo (or worse, the raw resolve() fallback's solid black) before anyone's
+// touched its Colour Overlay controls.
+export const PROJECT_HERO_OVERLAY_DEFAULTS: Partial<HeroOverlayData> = {
+  heroOverlayColor1: "#0F1519",
+  heroOverlayColor2Transparent: true,
+  heroOverlayRatio: 100,
+  heroOverlayDirection: "to-top",
+  heroOverlayMidpoint: 60,
+};
+
 const DIRECTION_OPTIONS = [
   { id: "to-bottom", label: "Top → Bottom" },
   { id: "to-top", label: "Bottom → Top" },

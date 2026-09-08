@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight
 import { CMSInput, CMSUrlInput, CMSSlugInput, CMSTextarea, CMSArrayEditor, CMSChipEditor, CMSSectionHeading, CMSCard, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import { ImagePicker } from "@/components/ImagePicker";
-import { HeroImageOverlayEditor } from "@/components/HeroOverlayFields";
+import { HeroImageOverlayEditor, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import { Switch } from "@/components/SiteKit";
 import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout, CMSProjectCategory } from "@/store/contentStore";
 import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug } from "@/store/contentStore";
@@ -1475,31 +1475,17 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                     onScaleChange={(s) => updateCase(cs.id, { coverImageHoverScale: s })}
                   />
                 </div>
-                {/* Row 1b — Hero image, on its own row underneath the covers */}
+                {/* Row 1b — Hero image, on its own row underneath the covers. Same editor (photo +
+                    colour-overlay gradient, with a live preview) as the Work/Evaluate/Story/Process
+                    page heroes — this renders as the wide banner at the top of the project's own
+                    page, not a tall side panel, so the recommended size matches that. */}
                 <div style={{ marginBottom: 16 }}>
-                  <ImagePicker
-                    label="Hero image · 3:4 portrait (1200×1600)"
-                    previewRatio="3/4"
-                    allowTallScroll
-                    value={cs.heroImageUrl}
-                    position={cs.heroImagePosition}
-                    scale={cs.heroImageScale}
-                    onChange={(src) => updateCase(cs.id, { heroImageUrl: src || undefined })}
-                    onPositionChange={(pos) => updateCase(cs.id, { heroImagePosition: pos })}
-                    onScaleChange={(s) => updateCase(cs.id, { heroImageScale: s })}
+                  <HeroImageOverlayEditor
+                    data={cs}
+                    onChange={(updated) => updateCase(cs.id, updated)}
+                    imageLabel="Hero Image · wide banner, optional — sits behind the project title"
+                    defaults={PROJECT_HERO_OVERLAY_DEFAULTS}
                   />
-                  {/* Auto-shown only when the hero image is tall enough to actually need
-                      scrolling (see FeaturedProjects.tsx) — this overrides that off when it
-                      still doesn't feel warranted, or forces it on. */}
-                  <div style={{ marginTop: 8 }}>
-                    <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#8C9AA3", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                      Hide scroll indicator
-                    </label>
-                    <Switch
-                      checked={!!cs.hideScrollIndicator}
-                      onChange={(checked) => updateCase(cs.id, { hideScrollIndicator: checked })}
-                    />
-                  </div>
                 </div>
                 {/* Row 2 — 3 Highlights */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 10, alignItems: "center" }}>
@@ -1785,31 +1771,17 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                     onScaleChange={(s) => updateProject(p.id, { coverImageHoverScale: s })}
                   />
                 </div>
-                {/* Row 1b — Hero image, on its own row underneath the covers */}
+                {/* Row 1b — Hero image, on its own row underneath the covers. Same editor (photo +
+                    colour-overlay gradient, with a live preview) as the Work/Evaluate/Story/Process
+                    page heroes — this renders as the wide banner at the top of the project's own
+                    page, not a tall side panel, so the recommended size matches that. */}
                 <div style={{ marginBottom: 16 }}>
-                  <ImagePicker
-                    label="Hero image · 3:4 portrait (1200×1600)"
-                    previewRatio="3/4"
-                    allowTallScroll
-                    value={p.heroImageUrl}
-                    position={p.heroImagePosition}
-                    scale={p.heroImageScale}
-                    onChange={(src) => updateProject(p.id, { heroImageUrl: src })}
-                    onPositionChange={(pos) => updateProject(p.id, { heroImagePosition: pos })}
-                    onScaleChange={(s) => updateProject(p.id, { heroImageScale: s })}
+                  <HeroImageOverlayEditor
+                    data={p}
+                    onChange={(updated) => updateProject(p.id, updated)}
+                    imageLabel="Hero Image · wide banner, optional — sits behind the project title"
+                    defaults={PROJECT_HERO_OVERLAY_DEFAULTS}
                   />
-                  {/* Auto-shown only when the hero image is tall enough to actually need
-                      scrolling (see FeaturedProjects.tsx) — this overrides that off when it
-                      still doesn't feel warranted, or forces it on. */}
-                  <div style={{ marginTop: 8 }}>
-                    <label style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#8C9AA3", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                      Hide scroll indicator
-                    </label>
-                    <Switch
-                      checked={!!p.hideScrollIndicator}
-                      onChange={(checked) => updateProject(p.id, { hideScrollIndicator: checked })}
-                    />
-                  </div>
                 </div>
                 {/* Row 2 — 3 Highlights */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 10, marginBottom: 16, alignItems: "center" }}>

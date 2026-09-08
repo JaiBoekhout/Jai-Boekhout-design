@@ -8,12 +8,23 @@ import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, projectUrlSlug } from "@/store/contentStore";
 import { CompanyCredit } from "@/components/CompanyCredit";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
+import { buildHeroOverlayGradient, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import { stripHtml } from "@/lib/utils";
 
 const TAG_STYLE: CSSProperties = {
   fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
   color: "var(--c-teal)", background: "transparent", textTransform: "uppercase",
   border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+  padding: "4px 11px",
+};
+
+// Same tag treatment as TAG_STYLE, but for sitting directly on the hero photo overlay — fixed
+// light colors instead of the themed teal/var(--c-text), since the photo is always dark
+// regardless of the site's light/dark mode.
+const OVERLAY_TAG_STYLE: CSSProperties = {
+  fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
+  color: "#F5F1EA", background: "rgba(15,21,25,0.35)", textTransform: "uppercase",
+  border: "0.5px solid rgba(245,241,234,0.4)", borderRadius: 0,
   padding: "4px 11px",
 };
 
@@ -167,15 +178,91 @@ export function ProjectDetailBody({
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  // Back control + num/tag badge — shared between the overlaid banner header (hero present) and
+  // the plain fallback header (no hero). Page mode's back link shows at every breakpoint (no
+  // separate mobile bar in page mode — see ProjectDetailChrome's page branch); modal mode's back
+  // button stays desktop-only, since ProjectDetailChrome already renders a mobile/tablet
+  // back+close bar of its own for modal mode.
+  const backAndBadge = (
+    <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3`}>
+      {mode === "page" ? (
+        <Link
+          href="/work"
+          className="hover:opacity-80 transition-opacity"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
+            color: TEAL, background: "rgba(6,9,12,0.75)",
+            border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+            padding: "7px 13px", textDecoration: "none",
+          }}
+        >
+          <ArrowLeft size={12} /> Back to Work
+        </Link>
+      ) : (
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+          style={{
+            fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
+            color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
+            padding: "7px 12px", cursor: "pointer",
+          }}
+        >
+          <ArrowLeft size={11} /> Back to Projects
+        </button>
+      )}
+      <div style={{
+        fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
+        color: TEAL, background: "rgba(6,9,12,0.75)",
+        border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+        padding: "5px 13px",
+      }}>
+        {project.num} — {project.tags[0]?.toUpperCase()}
+      </div>
+    </div>
+  );
+
+  // Overlaid version (on the photo banner) needs fixed light colors regardless of site theme;
+  // the no-hero fallback sits on the page's own themed background and keeps the original
+  // theme-aware subtle-circle treatment.
+  const closeButtonOverlay = (
+    <button
+      onClick={onClose}
+      aria-label="Close"
+      data-popup-close
+      className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
+      style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid rgba(245,241,234,0.3)", background: "rgba(15,21,25,0.45)", color: "#F5F1EA", cursor: "pointer", flexShrink: 0 }}
+    >
+      <X size={14} />
+    </button>
+  );
+  const closeButtonPlain = (
+    <button
+      onClick={onClose}
+      aria-label="Close"
+      data-popup-close
+      className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
+      style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid var(--c-border-med)", background: "var(--c-surface-4)", color: "var(--c-text)", cursor: "pointer", flexShrink: 0 }}
+    >
+      <X size={14} />
+    </button>
+  );
+
   return (
     <div className="flex-1 lg:overflow-y-auto relative" style={{ minWidth: 0 }}>
-      {/* Top banner — a short, full-width strip (not the old tall side panel), matching the
-          single-column layout the standalone case-study page used before the projects/case-
-          studies merge. Edge-to-edge against this wrapper (no padding here), so it reaches the
-          true panel/page edges; the padded, centered column below is where the actual copy
-          lives. */}
+      {/* Top banner — a tall, hero-style strip with the num/tag badge, credit line, title and
+          tags overlaid bottom-left directly on the photo (matching the reference case-study
+          layout), instead of the old plain banner-then-copy-below treatment. Colour overlay is
+          admin-editable per project (same system as the 4 top-level path-page heroes), falling
+          back to a sensible dark-at-bottom default so existing projects look right with zero
+          extra setup. */}
       {heroSrc && (
-        <div style={{ width: "100%", height: "clamp(200px, 38vh, 420px)", position: "relative", overflow: "hidden" }}>
+        // Aspect ratio widens at each breakpoint — narrow phones need a much taller (portrait-
+        // leaning) crop than desktop to leave room for the overlaid title/tags stack without
+        // colliding with the header row above it, especially since project names here can run
+        // to a full sentence rather than a short title.
+        <div className="w-full relative overflow-hidden aspect-[3/4] sm:aspect-[16/9] lg:aspect-[21/9]" style={{ maxHeight: 560 }}>
           <div
             style={{
               position: "absolute", inset: 0,
@@ -186,89 +273,78 @@ export function ProjectDetailBody({
               transformOrigin: project.heroImagePosition || "center",
             }}
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #0F1519 0%, rgba(15,21,25,0.3) 60%, transparent 100%)" }} />
+          {(project.heroOverlayEnabled ?? true) && (
+            <div style={{ position: "absolute", inset: 0, background: buildHeroOverlayGradient(project, PROJECT_HERO_OVERLAY_DEFAULTS) }} />
+          )}
+
+          {/* Header row, overlaid */}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
+            {backAndBadge}
+            {closeButtonOverlay}
+          </div>
+
+          {/* Title block, overlaid bottom-left */}
+          <div className="absolute left-0 right-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-7">
+            <div style={{ maxWidth: 1160, margin: "0 auto" }}>
+              <div style={{ marginBottom: 4 }}>
+                <CompanyCredit
+                  companyId={project.companyId}
+                  companies={content.companies}
+                  clientName={project.client}
+                  instanceId={`card-${project.id}`}
+                  openId={openAttributionId}
+                  onToggle={onToggleAttribution}
+                  copyTemplate={content.companyCreditCopy}
+                  light
+                />
+              </div>
+              <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(22px, 5.5vw, 34px)", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 6, color: "#F5F1EA" }}>
+                {project.name}
+              </h1>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(245,241,234,0.65)", marginBottom: 14 }}>
+                {project.client}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {project.tags.map((t, ti) => (
+                  <span key={`${t}-${ti}`} style={OVERLAY_TAG_STYLE}>{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
       <div style={{ maxWidth: 1160, margin: "0 auto", padding: "28px 32px 120px" }}>
-        {/* Header row — back control + num/tag badge on the left, close/X on the right. Used to
-            live overlaid on the hero image; now the hero is a plain banner with nothing overlaid
-            on it, so this is just a normal row at the top of the content column. Page mode's back
-            link shows at every breakpoint (there's no separate mobile bar for page mode — see
-            ProjectDetailChrome's page branch); modal mode's back button + the close X both stay
-            desktop-only there, since ProjectDetailChrome already renders a mobile/tablet back+close
-            bar of its own for modal mode. */}
-        <div className="flex items-center justify-between mb-6">
-          <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3`}>
-            {mode === "page" ? (
-              <Link
-                href="/work"
-                className="hover:opacity-80 transition-opacity"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
-                  color: TEAL, background: "rgba(6,9,12,0.75)",
-                  border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
-                  padding: "7px 13px", textDecoration: "none",
-                }}
-              >
-                <ArrowLeft size={12} /> Back to Work
-              </Link>
-            ) : (
-              <button
-                onClick={onClose}
-                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-                style={{
-                  fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
-                  color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
-                  padding: "7px 12px", cursor: "pointer",
-                }}
-              >
-                <ArrowLeft size={11} /> Back to Projects
-              </button>
-            )}
-            <div style={{
-              fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
-              color: TEAL, background: "rgba(6,9,12,0.75)",
-              border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
-              padding: "5px 13px",
-            }}>
-              {project.num} — {project.tags[0]?.toUpperCase()}
+        {/* No-hero fallback — plain, non-overlaid header/title/credit in normal flow, unchanged
+            from before the overlaid-banner treatment above (only reachable when a project has
+            zero images at all, since heroSrc otherwise falls back to the first gallery image). */}
+        {!heroSrc && (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              {backAndBadge}
+              {closeButtonPlain}
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            data-popup-close
-            className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
-            style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid var(--c-border-med)", background: "var(--c-surface-4)", color: "var(--c-text)", cursor: "pointer", flexShrink: 0 }}
-          >
-            <X size={14} />
-          </button>
-        </div>
 
-        {/* Title — the page's real heading (className is a Design-System font-size TIER name,
-            unrelated to the tag itself; see the comment on buildDesignSystemCss in
-            store/contentStore.ts). */}
-        <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
-          {project.name}
-        </h1>
+            <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
+              {project.name}
+            </h1>
 
-        {/* Client */}
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>
-          {project.client}
-        </div>
-        <div style={{ marginBottom: 18 }}>
-          <CompanyCredit
-            companyId={project.companyId}
-            companies={content.companies}
-            clientName={project.client}
-            instanceId={`card-${project.id}`}
-            openId={openAttributionId}
-            onToggle={onToggleAttribution}
-            copyTemplate={content.companyCreditCopy}
-          />
-        </div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>
+              {project.client}
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <CompanyCredit
+                companyId={project.companyId}
+                companies={content.companies}
+                clientName={project.client}
+                instanceId={`card-${project.id}`}
+                openId={openAttributionId}
+                onToggle={onToggleAttribution}
+                copyTemplate={content.companyCreditCopy}
+              />
+            </div>
+          </>
+        )}
 
         {/* Cover image */}
         {coverSrc ? (
