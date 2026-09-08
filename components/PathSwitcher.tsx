@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
+import { Home, Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
 import { PATH_URLS, PATH_DISPLAY_NAMES, type PathKey } from "@/lib/paths";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 
@@ -19,15 +19,76 @@ interface PathSwitcherProps {
   selectedPath: string;
 }
 
+interface NavButtonProps {
+  icon: React.ComponentType<{ size?: number }>;
+  label: string;
+  isActive: boolean;
+  isExpanded: boolean;
+  eyebrow?: string;
+  onClick: () => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
+}
+
+// Shared rendering for every button in the bar (the 4 paths, plus the standalone Home button
+// below) — icon-only at rest, label expands on hover or while active, same treatment for both
+// so Home doesn't read as a visually distinct bolt-on.
+function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, onHoverStart, onHoverEnd }: NavButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+      aria-current={isActive ? "page" : undefined}
+      aria-label={label}
+      className="flex items-center transition-colors"
+      style={{
+        borderRadius: 0,
+        border: isActive ? "1px solid var(--c-teal)" : "1px solid transparent",
+        background: isActive ? "rgba(20,173,181,0.12)" : "transparent",
+        color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
+        padding: "9px 11px",
+        gap: isExpanded ? 9 : 0,
+        cursor: "pointer",
+        transition: "background 0.25s ease, border-color 0.25s ease, color 0.25s ease, gap 0.25s ease",
+      }}
+    >
+      <Icon size={16} />
+      <span
+        className="flex flex-col items-start overflow-hidden whitespace-nowrap"
+        style={{
+          maxWidth: isExpanded ? 160 : 0,
+          opacity: isExpanded ? 1 : 0,
+          lineHeight: 1.15,
+          transition: "max-width 0.25s ease, opacity 0.2s ease",
+        }}
+      >
+        {eyebrow && (
+          <span
+            className="uppercase"
+            style={{ fontSize: 8, letterSpacing: "0.08em", fontFamily: "var(--font-mono)", color: "var(--c-text-muted)" }}
+          >
+            {eyebrow}
+          </span>
+        )}
+        <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{label}</span>
+      </span>
+    </button>
+  );
+}
+
 // Always-visible row of the 4 paths (icon-only at rest, label expands on hover — or, on touch,
 // only for whichever path is currently active, since there's no hover state to expand the
 // others) — clicking any of them navigates straight there. Replaces the old "Current Path" pill
 // + a "Switch Path" button that only ever routed home to re-choose from the path cards there;
 // this collapses that extra hop into a single click, same as any other icon nav bar.
+const HOME_HOVER_KEY = "home";
+
 export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   const router = useRouter();
   const hidden = useHideOnScroll();
-  const [hoveredKey, setHoveredKey] = useState<PathKey | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<PathKey | typeof HOME_HOVER_KEY | null>(null);
 
   return (
     <motion.div
@@ -49,52 +110,36 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
           boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
         }}
       >
+        {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
+            rendered standalone rather than folded into PATH_ORDER; it's also never "active"
+            since this bar only ever renders on an experience page, never on the homepage
+            itself. */}
+        <NavButton
+          icon={Home}
+          label="Home"
+          isActive={false}
+          isExpanded={hoveredKey === HOME_HOVER_KEY}
+          onClick={() => router.push("/")}
+          onHoverStart={() => setHoveredKey(HOME_HOVER_KEY)}
+          onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_HOVER_KEY ? null : cur))}
+        />
+        <div style={{ width: 1, alignSelf: "stretch", background: "var(--c-border-med)" }} />
+
         {PATH_ORDER.map((key) => {
           const isActive = selectedPath === key;
           const isExpanded = isActive || hoveredKey === key;
-          const Icon = PATH_ICONS[key];
           return (
-            <button
+            <NavButton
               key={key}
-              type="button"
+              icon={PATH_ICONS[key]}
+              label={PATH_DISPLAY_NAMES[key]}
+              isActive={isActive}
+              isExpanded={isExpanded}
+              eyebrow={isActive ? "Current Path" : undefined}
               onClick={() => router.push(PATH_URLS[key])}
-              onMouseEnter={() => setHoveredKey(key)}
-              onMouseLeave={() => setHoveredKey((cur) => (cur === key ? null : cur))}
-              aria-current={isActive ? "page" : undefined}
-              aria-label={PATH_DISPLAY_NAMES[key]}
-              className="flex items-center transition-colors"
-              style={{
-                borderRadius: 0,
-                border: isActive ? "1px solid var(--c-teal)" : "1px solid transparent",
-                background: isActive ? "rgba(20,173,181,0.12)" : "transparent",
-                color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
-                padding: "9px 11px",
-                gap: isExpanded ? 9 : 0,
-                cursor: "pointer",
-                transition: "background 0.25s ease, border-color 0.25s ease, color 0.25s ease, gap 0.25s ease",
-              }}
-            >
-              <Icon size={16} />
-              <span
-                className="flex flex-col items-start overflow-hidden whitespace-nowrap"
-                style={{
-                  maxWidth: isExpanded ? 160 : 0,
-                  opacity: isExpanded ? 1 : 0,
-                  lineHeight: 1.15,
-                  transition: "max-width 0.25s ease, opacity 0.2s ease",
-                }}
-              >
-                {isActive && (
-                  <span
-                    className="uppercase"
-                    style={{ fontSize: 8, letterSpacing: "0.08em", fontFamily: "var(--font-mono)", color: "var(--c-text-muted)" }}
-                  >
-                    Current Path
-                  </span>
-                )}
-                <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{PATH_DISPLAY_NAMES[key]}</span>
-              </span>
-            </button>
+              onHoverStart={() => setHoveredKey(key)}
+              onHoverEnd={() => setHoveredKey((cur) => (cur === key ? null : cur))}
+            />
           );
         })}
       </nav>
