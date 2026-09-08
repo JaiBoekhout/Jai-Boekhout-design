@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type KeyboardEvent } from "react";
+import { useState, useEffect, useRef, type KeyboardEvent, type CSSProperties } from "react";
 import { motion, AnimatePresence, animate } from "motion/react";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -10,6 +10,14 @@ import { useContentStore, resolveLinkedCaseStudy, isCaseStudyLive, projectUrlSlu
 import { TALL_RATIO_THRESHOLD } from "@/components/ImagePicker";
 import { CompanyCredit } from "@/components/CompanyCredit";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
+import { stripHtml } from "@/lib/utils";
+
+const TAG_STYLE: CSSProperties = {
+  fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
+  color: "var(--c-teal)", background: "transparent", textTransform: "uppercase",
+  border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+  padding: "4px 11px",
+};
 
 const TEAL = "var(--c-teal)";
 
@@ -402,9 +410,9 @@ export function ProjectDetailBody({
 
         {/* Cover image */}
         {coverSrc ? (
-          <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
+          <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
         ) : (
-          <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 10, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
+          <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
             <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
           </div>
         )}
@@ -435,7 +443,7 @@ export function ProjectDetailBody({
         {project.live && (
           <a href={project.live} target="_blank" rel="noreferrer"
             className="hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: 999, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
+            style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: 0, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
             View Live Site →
           </a>
         )}
@@ -453,7 +461,7 @@ export function ProjectDetailBody({
               <button
                 key={k}
                 onClick={() => onOpenLightbox(item.src!)}
-                style={{ flex: 1, aspectRatio: "4/3", borderRadius: 9, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
+                style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
               >
                 <FadeInImage
                   src={item.src!}
@@ -509,9 +517,9 @@ export function ProjectDetailBody({
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
           Tags
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
           {project.tags.map((t, ti) => (
-            <span key={`${t}-${ti}`} className="pro-exp-outline" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", borderRadius: 999, padding: "6px 14px", whiteSpace: "nowrap" }}>
+            <span key={`${t}-${ti}`} style={TAG_STYLE}>
               {t}
             </span>
           ))}
@@ -528,7 +536,7 @@ export function ProjectDetailBody({
                 <button
                   onClick={() => onViewCaseStudy(project)}
                   className="hover:opacity-80 transition-opacity"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0C1117", background: TEAL, border: "none", borderRadius: 10, padding: "8px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em" }}>
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#0C1117", background: TEAL, border: "none", borderRadius: 0, padding: "8px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em" }}>
                   {project.fullCaseStudyLocked && <Lock size={11} />}
                   View Full Case Study →
                 </button>
@@ -564,52 +572,72 @@ export function ProjectDetailBody({
                     tabIndex={0}
                     onClick={() => onSelectProject(projectUrlSlug(vp))}
                     onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(projectUrlSlug(vp)); } }}
-                    className="group relative cursor-pointer"
-                    style={{ aspectRatio: "16/9", borderRadius: 14, background: "var(--c-bg-card)", border: "0.5px solid var(--c-border-soft)", outline: "none", overflow: "hidden" }}
+                    className="group relative flex flex-col cursor-pointer"
+                    style={{ borderRadius: 0, background: "var(--c-bg-card)", border: "0.5px solid var(--c-border-soft)", outline: "none", overflow: "hidden" }}
                   >
-                    {vpCover ? (
-                      <>
-                        <FadeInImage
-                          src={vpCover}
-                          alt={vp.name}
-                          sizes="(min-width: 1024px) 33vw, 100vw"
-                          objectPosition={vp.coverImagePosition || "center"}
-                          scale={vp.coverImageScale ?? 1}
-                        />
-                        {vp.coverImageHoverUrl && (
-                          <NextImage
-                            src={vp.coverImageHoverUrl}
-                            alt=""
-                            fill
+                    {/* Image — fixed aspect ratio; card text sits in its own panel below, matching the main Work grid card style */}
+                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
+                      {vpCover ? (
+                        <>
+                          <FadeInImage
+                            src={vpCover}
+                            alt={vp.name}
                             sizes="(min-width: 1024px) 33vw, 100vw"
-                            className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                            style={{
-                              objectFit: "cover",
-                              objectPosition: vp.coverImageHoverPosition || "center",
-                              transform: `scale(${vp.coverImageHoverScale ?? 1})`,
-                              transformOrigin: vp.coverImageHoverPosition || "50% 50%",
-                            }}
+                            objectPosition={vp.coverImagePosition || "center"}
+                            scale={vp.coverImageScale ?? 1}
+                            className="transition-transform duration-700 ease-out group-hover:scale-[1.05]"
                           />
-                        )}
-                      </>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={DEFAULT_LOGO_URL} alt="" style={{ width: "30%", maxWidth: 90, opacity: 0.12, filter: "brightness(0) invert(1)" }} />
-                      </div>
-                    )}
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,9,12,0.95) 0%, rgba(6,9,12,0.6) 38%, transparent 100%)" }} />
-                    <div className="absolute left-4 right-4 bottom-4">
-                      {vp.tags[0] && (
-                        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.12em", color: TEAL, textTransform: "uppercase", marginBottom: 4 }}>
-                          {vp.tags[0]}
+                          {vp.coverImageHoverUrl && (
+                            <NextImage
+                              src={vp.coverImageHoverUrl}
+                              alt=""
+                              fill
+                              sizes="(min-width: 1024px) 33vw, 100vw"
+                              className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                              style={{
+                                objectFit: "cover",
+                                objectPosition: vp.coverImageHoverPosition || "center",
+                                transform: `scale(${vp.coverImageHoverScale ?? 1})`,
+                                transformOrigin: vp.coverImageHoverPosition || "50% 50%",
+                              }}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
                         </div>
                       )}
-                      <div style={{
-                        fontFamily: "var(--font-heading)", fontSize: 14.5, fontWeight: 500, color: TEAL, lineHeight: 1.25,
-                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                    </div>
+
+                    {/* Card text — its own panel below the image */}
+                    <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px" }}>
+                      {vp.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
+                          {vp.tags.slice(0, 2).map((t, ti) => (
+                            <span key={`${t}-${ti}`} style={TAG_STYLE}>{t}</span>
+                          ))}
+                        </div>
+                      )}
+                      <h3 style={{
+                        fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--c-text)", lineHeight: 1.2,
+                        marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                       }}>
                         {vp.name}
+                      </h3>
+                      <div style={{
+                        fontFamily: "var(--font-body)", fontSize: 12, color: "var(--c-text-70)", lineHeight: 1.55,
+                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                      }}>
+                        {stripHtml(vp.desc)}
+                      </div>
+                      <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
+                        <div
+                          className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
+                          style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
+                        >
+                          View project <span>→</span>
+                        </div>
                       </div>
                     </div>
                   </div>

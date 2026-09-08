@@ -33,7 +33,7 @@ export function CaseStudyDetailChrome({ mode, onClose, children }: CaseStudyDeta
         {mode === "modal" ? (
           <button
             onClick={onClose}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: 999, padding: "7px 12px", cursor: "pointer" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: 0, padding: "7px 12px", cursor: "pointer" }}
             className="hover:opacity-80 transition-opacity"
           >
             <ArrowLeft size={11} /> Back to projects
@@ -41,7 +41,7 @@ export function CaseStudyDetailChrome({ mode, onClose, children }: CaseStudyDeta
         ) : (
           <Link
             href="/work"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "#0C1117", background: TEAL, borderRadius: 999, padding: "7px 13px", textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "#0C1117", background: TEAL, borderRadius: 0, padding: "7px 13px", textDecoration: "none" }}
             className="hover:opacity-80 transition-opacity"
           >
             <ArrowLeft size={12} /> Back to projects

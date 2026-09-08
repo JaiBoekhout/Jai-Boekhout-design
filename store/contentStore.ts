@@ -156,6 +156,12 @@ export interface CMSCaseStudy {
   fullCaseStudyBannerUrl?: string;
   fullCaseStudyContent?: string;
   fullCaseStudyContentMobile?: string;
+  // Small "Role" info-card grid shown on the full case-study page, above the Process content.
+  // All optional/freeform — the section itself is hidden unless at least one of these three is
+  // set (the fourth card, Client, always has a value already via the `client` field above).
+  fullCaseStudyRole?: string;
+  fullCaseStudyPlatform?: string;
+  fullCaseStudyScope?: string;
   coverImageUrl?: string;
   coverImagePosition?: string;
   coverImageScale?: number;
@@ -245,6 +251,9 @@ export interface CMSProject {
   fullCaseStudyBannerUrl?: string;
   fullCaseStudyContent?: string;
   fullCaseStudyContentMobile?: string;
+  fullCaseStudyRole?: string;
+  fullCaseStudyPlatform?: string;
+  fullCaseStudyScope?: string;
   status?: "published" | "saved" | "updated" | "unpublished";
   createdAt?: string;
   updatedAt?: string;
@@ -1948,6 +1957,9 @@ export function enrichProjectWithCaseStudy(project: CMSProject, caseStudies: CMS
     fullCaseStudyBannerUrl: project.fullCaseStudyBannerUrl || cs.fullCaseStudyBannerUrl || undefined,
     fullCaseStudyContent: project.fullCaseStudyContent || cs.fullCaseStudyContent || undefined,
     fullCaseStudyContentMobile: project.fullCaseStudyContentMobile || cs.fullCaseStudyContentMobile || undefined,
+    fullCaseStudyRole: project.fullCaseStudyRole || cs.fullCaseStudyRole || undefined,
+    fullCaseStudyPlatform: project.fullCaseStudyPlatform || cs.fullCaseStudyPlatform || undefined,
+    fullCaseStudyScope: project.fullCaseStudyScope || cs.fullCaseStudyScope || undefined,
     live: project.live || cs.liveUrl || null,
     createdAt: project.createdAt || cs.createdAt || undefined,
     updatedAt: project.updatedAt || cs.updatedAt || undefined,

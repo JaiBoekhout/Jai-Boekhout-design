@@ -1576,6 +1576,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                     value={cs.fullCaseStudyBannerUrl}
                     onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
                   />
+                  <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
+                    <CMSInput label="Role (optional — Role info card)" value={cs.fullCaseStudyRole || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyRole: v || undefined })} />
+                    <CMSInput label="Platform (optional — Role info card)" value={cs.fullCaseStudyPlatform || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyPlatform: v || undefined })} />
+                    <CMSInput label="Scope (optional — Role info card)" value={cs.fullCaseStudyScope || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyScope: v || undefined })} />
+                  </div>
                   <ResponsiveRichTextEditor
                     label="Full Case Study content (additional detail shown on the full case study page)"
                     value={cs.fullCaseStudyContent || ""}
@@ -1956,6 +1961,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                       value={cs.fullCaseStudyBannerUrl}
                       onChange={(src) => updateCase(cs.id, { fullCaseStudyBannerUrl: src || undefined })}
                     />
+                    <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
+                      <CMSInput label="Role (optional — Role info card)" value={cs.fullCaseStudyRole || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyRole: v || undefined })} />
+                      <CMSInput label="Platform (optional — Role info card)" value={cs.fullCaseStudyPlatform || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyPlatform: v || undefined })} />
+                      <CMSInput label="Scope (optional — Role info card)" value={cs.fullCaseStudyScope || ""} onChange={(v) => updateCase(cs.id, { fullCaseStudyScope: v || undefined })} />
+                    </div>
                     <ResponsiveRichTextEditor
                       label="Full Case Study content (additional detail shown on the full case study page)"
                       value={cs.fullCaseStudyContent || ""}
@@ -2272,6 +2282,11 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                       value={p.fullCaseStudyBannerUrl}
                       onChange={(src) => updateProject(p.id, { fullCaseStudyBannerUrl: src || undefined })}
                     />
+                    <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 10 }}>
+                      <CMSInput label="Role (optional — Role info card)" value={p.fullCaseStudyRole || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyRole: v || undefined })} />
+                      <CMSInput label="Platform (optional — Role info card)" value={p.fullCaseStudyPlatform || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyPlatform: v || undefined })} />
+                      <CMSInput label="Scope (optional — Role info card)" value={p.fullCaseStudyScope || ""} onChange={(v) => updateProject(p.id, { fullCaseStudyScope: v || undefined })} />
+                    </div>
                     <ResponsiveRichTextEditor
                       label="Full Case Study content (additional detail shown on the full case study page)"
                       value={p.fullCaseStudyContent || ""}
