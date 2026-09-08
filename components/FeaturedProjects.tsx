@@ -265,7 +265,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                       className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
                       style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
                     >
-                      View case study <span>→</span>
+                      View Project <span>→</span>
                     </div>
                   </div>
                 </div>

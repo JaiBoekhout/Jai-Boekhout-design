@@ -54,7 +54,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
       className={`grid ${cols.base} ${cols.md} ${cols.lg}`}
       style={{
         background: "var(--c-divider)",
-        gap: "0.5px",
+        gap: "1px",
         borderTop: "0.5px solid var(--c-divider)",
         borderBottom: "0.5px solid var(--c-divider)",
       }}
