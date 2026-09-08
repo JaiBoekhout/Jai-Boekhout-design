@@ -206,7 +206,7 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
   const { color1, color1Opacity, color2, color2Opacity, color2Transparent, ratio, midpoint, direction } = resolve(data, defaults);
   const overlayEnabled = data.heroOverlayEnabled ?? true;
   return (
-    <>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
       <ImagePicker
         label={imageLabel}
         previewRatio="21/9"
@@ -219,111 +219,117 @@ export function HeroImageOverlayEditor<T extends HeroOverlayData>({
         previewOverlayStyle={overlayEnabled ? { background: buildHeroOverlayGradient(data, defaults) } : undefined}
       />
       {data.heroImageUrl && (
-        <div className="flex flex-col mb-6 p-4 rounded-xl" style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)" }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: overlayEnabled ? 12 : 0 }}>
+        <div className="flex flex-col p-4 rounded-xl" style={{ background: "#0C1117", border: "1px solid rgba(237,232,223,0.06)" }}>
+          <div className="flex items-center justify-between mb-3">
             <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase" }}>
               Colour Overlay
             </label>
             <Switch checked={overlayEnabled} onChange={(checked) => onChange({ ...data, heroOverlayEnabled: checked })} />
           </div>
 
-          {overlayEnabled && (
-          <>
-          {/* Direction — which edge Colour 1 anchors to; flipping this is how you move the solid
-              colour off one edge (e.g. Bottom → Top anchors Colour 1 at the bottom instead). */}
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "8px" }}>
-            Direction
-          </label>
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {DIRECTION_OPTIONS.map((opt) => {
-              const active = direction === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => onChange({ ...data, heroOverlayDirection: opt.id })}
-                  style={{
-                    fontFamily: "'DM Mono', monospace", fontSize: 10.5, letterSpacing: "0.03em",
-                    padding: "7px 12px", borderRadius: 6, cursor: "pointer",
-                    background: active ? "#14ADB5" : "transparent",
-                    color: active ? "#06090C" : "#EDE8DF",
-                    border: active ? "1px solid transparent" : "1px solid rgba(237,232,223,0.16)",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          {/* Dimmed + disabled (not unmounted) when off — keeps the last setup visible and in
+              place, rather than making the admin reconstruct it from memory after flipping the
+              switch back on. */}
+          <div style={{ opacity: overlayEnabled ? 1 : 0.4, pointerEvents: overlayEnabled ? "auto" : "none", transition: "opacity 0.2s ease" }}>
+            {/* Direction — which edge Colour 1 anchors to; flipping this is how you move the solid
+                colour off one edge (e.g. Bottom → Top anchors Colour 1 at the bottom instead).
+                Grouped with the two colours as the primary controls — most edits never touch
+                Ratio/Midpoint below, so those get visually demoted under "Fine-tune transition"
+                instead of competing for the same attention. */}
+            <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "8px" }}>
+              Direction
+            </label>
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {DIRECTION_OPTIONS.map((opt) => {
+                const active = direction === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={!overlayEnabled}
+                    onClick={() => onChange({ ...data, heroOverlayDirection: opt.id })}
+                    style={{
+                      fontFamily: "'DM Mono', monospace", fontSize: 10.5, letterSpacing: "0.03em",
+                      padding: "7px 12px", borderRadius: 6, cursor: overlayEnabled ? "pointer" : "default",
+                      background: active ? "#14ADB5" : "transparent",
+                      color: active ? "#06090C" : "#EDE8DF",
+                      border: active ? "1px solid transparent" : "1px solid rgba(237,232,223,0.16)",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
 
-          <div className="flex gap-3 mb-3">
-            <ColorInput
-              label="Colour 1"
-              value={color1}
-              onChange={(v) => onChange({ ...data, heroOverlayColor1: v })}
-              opacity={color1Opacity}
-              onOpacityChange={(n) => onChange({ ...data, heroOverlayColor1Opacity: n })}
-            />
-            <ColorInput
-              label="Colour 2"
-              value={color2}
-              onChange={(v) => onChange({ ...data, heroOverlayColor2: v })}
-              opacity={color2Opacity}
-              onOpacityChange={(n) => onChange({ ...data, heroOverlayColor2Opacity: n })}
-              disabled={color2Transparent}
-            />
-          </div>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, cursor: "pointer", userSelect: "none" }}>
-            <input
-              type="checkbox"
-              checked={color2Transparent}
-              onChange={(e) => onChange({ ...data, heroOverlayColor2Transparent: e.target.checked })}
-              style={{ width: 14, height: 14, accentColor: "#14ADB5", cursor: "pointer", flexShrink: 0 }}
-            />
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-              Fade Colour 2 to transparent instead
-            </span>
-          </label>
+            <div className="flex gap-3 mb-4">
+              <ColorInput
+                label="Colour 1"
+                value={color1}
+                onChange={(v) => onChange({ ...data, heroOverlayColor1: v })}
+                opacity={color1Opacity}
+                onOpacityChange={(n) => onChange({ ...data, heroOverlayColor1Opacity: n })}
+                disabled={!overlayEnabled}
+              />
+              <ColorInput
+                label="Colour 2"
+                value={color2}
+                onChange={(v) => onChange({ ...data, heroOverlayColor2: v })}
+                opacity={color2Opacity}
+                onOpacityChange={(n) => onChange({ ...data, heroOverlayColor2Opacity: n })}
+                // color2Transparent is a legacy state (Story's pre-switch default) — no longer
+                // settable from this UI (set Colour 2's own opacity to 0 for the same effect),
+                // but old content that already has it still renders and disables correctly here.
+                disabled={!overlayEnabled || color2Transparent}
+              />
+            </div>
 
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "10px" }}>
-            Gradient Ratio — Colour 1 fully gives way to Colour 2 at {ratio}% along the gradient
-          </label>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={ratio}
-            onChange={(e) => onChange({ ...data, heroOverlayRatio: Number(e.target.value) })}
-            style={{ width: "100%", accentColor: "#14ADB5" }}
-          />
-          <div className="flex justify-between mt-1 mb-4">
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>0% (start)</span>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>100% (end)</span>
-          </div>
+            <div style={{ borderTop: "1px solid rgba(237,232,223,0.08)", paddingTop: 14, marginTop: 2 }}>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px", color: "#6B7E8A", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "14px" }}>
+                Fine-tune transition
+              </p>
 
-          {/* Midpoint — Photoshop-style: biases where the 50/50 blend between Colour 1 and
-              Colour 2 sits within the active 0%→ratio% transition, rather than always sitting at
-              its arithmetic middle. Range is deliberately scoped to "within the active part" (the
-              transition zone itself), not the full 0-100% of the image. */}
-          <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "10px" }}>
-            Midpoint — the 50/50 blend sits {midpoint}% of the way through that transition
-          </label>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={midpoint}
-            onChange={(e) => onChange({ ...data, heroOverlayMidpoint: Number(e.target.value) })}
-            style={{ width: "100%", accentColor: "#14ADB5" }}
-          />
-          <div className="flex justify-between mt-1">
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Sooner</span>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Later</span>
+              <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "10px" }}>
+                Gradient Ratio — Colour 1 fully gives way to Colour 2 at {ratio}% along the gradient
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={ratio}
+                disabled={!overlayEnabled}
+                onChange={(e) => onChange({ ...data, heroOverlayRatio: Number(e.target.value) })}
+                style={{ width: "100%", accentColor: "#14ADB5" }}
+              />
+              <div className="flex justify-between mt-1 mb-4">
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>0% (start)</span>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>100% (end)</span>
+              </div>
+
+              {/* Midpoint — Photoshop-style: biases where the 50/50 blend between Colour 1 and
+                  Colour 2 sits within the active 0%→ratio% transition, rather than always sitting
+                  at its arithmetic middle. Range is deliberately scoped to "within the active
+                  part" (the transition zone itself), not the full 0-100% of the image. */}
+              <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "10px" }}>
+                Midpoint — the 50/50 blend sits {midpoint}% of the way through that transition
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={midpoint}
+                disabled={!overlayEnabled}
+                onChange={(e) => onChange({ ...data, heroOverlayMidpoint: Number(e.target.value) })}
+                style={{ width: "100%", accentColor: "#14ADB5" }}
+              />
+              <div className="flex justify-between mt-1">
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Sooner</span>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#EDE8DF" }}>Later</span>
+              </div>
+            </div>
           </div>
-          </>
-          )}
         </div>
       )}
-    </>
+    </div>
   );
 }
