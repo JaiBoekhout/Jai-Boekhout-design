@@ -556,29 +556,40 @@ export function ProjectDetailBody({
             {/* Gallery — each image starts invisible and fades in on its own load, rather
                 than popping in the instant it's decoded (which is what actually read as
                 glitchy — the fix is a graceful reveal, not a slower fetch). */}
-            {project.imgs.length > 1 && (
-              <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 22 }}>
-                {([
-                  { src: project.imgs[1], pos: project.img1Position, scale: project.img1Scale },
-                  { src: project.imgs[2], pos: project.img2Position, scale: project.img2Scale },
-                  { src: project.imgs[3], pos: project.img3Position, scale: project.img3Scale },
-                ] as { src?: string; pos?: string; scale?: number }[]).filter(item => item.src).map((item, k) => (
-                  <button
-                    key={k}
-                    onClick={() => onOpenLightbox(item.src!)}
-                    style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
-                  >
-                    <FadeInImage
-                      src={item.src!}
-                      alt={content.mediaMeta?.[item.src!]?.alt || `${project.name} — highlight photo ${k + 1}`}
-                      sizes="(min-width: 1024px) 20vw, 33vw"
-                      objectPosition={item.pos || "center"}
-                      scale={item.scale ?? 1}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            {project.imgs.length > 1 && (() => {
+              const highlightItems = ([
+                { src: project.imgs[1], pos: project.img1Position, scale: project.img1Scale },
+                { src: project.imgs[2], pos: project.img2Position, scale: project.img2Scale },
+                { src: project.imgs[3], pos: project.img3Position, scale: project.img3Scale },
+              ] as { src?: string; pos?: string; scale?: number }[]).filter(item => item.src);
+              // Each item gets flex:1 — an EQUAL share of the row, so how wide a slot actually is
+              // depends on how many images are present (a lone highlight fills the whole row, not
+              // a third of it). The old hardcoded "20vw, 33vw" assumed 3 were always present; with
+              // just 1, next/image was only asked to fetch a ~20vw-wide file for a box rendering
+              // at ~3x that width, so the browser stretched/upscaled it — the actual cause of the
+              // "grainy" look reported on Bouwfasef (1 highlight image), not a real quality loss.
+              const n = highlightItems.length;
+              const highlightSizes = `(min-width: 1024px) ${Math.round(70 / n)}vw, ${Math.round(95 / n)}vw`;
+              return (
+                <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 22 }}>
+                  {highlightItems.map((item, k) => (
+                    <button
+                      key={k}
+                      onClick={() => onOpenLightbox(item.src!)}
+                      style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
+                    >
+                      <FadeInImage
+                        src={item.src!}
+                        alt={content.mediaMeta?.[item.src!]?.alt || `${project.name} — highlight photo ${k + 1}`}
+                        sizes={highlightSizes}
+                        objectPosition={item.pos || "center"}
+                        scale={item.scale ?? 1}
+                      />
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Section 3 — "Project section 3" in the CMS, new field with no legacy content to
                 preserve, so unlike sections 1/2 there's no fallback heading: a blank heading
