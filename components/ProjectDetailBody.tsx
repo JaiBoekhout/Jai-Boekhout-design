@@ -120,7 +120,7 @@ export function ProjectDetailBody({
   // Role/Contents-nav — every project now gets the same optional sections (previously exclusive
   // to a separate "full case study" page); each is hidden unless it actually has content, and the
   // side nav itself only shows once there's enough of them to be worth navigating (Summary/
-  // Gallery/Outcomes alone don't warrant it — see showContentsNav below).
+  // Gallery alone don't warrant it — see showContentsNav below).
   const roleCards = useMemo(
     () =>
       [
@@ -135,7 +135,8 @@ export function ProjectDetailBody({
   const showSection1 = !!project.fullContent;
   const showSection2 = !!project.fullCaseStudyContent;
   const showSection3 = !!project.section3Content;
-  const showContentsNav = showRole || showSection1 || showSection2 || showSection3;
+  const showOutcomes = project.outcomes.length > 0;
+  const showContentsNav = showRole || showSection1 || showSection2 || showSection3 || showOutcomes;
 
   const navItems = useMemo(
     () =>
@@ -146,17 +147,36 @@ export function ProjectDetailBody({
         // Section 3 has no heading fallback — with nothing to label the nav entry, the content
         // still renders inline on the page, just without its own jump-to link.
         showSection3 && project.section3Heading && { id: "section3", label: project.section3Heading },
+        showOutcomes && { id: "outcomes", label: "Key Outcomes" },
       ].filter(Boolean) as { id: string; label: string }[],
-    [showRole, showSection1, showSection2, showSection3, project.section1Heading, project.section2Heading, project.section3Heading]
+    [showRole, showSection1, showSection2, showSection3, showOutcomes, project.section1Heading, project.section2Heading, project.section3Heading]
   );
 
   const [activeId, setActiveId] = useState<string | undefined>(navItems[0]?.id);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const navTopOffset = contentsNavTopOffset(mode);
 
+  // Sliding Contents-nav indicator — a single teal bar that animates between list items instead
+  // of each item's own border instantly flipping colour, so the active state visibly travels
+  // down (or up) to wherever the scroll-spy lands next.
+  const navItemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  const [navIndicator, setNavIndicator] = useState<{ top: number; height: number } | null>(null);
+
+  useEffect(() => {
+    if (!activeId) return;
+    function measure() {
+      const li = activeId ? navItemRefs.current[activeId] : null;
+      if (!li) return;
+      setNavIndicator({ top: li.offsetTop, height: li.offsetHeight });
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeId, navItems]);
+
   useEffect(() => {
     if (!showContentsNav) return;
-    const ids = ["role", "section1", "section2", "section3"];
+    const ids = ["role", "section1", "section2", "section3", "outcomes"];
     const els = ids.map((id) => sectionRefs.current[id]).filter(Boolean) as HTMLElement[];
     if (els.length === 0) return;
     const observer = new IntersectionObserver(
@@ -250,7 +270,18 @@ export function ProjectDetailBody({
   );
 
   return (
-    <div className="flex-1 lg:overflow-y-auto relative" style={{ minWidth: 0 }}>
+    // overflow-y-auto is a real, load-bearing internal scroll pane in modal mode (its wrapping
+    // ProjectDetailChrome panel is a bounded, fixed-position box at lg: — see lg:overflow-hidden
+    // there), but in page mode there's no bounding box above this at all, so the exact same class
+    // never actually needs to scroll — it just sits there with a permanently-empty scrollTop. A
+    // CSS quirk makes that alone enough to break every position:sticky descendant (like the
+    // Contents nav): overflow-y:auto with a still-default overflow-x silently promotes
+    // overflow-x to auto too, which makes this div register as a scroll-container candidate for
+    // sticky math even though the *real* scrolling happens on the document/window instead — so
+    // sticky computes against a scrollTop that never moves. Scoping the class to modal mode only
+    // avoids creating that phantom scroll container on page mode's plain, normally-scrolling
+    // layout.
+    <div className={`flex-1 relative ${mode === "modal" ? "lg:overflow-y-auto" : ""}`} style={{ minWidth: 0 }}>
       {/* Top banner — a tall, hero-style strip with the num/tag badge, credit line, title and
           tags overlaid bottom-left directly on the photo (matching the reference case-study
           layout), instead of the old plain banner-then-copy-below treatment. Colour overlay is
@@ -295,7 +326,6 @@ export function ProjectDetailBody({
                   openId={openAttributionId}
                   onToggle={onToggleAttribution}
                   copyTemplate={content.companyCreditCopy}
-                  light
                 />
               </div>
               <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(22px, 5.5vw, 34px)", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 6, color: "#F5F1EA" }}>
@@ -354,11 +384,24 @@ export function ProjectDetailBody({
               <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>
                 Contents
               </p>
-              <ul style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <ul style={{ display: "flex", flexDirection: "column", gap: 2, position: "relative" }}>
+                {/* Single sliding indicator, absolutely positioned over whichever item is active —
+                    animates between positions instead of each item's own border instantly
+                    flipping colour, so the active state visibly travels as the scroll-spy moves. */}
+                {navIndicator && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute", left: 0, width: 2, background: TEAL,
+                      top: navIndicator.top, height: navIndicator.height,
+                      transition: "top 0.35s cubic-bezier(0.4,0,0.2,1), height 0.35s cubic-bezier(0.4,0,0.2,1)",
+                    }}
+                  />
+                )}
                 {navItems.map((item) => {
                   const isActive = activeId === item.id;
                   return (
-                    <li key={item.id}>
+                    <li key={item.id} ref={(el) => { navItemRefs.current[item.id] = el; }}>
                       <button
                         type="button"
                         onClick={() => scrollToSection(item.id)}
@@ -370,7 +413,8 @@ export function ProjectDetailBody({
                           opacity: isActive ? 1 : 0.75,
                           background: "none", border: "none", cursor: "pointer",
                           padding: "6px 0 6px 12px",
-                          borderLeft: isActive ? `2px solid ${TEAL}` : "2px solid var(--c-border-soft)",
+                          borderLeft: "2px solid var(--c-border-soft)",
+                          transition: "color 0.25s ease, opacity 0.25s ease",
                         }}
                       >
                         {item.label}
@@ -429,7 +473,7 @@ export function ProjectDetailBody({
                 >
                   {roleCards.map((card) => (
                     <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px" }}>
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
                         {card.label}
                       </p>
                       <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
@@ -554,8 +598,13 @@ export function ProjectDetailBody({
             )}
 
             {/* Outcomes — numbered flush-divided list */}
-            {project.outcomes.length > 0 && (
-              <>
+            {showOutcomes && (
+              <section
+                id="outcomes"
+                data-section-id="outcomes"
+                ref={(el) => { sectionRefs.current.outcomes = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
                   Key Outcomes
                 </div>
@@ -569,7 +618,7 @@ export function ProjectDetailBody({
                     </div>
                   ))}
                 </div>
-              </>
+              </section>
             )}
 
             {/* Tags */}

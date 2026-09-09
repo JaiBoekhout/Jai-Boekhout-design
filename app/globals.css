@@ -224,7 +224,14 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
-    overflow-x: hidden;
+    /* clip, not hidden — per the CSS Overflow spec, pairing overflow-x:hidden with an unset
+       overflow-y silently promotes overflow-y to "auto" too (the "one axis visible, one isn't"
+       quirk), which makes body register as a scroll container for position:sticky purposes even
+       though it never actually scrolls (the real scroll happens on the document/viewport, so
+       body.scrollTop stays permanently 0) — silently breaking every sticky element on the site.
+       overflow-x:clip doesn't trigger that promotion, so it blocks horizontal bleed without the
+       side effect. */
+    overflow-x: clip;
   }
 
   ::-webkit-scrollbar { display: none; }
