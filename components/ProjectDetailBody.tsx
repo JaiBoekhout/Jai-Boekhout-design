@@ -346,15 +346,6 @@ export function ProjectDetailBody({
           </>
         )}
 
-        {/* Cover image */}
-        {coverSrc ? (
-          <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
-        ) : (
-          <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
-            <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
-          </div>
-        )}
-
         <div className={`grid grid-cols-1 ${showContentsNav ? "xl:grid-cols-[120px_minmax(0,1fr)] xl:gap-8" : ""}`}>
           {/* Contents nav — desktop only, scroll-spy highlighted; only shown once there's real
               content beyond Summary/Gallery/Outcomes worth jumping between. */}
@@ -448,6 +439,16 @@ export function ProjectDetailBody({
                   ))}
                 </div>
               </section>
+            )}
+
+            {/* Cover image — sits directly under Role (or, when a project has no Role/Platform/
+                Scope set, right after Summary/the live-site link instead). */}
+            {coverSrc ? (
+              <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
+            ) : (
+              <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
+                <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
+              </div>
             )}
 
             {/* Section 1 — "Project Detail" in the CMS (project.fullContent) */}
