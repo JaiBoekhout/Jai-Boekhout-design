@@ -77,6 +77,10 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
       ]
     : filteredFeatured;
 
+  // Sitewide total, not just the featured grid's own 9 slots — a curated-category filter only
+  // narrows the numerator (the "more" list uses a separate freeform-tag filter, not categories),
+  // but the denominator should always reflect every published project on the page.
+  const totalProjectCount = publishedFeatured.length + publishedMore.length;
   const allTags = ["All", ...Array.from(new Set(publishedMore.flatMap((p) => p.tags)))];
   const rows    = filter === "All" ? publishedMore : publishedMore.filter((p) => p.tags.includes(filter));
   const projectListLayout  = content.work.projectListLayout ?? "list";
@@ -119,7 +123,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             })}
           </div>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--c-text-40)", whiteSpace: "nowrap" }}>
-            {filteredFeatured.length} of {publishedFeatured.length}
+            {featuredFilter === "All" ? totalProjectCount : filteredFeatured.length} of {totalProjectCount}
           </span>
         </div>
       )}
@@ -302,7 +306,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               display: "inline-flex", alignItems: "center", gap: 11,
               fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.06em",
               color: "var(--c-text-70)", background: "var(--c-bg)",
-              border: "0.5px solid var(--c-divider)", borderRadius: 999, padding: "13px 26px", cursor: "pointer",
+              border: "0.5px solid var(--c-divider)", borderRadius: 0, padding: "13px 26px", cursor: "pointer",
             }}
           >
             <span>{listOpen ? "Close project list" : "View more projects"}</span>
@@ -323,7 +327,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   <button key={t} onClick={() => setFilter(t)}
                     style={{
                       fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
-                      padding: "7px 14px", borderRadius: 999, cursor: "pointer", transition: "all 0.2s ease",
+                      padding: "7px 14px", borderRadius: 0, cursor: "pointer", transition: "all 0.2s ease",
                       background: active ? "var(--c-text)" : "transparent",
                       color: active ? "var(--c-bg)" : "var(--c-text-50)",
                       border: active ? "0.5px solid var(--c-text)" : "0.5px solid rgba(237,232,223,0.16)",
