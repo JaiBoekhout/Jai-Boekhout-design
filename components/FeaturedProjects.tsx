@@ -100,7 +100,13 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
           featured project — an empty taxonomy (or one where nothing's assigned
           yet) would make filtering a no-op. */}
       {nonEmptyCategories.length > 0 && (
-        <div className="flex items-center justify-between flex-wrap gap-3" style={{ marginBottom: 22 }}>
+        <div
+          className="flex items-center justify-between flex-wrap gap-3"
+          style={{
+            marginBottom: 22, position: "sticky", top: 70, zIndex: 30,
+            background: "var(--c-bg)", paddingTop: 10, paddingBottom: 10,
+          }}
+        >
           <div className="flex items-center gap-2 flex-wrap">
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginRight: 4 }}>
               Filter:
