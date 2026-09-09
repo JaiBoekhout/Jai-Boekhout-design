@@ -195,8 +195,12 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           }}
           dangerouslySetInnerHTML={{ __html: home.subheadline }}
         />
+        {/* Mobile override of the same H1 above (hidden md:block there, block md:hidden here) —
+            deliberately NOT itself an <h1>. Two real <h1> elements both exist in the DOM at once
+            regardless of which one CSS is currently hiding, so wrapping both in <h1> produced a
+            duplicate-H1 page (a real SEO/screen-reader issue, not just a visual one). */}
         {home.subheadlineMobile && (
-          <motion.h1
+          <motion.p
             className="block md:hidden"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -207,6 +211,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               color: "var(--muted-foreground)",
               lineHeight: 1.6,
               fontWeight: 300,
+              margin: 0,
             }}
             dangerouslySetInnerHTML={{ __html: home.subheadlineMobile }}
           />

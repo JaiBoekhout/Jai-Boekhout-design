@@ -298,8 +298,11 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   }}
                   dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
                 />
+                {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
+                    variants exist in the DOM regardless of which one CSS is currently hiding, so
+                    wrapping both in <h1> produced two real H1 elements on the page at once. */}
                 {cms.heroStatementMobile && (
-                  <motion.h1
+                  <motion.p
                     className="block md:hidden"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -310,6 +313,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
                       lineHeight: 1.1,
                       fontWeight: 400,
+                      margin: 0,
                     }}
                     dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
                   />

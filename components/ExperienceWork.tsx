@@ -97,8 +97,12 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
             }}
             dangerouslySetInnerHTML={{ __html: content.work.heroStatement }}
           />
+          {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
+              variants exist in the DOM regardless of which one CSS is currently hiding
+              (hidden md:block / block md:hidden), so wrapping both in <h1> produced two real
+              H1 elements on the page at once. */}
           {content.work.heroStatementMobile && (
-            <motion.h1
+            <motion.p
               className="block md:hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -110,6 +114,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 lineHeight: 1.1,
                 fontWeight: 400,
                 maxWidth: "800px",
+                margin: 0,
               }}
               dangerouslySetInnerHTML={{ __html: content.work.heroStatementMobile }}
             />
