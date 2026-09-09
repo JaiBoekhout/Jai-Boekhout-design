@@ -42,7 +42,6 @@ export interface FeaturedProjectsProps {
 // ProjectPageView and friends), reached via these links.
 export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const [listOpen, setListOpen]       = useState(false);
-  const [filter, setFilter]           = useState("All");
   const [featuredFilter, setFeaturedFilter] = useState("All");
   const { content } = useContentStore();
 
@@ -55,19 +54,22 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   }
 
   // Category filter bar over the featured grid — a small curated taxonomy the admin maintains
-  // directly (Work tab → Featured Grid → Filter Categories), separate from each project's own
-  // freeform `tags` below (those drive the unrelated "more" list filter only). Categories with
-  // no matching featured project are hidden from the bar entirely — nothing to show, nothing to
-  // click. Matching projects are shown as-is (no placeholder padding) whenever a real filter is
-  // active — padding to a fixed 9 only makes sense for the unfiltered "All" view.
+  // directly (Work tab → Featured Grid → Filter Categories). Drives both the featured grid AND
+  // the collapsible "more" list below (previously the "more" list had its own separate freeform-
+  // tag filter; removed in favour of one filter for the whole page). Categories are only listed
+  // here if at least one published project anywhere — featured or "more" — actually has it, so
+  // there's nothing to click that would only ever show an empty result.
   const projectCategories = [...(content.work.projectCategories ?? [])].sort((a, b) => a.order - b.order);
   const categoryNameById = new Map(projectCategories.map((c) => [c.id, c.name]));
   const nonEmptyCategories = projectCategories.filter((c) =>
-    publishedFeatured.some((p) => p.categories?.includes(c.id))
+    publishedFeatured.some((p) => p.categories?.includes(c.id)) || publishedMore.some((p) => p.categories?.includes(c.id))
   );
   const filteredFeatured = featuredFilter === "All"
     ? publishedFeatured
     : publishedFeatured.filter((p) => p.categories?.includes(featuredFilter));
+  const rows = featuredFilter === "All"
+    ? publishedMore
+    : publishedMore.filter((p) => p.categories?.includes(featuredFilter));
 
   // Pad to 9 slots only in the unfiltered view
   const slots: (CMSProject | null)[] = featuredFilter === "All"
@@ -77,12 +79,10 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
       ]
     : filteredFeatured;
 
-  // Sitewide total, not just the featured grid's own 9 slots — a curated-category filter only
-  // narrows the numerator (the "more" list uses a separate freeform-tag filter, not categories),
-  // but the denominator should always reflect every published project on the page.
+  // Sitewide total — the denominator always reflects every published project on the page; the
+  // numerator narrows to whatever matches the active category, across both the grid and the list.
   const totalProjectCount = publishedFeatured.length + publishedMore.length;
-  const allTags = ["All", ...Array.from(new Set(publishedMore.flatMap((p) => p.tags)))];
-  const rows    = filter === "All" ? publishedMore : publishedMore.filter((p) => p.tags.includes(filter));
+  const visibleProjectCount = featuredFilter === "All" ? totalProjectCount : filteredFeatured.length + rows.length;
   const projectListLayout  = content.work.projectListLayout ?? "list";
   const projectListColumns = content.work.projectListColumns ?? 4;
   const projectListRows    = content.work.projectListRows ?? 3;
@@ -90,7 +90,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   // view — used both for the initial page size and for how much "Load more" reveals each time.
   const rowIncrement = projectListLayout === "card" ? projectListRows * projectListColumns : projectListRows;
   const [visibleCount, setVisibleCount] = useState(rowIncrement);
-  useEffect(() => { setVisibleCount(rowIncrement); }, [filter, rowIncrement]);
+  useEffect(() => { setVisibleCount(rowIncrement); }, [featuredFilter, rowIncrement]);
   const visibleRows = rows.slice(0, visibleCount);
 
   return (
@@ -123,7 +123,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             })}
           </div>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--c-text-40)", whiteSpace: "nowrap" }}>
-            {featuredFilter === "All" ? totalProjectCount : filteredFeatured.length} of {totalProjectCount}
+            {visibleProjectCount} of {totalProjectCount}
           </span>
         </div>
       )}
@@ -318,34 +318,13 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
       {/* ── Project list ────────────────────────────────────────────────────── */}
       {listOpen && publishedMore.length > 0 && (
         <div style={{ marginTop: 38, animation: "fadeUp 0.4s ease both" }}>
-          {allTags.length > 1 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginRight: 6 }}>Filter</span>
-              {allTags.map((t) => {
-                const active = filter === t;
-                return (
-                  <button key={t} onClick={() => setFilter(t)}
-                    style={{
-                      fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
-                      padding: "7px 14px", borderRadius: 0, cursor: "pointer", transition: "all 0.2s ease",
-                      background: active ? "var(--c-text)" : "transparent",
-                      color: active ? "var(--c-bg)" : "var(--c-text-50)",
-                      border: active ? "0.5px solid var(--c-text)" : "0.5px solid rgba(237,232,223,0.16)",
-                    }}>
-                    {t}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
           {rows.length === 0 ? (
             <div style={{ border: "0.5px dashed rgba(237,232,223,0.12)", borderRadius: 12, padding: "64px 24px", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.1em", color: "var(--c-text-40)", marginBottom: 10 }}>
-                {filter === "All" ? "No additional projects yet." : `No projects match "${filter}"`}
+                {featuredFilter === "All" ? "No additional projects yet." : `No projects match "${categoryNameById.get(featuredFilter) ?? featuredFilter}"`}
               </div>
-              {filter !== "All" && (
-                <button onClick={() => setFilter("All")} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: TEAL, background: "none", border: "none", cursor: "pointer" }}>Clear filter →</button>
+              {featuredFilter !== "All" && (
+                <button onClick={() => setFeaturedFilter("All")} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: TEAL, background: "none", border: "none", cursor: "pointer" }}>Clear filter →</button>
               )}
             </div>
           ) : projectListLayout === "card" ? (
