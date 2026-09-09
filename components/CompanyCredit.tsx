@@ -12,7 +12,7 @@ import { DEFAULT_COMPANY_CREDIT_COPY } from "@/store/contentStore";
 // a time even when multiple badges exist on the same page (the card popup and the full case
 // study page can both show a badge for the same project simultaneously).
 export function CompanyCredit({
-  companyId, companies, clientName, instanceId, openId, onToggle, copyTemplate, light,
+  companyId, companies, clientName, instanceId, openId, onToggle, copyTemplate,
 }: {
   companyId?: string;
   companies: CMSCompany[];
@@ -21,10 +21,6 @@ export function CompanyCredit({
   openId: string | null;
   onToggle: (id: string | null) => void;
   copyTemplate?: string;
-  // Forces the credit line's own text to a fixed light color instead of the themed
-  // var(--c-text) — for when this sits directly on a photo overlay (always dark, regardless
-  // of the site's light/dark mode setting) rather than on the page's own themed background.
-  light?: boolean;
 }) {
   const isOpen = openId === instanceId;
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -95,12 +91,20 @@ export function CompanyCredit({
     // its containing block — a shrink-wrapped inline-flex span would otherwise resolve its
     // width:100% against its own content size instead of the full row width.
     <div style={{ position: "relative", marginTop: 6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 9, fontFamily: "var(--font-mono)", fontSize: 13, color: light ? "rgba(245,241,234,0.85)" : "var(--c-text)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
         {company.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 25.5, width: "auto", maxWidth: 114, objectFit: "contain" }} />
         )}
-        <span>Created while working at {company.name}</span>
+        {/* Solid badge — fixed teal/dark-ink colours (not themed vars) so this reads exactly the
+            same whether it sits on the page's own background or directly on a hero photo. */}
+        <span style={{
+          display: "inline-block", fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
+          letterSpacing: "0.08em", textTransform: "uppercase", color: "#0C1117",
+          background: "var(--c-teal)", borderRadius: 4, padding: "6px 11px",
+        }}>
+          Created while working at {company.name}
+        </span>
         <button
           ref={triggerRef}
           type="button"
