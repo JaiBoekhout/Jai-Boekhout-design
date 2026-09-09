@@ -34,15 +34,18 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
   const home = content.homepage;
 
   // A real <Link> (see the full-card overlay below) keeps each card genuinely crawlable —
-  // Google reads the href directly out of the HTML, it doesn't wait 700ms for a click handler.
-  // Human clicks still get the hand-tuned "select, fade the others, then transition" moment:
+  // Google reads the href directly out of the HTML, it doesn't wait for a click handler. Human
+  // clicks still get the hand-tuned "select, fade the others, then transition" moment:
   // preventDefault on a plain left-click runs that first and navigates afterwards; a modified
-  // click (new tab, etc.) is left alone so it behaves exactly like any other link.
+  // click (new tab, etc.) is left alone so it behaves exactly like any other link. The other
+  // cards' own fade-out (below) is a 200ms opacity transition — 250ms lets it finish plus a small
+  // buffer, rather than the previous flat 700ms, which left ~450ms of dead time after the fade
+  // had already settled with nothing happening on screen.
   function handleSelect(e: MouseEvent, id: string) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     setSelectedId(id);
-    setTimeout(() => onSelect(id), 700);
+    setTimeout(() => onSelect(id), 250);
   }
 
   return (
