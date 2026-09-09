@@ -468,7 +468,7 @@ export function ProjectDetailBody({
               >
                 <h2 style={SECTION_HEADING_STYLE}>Role</h2>
                 <div
-                  className="grid grid-cols-2"
+                  className="grid grid-cols-1 md:grid-cols-2"
                   style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
                 >
                   {roleCards.map((card, i) => {
@@ -477,7 +477,8 @@ export function ProjectDetailBody({
                     // container's own background IS the thin "grid line" between cells (a
                     // background-color-as-divider trick), that empty cell rendered as a solid
                     // filled block instead of just... not being there. Spanning the odd one out
-                    // across both columns removes the empty cell entirely.
+                    // across both columns removes the empty cell entirely. Below md: the grid is
+                    // already a single column (cards stack), so this span is a no-op there.
                     const isLastOdd = roleCards.length % 2 === 1 && i === roleCards.length - 1;
                     return (
                       <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px", gridColumn: isLastOdd ? "1 / -1" : undefined }}>
