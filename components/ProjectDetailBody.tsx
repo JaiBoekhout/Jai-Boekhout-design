@@ -430,7 +430,7 @@ export function ProjectDetailBody({
             {/* Description */}
             {project.desc && (
               <>
-                <div style={SECTION_HEADING_STYLE}>Summary</div>
+                <h2 style={SECTION_HEADING_STYLE}>Summary</h2>
                 <div
                   className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.desc }}
@@ -466,7 +466,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.role = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <div style={SECTION_HEADING_STYLE}>Role</div>
+                <h2 style={SECTION_HEADING_STYLE}>Role</h2>
                 <div
                   className="grid grid-cols-2"
                   style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
@@ -503,7 +503,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section1 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <div style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</div>
+                <h2 style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</h2>
                 <div
                   className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullContent || "" }}
@@ -528,7 +528,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section2 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <div style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</div>
+                <h2 style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</h2>
                 <div
                   className={`rte-content ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent || "" }}
@@ -581,7 +581,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section3 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                {project.section3Heading && <div style={SECTION_HEADING_STYLE}>{project.section3Heading}</div>}
+                {project.section3Heading && <h2 style={SECTION_HEADING_STYLE}>{project.section3Heading}</h2>}
                 <div
                   className={`rte-content ${project.section3ContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.section3Content || "" }}
@@ -605,9 +605,9 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.outcomes = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+                <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
                   Key Outcomes
-                </div>
+                </h2>
                 <div style={{ borderTop: "0.5px solid var(--c-divider)", marginBottom: 24 }}>
                   {project.outcomes.map((o, k) => (
                     <div key={k} className="flex items-baseline gap-3" style={{ padding: "10px 0", borderBottom: "0.5px solid var(--c-divider)" }}>
@@ -622,9 +622,9 @@ export function ProjectDetailBody({
             )}
 
             {/* Tags */}
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
               Tags
-            </div>
+            </h2>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
               {project.tags.map((t, ti) => (
                 <span key={`${t}-${ti}`} style={TAG_STYLE}>
@@ -654,9 +654,9 @@ export function ProjectDetailBody({
             start decoding/painting until the open transition has already settled. */}
         {showExtras && viewMoreProjects.length > 0 && (
           <div style={{ marginTop: 40, paddingTop: 28, borderTop: "0.5px solid var(--c-divider)" }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
+            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
               {project.viewMoreHeading || "View More Projects"}
-            </div>
+            </h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               {viewMoreProjects.map((vp) => {
                 const vpCover = vp.coverImageUrl || vp.imgs?.[0] || null;
