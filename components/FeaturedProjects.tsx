@@ -113,8 +113,14 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             background: "var(--c-bg)", paddingTop: 10, paddingBottom: 10,
           }}
         >
-          <div className="flex items-center gap-2 flex-wrap">
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginRight: 4 }}>
+          {/* flex-nowrap + overflow-x-auto below md: on a narrow screen, enough categories (this
+              taxonomy has grown to 9) wrapped to 3-4 rows tall enough to visually collide with
+              the fixed-position bottom "Current Path" nav at first paint, before any scroll had
+              happened to move the sticky version of this bar out of the way. A horizontally
+              scrolling single row avoids that regardless of how many categories exist, and is
+              the more standard mobile pattern for a long filter chip list anyway. */}
+          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto md:flex-wrap md:overflow-visible" style={{ paddingBottom: 2 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "10.5px", letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginRight: 4, flexShrink: 0 }}>
               Filter:
             </span>
             {[{ id: "All", name: "All" }, ...nonEmptyCategories].map((c) => {
@@ -124,7 +130,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   className="transition-all"
                   style={{
                     fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
-                    padding: "7px 15px", borderRadius: 0, cursor: "pointer",
+                    padding: "7px 15px", borderRadius: 0, cursor: "pointer", flexShrink: 0,
                     background: active ? TEAL : "transparent",
                     color: active ? "#06090C" : "var(--c-text-50)",
                     border: active ? "0.5px solid transparent" : "0.5px solid rgba(237,232,223,0.16)",
