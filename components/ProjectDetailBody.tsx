@@ -471,16 +471,25 @@ export function ProjectDetailBody({
                   className="grid grid-cols-2"
                   style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
                 >
-                  {roleCards.map((card) => (
-                    <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px" }}>
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
-                        {card.label}
-                      </p>
-                      <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
-                        {card.value}
-                      </p>
-                    </div>
-                  ))}
+                  {roleCards.map((card, i) => {
+                    // With an odd number of populated cards (e.g. Platform left blank), a plain
+                    // 2-column grid leaves the last row's second cell empty — and since this
+                    // container's own background IS the thin "grid line" between cells (a
+                    // background-color-as-divider trick), that empty cell rendered as a solid
+                    // filled block instead of just... not being there. Spanning the odd one out
+                    // across both columns removes the empty cell entirely.
+                    const isLastOdd = roleCards.length % 2 === 1 && i === roleCards.length - 1;
+                    return (
+                      <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px", gridColumn: isLastOdd ? "1 / -1" : undefined }}>
+                        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                          {card.label}
+                        </p>
+                        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
+                          {card.value}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             )}
