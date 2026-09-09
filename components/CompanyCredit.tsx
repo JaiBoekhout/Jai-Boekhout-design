@@ -86,23 +86,31 @@ export function CompanyCredit({
   if (!company) return null;
 
   return (
-    // Callout is a sibling of the badge row (not nested inside the icon's own inline span) so
-    // that on narrow screens, switching it to position:static gives it this plain block div as
-    // its containing block — a shrink-wrapped inline-flex span would otherwise resolve its
-    // width:100% against its own content size instead of the full row width.
-    <div style={{ position: "relative", marginTop: 6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-        {company.logoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 25.5, width: "auto", maxWidth: 114, objectFit: "contain" }} />
-        )}
+    // The row (badge + trigger), not this outer div, is the callout's positioning anchor — see
+    // the className on the row below for why, and the comment on .agency-info-callout in
+    // globals.css for the matching mobile-width half of this.
+    <div style={{ marginTop: 6 }}>
+      {/* flex (full-width block) below 640px so the callout's position:static width:100% in
+          globals.css resolves against the full row width there; inline-flex (shrink-wrapped to
+          just the badge+trigger) at sm:+ so this div's own edges — not the wide content column
+          it sits in — are what the callout's top-right anchor below is actually relative to. */}
+      <div className="flex sm:inline-flex" style={{ alignItems: "center", gap: 9, position: "relative" }}>
         {/* Solid badge — fixed teal/dark-ink colours (not themed vars) so this reads exactly the
-            same whether it sits on the page's own background or directly on a hero photo. */}
+            same whether it sits on the page's own background or directly on a hero photo. The
+            logo sits inside the badge itself, on a small white swatch — company logos vary in
+            their own colouring/transparency, so a fixed light backing keeps any of them legible
+            against the solid teal rather than assuming they all read fine directly on it. */}
         <span style={{
-          display: "inline-block", fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
+          display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
           letterSpacing: "0.08em", textTransform: "uppercase", color: "#0C1117",
-          background: "var(--c-teal)", borderRadius: 4, padding: "6px 11px",
+          background: "var(--c-teal)", borderRadius: 4, padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
         }}>
+          {company.logoUrl && (
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 3, padding: "3px 5px", flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 12, width: "auto", maxWidth: 60, objectFit: "contain", display: "block" }} />
+            </span>
+          )}
           Created while working at {company.name}
         </span>
         <button
@@ -116,19 +124,19 @@ export function CompanyCredit({
         >
           <Info size={11} strokeWidth={2.5} />
         </button>
+        {isOpen && (
+          <div ref={dialogRef} id={calloutId} role="dialog" aria-label="Attribution details" className="agency-info-callout">
+            <button type="button" data-close className="agency-info-callout-close" aria-label="Close" onClick={() => onToggle(null)}>
+              <X size={13} />
+            </button>
+            <p>
+              {(copyTemplate || DEFAULT_COMPANY_CREDIT_COPY)
+                .replaceAll("{company}", company.name)
+                .replaceAll("{client}", clientName)}
+            </p>
+          </div>
+        )}
       </div>
-      {isOpen && (
-        <div ref={dialogRef} id={calloutId} role="dialog" aria-label="Attribution details" className="agency-info-callout">
-          <button type="button" data-close className="agency-info-callout-close" aria-label="Close" onClick={() => onToggle(null)}>
-            <X size={13} />
-          </button>
-          <p>
-            {(copyTemplate || DEFAULT_COMPANY_CREDIT_COPY)
-              .replaceAll("{company}", company.name)
-              .replaceAll("{client}", clientName)}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

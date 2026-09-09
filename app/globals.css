@@ -365,9 +365,10 @@
   .rte-content .rte-collapsible-body > *:last-child { margin-bottom: 0; }
 
   /* Agency attribution "i" info trigger + callout — sits inline after the "Created while
-     working at [Company]" credit line. Callout is a floating card anchored under the icon
-     on normal screens; below 640px it drops to a static full-width card instead (a floating
-     card that narrow would clip against the viewport edge). */
+     working at [Company]" credit line. Callout is a floating card anchored above and to the
+     right of the icon on normal screens (opening upward avoids it dropping down over
+     whatever content follows the credit line); below 640px it drops to a static full-width
+     card instead (a floating card that narrow would clip against the viewport edge). */
   .agency-info-trigger {
     width: 18px;
     height: 18px;
@@ -387,8 +388,8 @@
   .agency-info-trigger:focus-visible { outline: 2px solid var(--c-teal); outline-offset: 2px; }
   .agency-info-callout {
     position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
+    bottom: calc(100% + 8px);
+    right: 0;
     z-index: 40;
     width: 300px;
     max-width: calc(100vw - 32px);
