@@ -345,53 +345,126 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               )}
             </div>
           ) : projectListLayout === "card" ? (
-            <div className="project-list-grid" style={{ ["--plg-cols" as string]: projectListColumns, gap: 20 }}>
+            // Same card layout/markup as the Featured Grid above (image on a fixed 16/9 top,
+            // copy in its own panel below rather than overlaid) — only the grid itself differs,
+            // sized by the CMS's "cards per row" setting via --plg-cols instead of the Featured
+            // Grid's fixed 3-column cap.
+            <div className="project-list-grid" style={{ ["--plg-cols" as string]: projectListColumns, gap: "0.625rem" }}>
               {visibleRows.map((p) => {
                 const cardCS = findLinkedCaseStudy(p);
                 const cardFromCS = !!cardCS?.coverImageUrl;
                 const cardCoverSrc = cardCS?.coverImageUrl || p.coverImageUrl || p.imgs?.[0] || null;
+                const pos = (cardFromCS ? cardCS.coverImagePosition : p.coverImagePosition) || "center";
+                const scale = (cardFromCS ? cardCS.coverImageScale : p.coverImageScale) ?? 1;
                 const cardHoverSrc = cardFromCS ? cardCS.coverImageHoverUrl : p.coverImageHoverUrl;
+                const hoverPos = (cardFromCS ? cardCS.coverImageHoverPosition : p.coverImageHoverPosition) || "center";
+                const hoverScale = (cardFromCS ? cardCS.coverImageHoverScale : p.coverImageHoverScale) ?? 1;
                 return (
-                  <motion.div
+                  <div
                     key={p.id}
-                    className="group relative"
-                    style={{ aspectRatio: "4/3", borderRadius: 0, background: "var(--c-bg-card)" }}
+                    data-card
+                    className="group relative flex flex-col"
+                    style={{
+                      borderRadius: 0,
+                      background: "var(--c-bg-card)",
+                      border: "0.5px solid var(--c-border-soft)",
+                      outline: "none",
+                      boxShadow: "none",
+                      overflow: "hidden",
+                    }}
                   >
-                    {/* Inner clip so the cover image respects the card's rounded corners */}
-                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "inherit" }}>
+                    {/* Image — fixed aspect ratio; card text sits in its own panel below, not overlaid on top */}
+                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
                       {cardCoverSrc ? (
                         <>
-                          <div
-                            className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-                            style={{ backgroundImage: `url(${cardCoverSrc})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                          <NextImage
+                            src={cardCoverSrc}
+                            alt={p.name}
+                            fill
+                            sizes={`(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`}
+                            className="transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                            style={{ objectFit: "cover", objectPosition: pos, transform: `scale(${scale})`, transformOrigin: pos }}
                           />
                           {cardHoverSrc && (
-                            <div
-                              className="absolute inset-0 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                              style={{ backgroundImage: `url(${cardHoverSrc})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                            <NextImage
+                              src={cardHoverSrc}
+                              alt=""
+                              fill
+                              sizes={`(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`}
+                              className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                              style={{ objectFit: "cover", objectPosition: hoverPos, transform: `scale(${hoverScale})`, transformOrigin: hoverPos }}
                             />
                           )}
                         </>
                       ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <MissingImagePlaceholder logoWidth="30%" logoMaxWidth={90} textSize={9.5} />
+                          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
                         </div>
                       )}
-                      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(6,9,12,0.95) 0%, rgba(6,9,12,0.55) 42%, transparent 100%)" }} />
-                      <div className="absolute left-4 right-4 bottom-4" style={{ pointerEvents: "none" }}>
-                        <div style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.12em", color: TEAL, textTransform: "uppercase", marginBottom: 5 }}>
-                          {p.tags[0]}
+                    </div>
+
+                    {/* Card text — its own panel below the image, not overlaid on top of it */}
+                    <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px", pointerEvents: "none" }}>
+                      {p.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
+                          {p.tags.slice(0, 2).map((t, ti) => (
+                            <span key={`${t}-${ti}`} style={{
+                              fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
+                              color: TEAL, background: "transparent", textTransform: "uppercase",
+                              border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                              padding: "4px 11px",
+                            }}>
+                              {t}
+                            </span>
+                          ))}
                         </div>
-                        <h2 style={{
-                          fontFamily: "var(--font-heading)", fontSize: 15, fontWeight: 500, color: TEAL, lineHeight: 1.25,
-                          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                        }}>
-                          {p.name}
-                        </h2>
+                      )}
+                      <h2 style={{
+                        fontFamily: "var(--font-heading)",
+                        fontSize: 17,
+                        fontWeight: 500,
+                        color: "var(--c-text)",
+                        lineHeight: 1.2,
+                        marginBottom: 7,
+                        letterSpacing: "-0.01em",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}>
+                        {p.name}
+                      </h2>
+                      <div style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize: 12,
+                        color: "var(--c-text-70)",
+                        lineHeight: 1.55,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}>
+                        {stripHtml(p.desc)}
+                      </div>
+                      <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
+                        <div
+                          className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
+                          style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
+                        >
+                          View Project <span>→</span>
+                        </div>
                       </div>
                     </div>
-                    <Link href={`/work/${projectUrlSlug(p)}`} aria-label={p.name} className="absolute inset-0" style={{ zIndex: 3, borderRadius: "inherit", cursor: "pointer" }} />
-                  </motion.div>
+
+                    <Link
+                      href={`/work/${projectUrlSlug(p)}`}
+                      aria-label={p.name}
+                      className="absolute inset-0"
+                      style={{ zIndex: 3, cursor: "pointer" }}
+                      onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+                      onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+                    />
+                  </div>
                 );
               })}
             </div>
