@@ -80,9 +80,15 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
     : filteredFeatured;
 
   // Sitewide total — the denominator always reflects every published project on the page; the
-  // numerator narrows to whatever matches the active category, across both the grid and the list.
+  // numerator narrows to whatever matches the active category, across both the grid and the
+  // list. In the unfiltered, list-collapsed state, the "more" list's projects aren't actually
+  // rendered yet (they're behind "View more projects"), so the numerator only counts the grid's
+  // own visible cards — otherwise it reads as "13 of 13" while only 9 cards are on screen.
   const totalProjectCount = publishedFeatured.length + publishedMore.length;
-  const visibleProjectCount = featuredFilter === "All" ? totalProjectCount : filteredFeatured.length + rows.length;
+  const visibleProjectCount =
+    featuredFilter !== "All" ? filteredFeatured.length + rows.length
+    : listOpen ? totalProjectCount
+    : slots.filter(Boolean).length;
   const projectListLayout  = content.work.projectListLayout ?? "list";
   const projectListColumns = content.work.projectListColumns ?? 4;
   const projectListRows    = content.work.projectListRows ?? 3;
