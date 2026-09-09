@@ -1483,7 +1483,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   <HeroImageOverlayEditor
                     data={cs}
                     onChange={(updated) => updateCase(cs.id, updated)}
-                    imageLabel="Hero Image · wide banner, optional — sits behind the project title"
+                    imageLabel="Hero Image · wide banner, optional — sits behind the project title (recommended 2400×1029px, 21:9, subject centered)"
                     defaults={PROJECT_HERO_OVERLAY_DEFAULTS}
                   />
                 </div>
@@ -1779,7 +1779,7 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                   <HeroImageOverlayEditor
                     data={p}
                     onChange={(updated) => updateProject(p.id, updated)}
-                    imageLabel="Hero Image · wide banner, optional — sits behind the project title"
+                    imageLabel="Hero Image · wide banner, optional — sits behind the project title (recommended 2400×1029px, 21:9, subject centered)"
                     defaults={PROJECT_HERO_OVERLAY_DEFAULTS}
                   />
                 </div>
