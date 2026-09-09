@@ -473,7 +473,7 @@ export function ProjectDetailBody({
                 >
                   {roleCards.map((card) => (
                     <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px" }}>
-                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-40)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                      <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
                         {card.label}
                       </p>
                       <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
@@ -653,7 +653,7 @@ export function ProjectDetailBody({
             Deferred behind showExtras (see caller) so these 3 extra cover images don't
             start decoding/painting until the open transition has already settled. */}
         {showExtras && viewMoreProjects.length > 0 && (
-          <div style={{ marginTop: 40, paddingTop: 28, borderTop: "0.5px solid var(--c-border-soft)" }}>
+          <div style={{ marginTop: 40, paddingTop: 28, borderTop: "0.5px solid var(--c-divider)" }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
               {project.viewMoreHeading || "View More Projects"}
             </div>
