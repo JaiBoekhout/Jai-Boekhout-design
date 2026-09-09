@@ -963,7 +963,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 <button
                   onClick={() => setShowAllFaqs(true)}
                   className="hover:opacity-70 transition-opacity"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 999, padding: "11px 24px", cursor: "pointer" }}
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "11px 24px", cursor: "pointer" }}
                 >
                   Show All
                 </button>
