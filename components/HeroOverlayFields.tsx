@@ -51,9 +51,17 @@ export const STORY_HERO_OVERLAY_DEFAULTS: Partial<HeroOverlayData> = {
 // a project hasn't set its own overlay fields yet, so a brand-new project's hero doesn't render as
 // a flat, un-faded photo (or worse, the raw resolve() fallback's solid black) before anyone's
 // touched its Colour Overlay controls.
+//
+// Deliberately NOT heroOverlayColor2Transparent (unlike STORY_HERO_OVERLAY_DEFAULTS) — that flag
+// disables the Colour 2 swatch in the editor with no UI left to re-enable it (the checkbox that
+// used to toggle it was removed). Since every project falls back to this object until its own
+// fields are set, that would permanently lock Colour 2 for every new project. Colour 2 matching
+// Colour 1 at 0% opacity produces the identical rendered gradient (see buildHeroOverlayGradient's
+// own transparent-fallback math) while keeping the field editable.
 export const PROJECT_HERO_OVERLAY_DEFAULTS: Partial<HeroOverlayData> = {
   heroOverlayColor1: "#0F1519",
-  heroOverlayColor2Transparent: true,
+  heroOverlayColor2: "#0F1519",
+  heroOverlayColor2Opacity: 0,
   heroOverlayRatio: 100,
   heroOverlayDirection: "to-top",
   heroOverlayMidpoint: 60,
