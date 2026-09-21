@@ -69,7 +69,7 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
               <span key={`${t}-${ti}`} style={{
                 fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
                 color: TEAL, background: "transparent", textTransform: "uppercase",
-                border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
                 padding: "4px 11px",
               }}>
                 {t}
@@ -340,10 +340,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                             fontFamily: "var(--font-body)",
                             fontSize: "12px",
                             color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
-                            border: hasHeroPhoto ? "1px solid rgba(245,241,234,0.35)" : "1px solid rgba(20,173,181,0.2)",
+                            border: hasHeroPhoto ? "1px solid rgba(245,241,234,0.35)" : "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
                             borderRadius: 0,
                             padding: "6px 14px",
-                            background: hasHeroPhoto ? "rgba(6,9,12,0.35)" : "rgba(20,173,181,0.05)",
+                            background: hasHeroPhoto ? "rgba(6,9,12,0.35)" : "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                           }}
                         >
                           {ind}
@@ -720,10 +720,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",
                     color: "var(--c-text)",
-                    border: "1px solid rgba(20,173,181,0.2)",
+                    border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
                     borderRadius: 0,
                     padding: "6px 14px",
-                    background: "rgba(20,173,181,0.05)",
+                    background: "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                   }}
                 >
                   {a}
@@ -839,10 +839,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         fontFamily: "var(--font-body)",
                         fontSize: "11px",
                         color: "var(--c-teal)",
-                        border: "1px solid rgba(20,173,181,0.2)",
+                        border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
                         borderRadius: 0,
                         padding: "6px 14px",
-                        background: "rgba(20,173,181,0.05)",
+                        background: "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                       }}
                     >
                       {h}

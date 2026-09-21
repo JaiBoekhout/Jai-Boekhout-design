@@ -183,7 +183,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                   style={{
                     borderRadius: 0,
                     border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
-                    background: openSteps.has(step.id) ? "rgba(20,173,181,0.12)" : "transparent",
+                    background: openSteps.has(step.id) ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -244,8 +244,8 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 className="w-full text-left p-5 border transition-colors"
                 style={{
                   borderRadius: 0,
-                  background: "rgba(20,173,181,0.03)",
-                  borderColor: "rgba(20,173,181,0.25)",
+                  background: "color-mix(in srgb, var(--c-teal) 3%, transparent)",
+                  borderColor: "color-mix(in srgb, var(--c-teal) 25%, transparent)",
                 }}
                 onClick={() => toggleStep(step.id)}
               >

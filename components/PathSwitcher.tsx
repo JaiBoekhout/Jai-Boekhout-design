@@ -46,7 +46,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       style={{
         borderRadius: 0,
         border: isActive ? "1px solid var(--c-teal)" : "1px solid transparent",
-        background: isActive ? "rgba(20,173,181,0.12)" : "transparent",
+        background: isActive ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
         padding: "9px 11px",
         gap: isExpanded ? 9 : 0,

@@ -237,7 +237,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                           <span key={`${name}-${ni}`} style={{
                             fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
                             color: TEAL, background: "transparent", textTransform: "uppercase",
-                            border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                            border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
                             padding: "4px 11px",
                           }}>
                             {name}
@@ -319,7 +319,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
           <div style={{ width: "100%", height: "0.5px", background: "linear-gradient(to right, transparent, var(--c-divider), transparent)", marginBottom: -13 }} />
           <button
             onClick={() => setListOpen((v) => !v)}
-            className="transition-all hover:border-[rgba(20,173,181,0.5)] hover:text-[#EDE8DF]"
+            className="transition-all hover:border-[color-mix(in_srgb,var(--c-teal)_50%,transparent)] hover:text-[var(--c-text)]"
             style={{
               display: "inline-flex", alignItems: "center", gap: 11,
               fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.06em",
@@ -412,7 +412,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                             <span key={`${t}-${ti}`} style={{
                               fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
                               color: TEAL, background: "transparent", textTransform: "uppercase",
-                              border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+                              border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
                               padding: "4px 11px",
                             }}>
                               {t}

@@ -14,7 +14,7 @@ import { stripHtml } from "@/lib/utils";
 const TAG_STYLE: CSSProperties = {
   fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
   color: "var(--c-teal)", background: "transparent", textTransform: "uppercase",
-  border: "0.5px solid rgba(20,173,181,0.45)", borderRadius: 0,
+  border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
   padding: "4px 11px",
 };
 
@@ -213,7 +213,7 @@ export function ProjectDetailBody({
             display: "inline-flex", alignItems: "center", gap: 6,
             fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
             color: TEAL, background: "rgba(6,9,12,0.75)",
-            border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+            border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: 0,
             padding: "7px 13px", textDecoration: "none",
           }}
         >
@@ -235,7 +235,7 @@ export function ProjectDetailBody({
       <div style={{
         fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
         color: TEAL, background: "rgba(6,9,12,0.75)",
-        border: "0.5px solid rgba(20,173,181,0.4)", borderRadius: 0,
+        border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: 0,
         padding: "5px 13px",
       }}>
         {project.num} — {project.tags[0]?.toUpperCase()}

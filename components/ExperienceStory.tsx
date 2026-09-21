@@ -82,7 +82,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
         transition={{ delay: 0.9 }}
         className="mt-8"
       >
-        <div style={{ height: "1px", background: "rgba(20,173,181,0.3)", marginBottom: "20px" }} />
+        <div style={{ height: "1px", background: "color-mix(in srgb, var(--c-teal) 30%, transparent)", marginBottom: "20px" }} />
         <div
           className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
           style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
@@ -95,7 +95,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
           />
         )}
-        <div style={{ height: "1px", background: "rgba(20,173,181,0.3)", marginTop: "20px" }} />
+        <div style={{ height: "1px", background: "color-mix(in srgb, var(--c-teal) 30%, transparent)", marginTop: "20px" }} />
       </motion.div>
     </>
   );

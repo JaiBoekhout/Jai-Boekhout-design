@@ -214,7 +214,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
       className={`flex items-center gap-3${stackedButtons ? " w-full justify-center" : ""}`}
       style={{
         ...(open || animating
-          ? { background: "rgba(20,173,181,0.08)", color: "var(--c-teal)", border: "1px solid rgba(20,173,181,0.2)" }
+          ? { background: "color-mix(in srgb, var(--c-teal) 8%, transparent)", color: "var(--c-teal)", border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)" }
           : primaryIdleFill),
         fontFamily: BUTTON_FONT_VAR[primaryStyle.font],
         fontSize: primarySize.fontSize,

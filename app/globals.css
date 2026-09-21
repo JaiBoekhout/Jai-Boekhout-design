@@ -329,13 +329,13 @@
   .rte-content table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-collapse: collapse; margin: 16px 0; }
   .rte-content table tbody { display: table; width: 100%; }
   .rte-content table td, .rte-content table th { border: 1px solid var(--c-border); padding: 8px 10px; text-align: left; vertical-align: top; min-width: 100px; }
-  .rte-content table th { background: rgba(20,173,181,0.08); color: var(--c-text); font-weight: 500; }
+  .rte-content table th { background: color-mix(in srgb, var(--c-teal) 8%, transparent); color: var(--c-text); font-weight: 500; }
   .rte-content table tr:nth-child(even) td { background: rgba(237,232,223,0.02); }
 
   /* Collapsible panel — native <details>/<summary>, so open/close needs no JS.
      Icon rotates on [open]; the rotation angle differs per icon glyph so each
      one reads as "open" (chevron flips, plus becomes a cross, arrow points down). */
-  .rte-content details.rte-collapsible { border: 1px solid rgba(20,173,181,0.25); border-radius: 0; margin: 16px 0; overflow: hidden; background: rgba(20,173,181,0.03); }
+  .rte-content details.rte-collapsible { border: 1px solid color-mix(in srgb, var(--c-teal) 25%, transparent); border-radius: 0; margin: 16px 0; overflow: hidden; background: color-mix(in srgb, var(--c-teal) 3%, transparent); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::marker { content: ""; }
@@ -373,8 +373,8 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    border: 1px solid rgba(20,173,181,0.4);
-    background: rgba(20,173,181,0.08);
+    border: 1px solid color-mix(in srgb, var(--c-teal) 40%, transparent);
+    background: color-mix(in srgb, var(--c-teal) 8%, transparent);
     color: var(--c-teal);
     display: inline-flex;
     align-items: center;
