@@ -312,8 +312,8 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
               className="flex flex-col gap-3"
             >
               {submitState?.error && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(192,57,43,0.1)", border: "1px solid rgba(192,57,43,0.3)" }}>
-                  <AlertCircle size={14} style={{ color: "#C0392B", flexShrink: 0 }} />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: "color-mix(in srgb, var(--destructive) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--destructive) 30%, transparent)" }}>
+                  <AlertCircle size={14} style={{ color: "var(--destructive)", flexShrink: 0 }} />
                   <span style={{ fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text)" }}>{submitState.error}</span>
                 </div>
               )}

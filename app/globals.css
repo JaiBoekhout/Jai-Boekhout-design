@@ -90,6 +90,13 @@
   --accent:          #E4E0D9;
   --accent-foreground: #1A2128;
   --input-background: #E4E0D9;
+  /* Same red as dark mode — a mid-lightness destructive color reads fine against both a near-
+     black and a near-cream panel, so no separate light shade is needed, just a value that exists
+     under this override block at all (previously undefined here, so any light-mode consumer fell
+     back to the dark literal by inheritance — harmless today only because it happens to be the
+     same value either way). */
+  --destructive: #c0392b;
+  --destructive-foreground: #EDE8DF;
 
   /* Raw palette tokens — light overrides */
   --c-bg:          #F5F1EB;
@@ -266,7 +273,7 @@
      section" copy is collapsed to zero width at rest (only the arrow, already the highlight
      colour, shows) and grows in on hover — it's pinned via `right`, not `left`, so the arrow
      itself never moves; the reveal grows leftward from it. */
-  .stats-tile-clickable:hover { background: #1A2127 !important; }
+  .stats-tile-clickable:hover { background: var(--c-bg-card) !important; }
   .stats-view-text {
     display: inline-block; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
     transition: max-width 0.25s ease, opacity 0.2s ease, margin-right 0.25s ease;

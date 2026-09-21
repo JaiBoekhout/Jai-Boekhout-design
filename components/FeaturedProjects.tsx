@@ -132,8 +132,8 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
                     padding: "7px 15px", borderRadius: 0, cursor: "pointer", flexShrink: 0,
                     background: active ? TEAL : "transparent",
-                    color: active ? "#06090C" : "var(--c-text-50)",
-                    border: active ? "0.5px solid transparent" : "0.5px solid rgba(237,232,223,0.16)",
+                    color: active ? "#0C1117" : "var(--c-text-50)",
+                    border: active ? "0.5px solid transparent" : "0.5px solid var(--c-border-med)",
                   }}>
                   {c.name}
                 </button>
@@ -536,7 +536,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               <button
                 onClick={() => setVisibleCount((v) => v + rowIncrement)}
                 className="hover:opacity-70 transition-opacity"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 999, padding: "11px 24px", cursor: "pointer" }}
+                style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "11px 24px", cursor: "pointer" }}
               >
                 Load more Projects
               </button>
