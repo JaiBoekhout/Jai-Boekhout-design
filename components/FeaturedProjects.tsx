@@ -8,6 +8,12 @@ import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ProjectCard, ProjectCardPlaceholder } from "@/components/ProjectCard";
 import { useButtonCorner } from "@/components/SiteKit";
+import { useHideOnScroll } from "@/store/useHideOnScroll";
+
+// Matches the identical constant in ExperienceProcess.tsx/ExperienceRecruiter.tsx — the shared
+// experience-layout top bar's height, used so the sticky filter bar below can close the gap it
+// otherwise leaves when that bar slides away on scroll (useHideOnScroll).
+const TOP_BAR_HEIGHT = 64;
 
 const TEAL = "var(--c-teal)";
 const GRID_SIZE = 9;
@@ -45,6 +51,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const [featuredFilter, setFeaturedFilter] = useState("All");
   const { content } = useContentStore();
   const buttonCorner = useButtonCorner();
+  const topBarHidden = useHideOnScroll();
 
   // Only show published (or legacy undefined) projects on the live site
   const publishedFeatured = featured.filter((p) => !p.status || p.status === "published");
@@ -110,8 +117,9 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
         <div
           className="flex items-center justify-between flex-wrap gap-3"
           style={{
-            marginBottom: 22, position: "sticky", top: 70, zIndex: 30,
+            marginBottom: 22, position: "sticky", top: topBarHidden ? 0 : TOP_BAR_HEIGHT, zIndex: 30,
             background: "var(--c-bg)", paddingTop: 10, paddingBottom: 10,
+            transition: "top 0.3s ease",
           }}
         >
           {/* flex-nowrap + overflow-x-auto below md: on a narrow screen, enough categories (this
