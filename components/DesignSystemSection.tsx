@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
+import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff } from "lucide-react";
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
@@ -168,13 +168,20 @@ function TextInputField({ label, value, onChange }: { label: string; value: stri
 // One tile in the Color Palette's Theme Gallery — a curated preset or a user-saved snapshot.
 // Swatch dots preview accent/card/heading so a theme is recognizable before applying it.
 function ThemeSwatch({
-  name, colors, active, onClick, onDelete,
+  name, colors, active, onClick, onDelete, visible, onToggleVisible, isDefault, onSetDefault,
 }: {
   name: string;
   colors: CMSDesignColors;
   active?: boolean;
   onClick: () => void;
   onDelete?: () => void;
+  /** Only meaningful for a saved theme (not a THEME_PRESETS entry) — whether it's selectable in
+   *  the visitor-facing style switcher. Omit entirely for presets, which aren't switcher entries
+   *  themselves (applying one just overwrites the live/default look, same as always). */
+  visible?: boolean;
+  onToggleVisible?: () => void;
+  isDefault?: boolean;
+  onSetDefault?: () => void;
 }) {
   return (
     <div style={{ position: "relative" }}>
@@ -202,6 +209,31 @@ function ThemeSwatch({
         >
           <X size={9} />
         </button>
+      )}
+      {onToggleVisible && (
+        <div className="flex items-center justify-between" style={{ marginTop: 4, padding: "0 1px" }}>
+          <button
+            onClick={onToggleVisible}
+            title={visible ? "Visible to visitors in the style switcher — click to hide" : "Not shown to visitors — click to publish to the style switcher"}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: visible ? "#14ADB5" : "#8C9AA3" }}
+          >
+            {visible ? <Eye size={11} /> : <EyeOff size={11} />}
+          </button>
+          {visible && (
+            <button
+              onClick={onSetDefault}
+              disabled={isDefault}
+              title={isDefault ? "Default theme for new visitors" : "Set as default theme for new visitors"}
+              style={{
+                background: "none", border: "none", padding: "1px 3px", cursor: isDefault ? "default" : "pointer",
+                fontFamily: "'DM Mono', monospace", fontSize: 8, letterSpacing: "0.04em", textTransform: "uppercase",
+                color: isDefault ? "#14ADB5" : "#8C9AA3",
+              }}
+            >
+              {isDefault ? "★ Default" : "Set default"}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -717,6 +749,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     textAreaStyle: rawData.textAreaStyle ?? DEFAULT_DESIGN_SYSTEM.textAreaStyle,
     switchStyle: rawData.switchStyle ?? DEFAULT_DESIGN_SYSTEM.switchStyle,
     tagStyle: rawData.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
+    cardStyle: rawData.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
     savedThemes: rawData.savedThemes ?? [],
   };
 
@@ -745,6 +778,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       ...(theme.textAreaStyle ? { textAreaStyle: theme.textAreaStyle } : {}),
       ...(theme.switchStyle ? { switchStyle: theme.switchStyle } : {}),
       ...(theme.tagStyle ? { tagStyle: theme.tagStyle } : {}),
+      ...(theme.cardStyle ? { cardStyle: theme.cardStyle } : {}),
     });
   }
 
@@ -762,12 +796,34 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       textAreaStyle: data.textAreaStyle,
       switchStyle: data.switchStyle,
       tagStyle: data.tagStyle,
+      cardStyle: data.cardStyle,
     };
     onChange({ ...data, savedThemes: [...data.savedThemes, theme] });
   }
 
   function deleteTheme(id: string) {
-    onChange({ ...data, savedThemes: data.savedThemes.filter((t) => t.id !== id) });
+    onChange({
+      ...data,
+      savedThemes: data.savedThemes.filter((t) => t.id !== id),
+      // A deleted theme can't stay the default for new visitors — falls back to Original.
+      defaultVisitorThemeId: data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
+    });
+  }
+
+  function toggleThemeVisible(id: string) {
+    const theme = data.savedThemes.find((t) => t.id === id);
+    const nowVisible = !theme?.visible;
+    onChange({
+      ...data,
+      savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, visible: nowVisible } : t)),
+      // Hiding the current default falls back to Original rather than leaving new visitors
+      // defaulted into a theme they can no longer actually select.
+      defaultVisitorThemeId: !nowVisible && data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
+    });
+  }
+
+  function setDefaultVisitorTheme(id: string | undefined) {
+    onChange({ ...data, defaultVisitorThemeId: id });
   }
 
   function updateComponentColors(patch: Partial<CMSComponentColors>) {
@@ -792,6 +848,10 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
   function updateTagStyle(patch: Partial<NonNullable<typeof data.tagStyle>>) {
     onChange({ ...data, tagStyle: { ...(data.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle!), ...patch } });
+  }
+
+  function updateCardStyle(patch: Partial<NonNullable<typeof data.cardStyle>>) {
+    onChange({ ...data, cardStyle: { ...(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!), ...patch } });
   }
 
   function updateTextAreaStyle(patch: Partial<typeof data.textAreaStyle>) {
@@ -838,13 +898,26 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           Each color has a dark-mode and light-mode value, matching the site&rsquo;s existing light/dark toggle. Changes apply site-wide once saved.
         </p>
 
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Theme Gallery</p>
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
+          Click a swatch to apply it as the site&rsquo;s live look. A saved theme&rsquo;s eye icon controls whether visitors can also pick it themselves in the site&rsquo;s own style switcher, alongside Original — &ldquo;Set default&rdquo; picks which one a first-time visitor sees.
+        </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
           {THEME_PRESETS.map((t) => (
             <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t)} />
           ))}
           {data.savedThemes.map((t) => (
-            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t)} onDelete={() => deleteTheme(t.id)} />
+            <ThemeSwatch
+              key={t.id}
+              name={t.name}
+              colors={t.colors}
+              onClick={() => applyTheme(t)}
+              onDelete={() => deleteTheme(t.id)}
+              visible={!!t.visible}
+              onToggleVisible={() => toggleThemeVisible(t.id)}
+              isDefault={data.defaultVisitorThemeId === t.id}
+              onSetDefault={() => setDefaultVisitorTheme(t.id)}
+            />
           ))}
           {namingTheme ? (
             <div style={{ width: 92, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -890,6 +963,17 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               Save current
             </button>
           )}
+        </div>
+
+        <div className="mb-8" style={{ maxWidth: 220 }}>
+          <SelectField
+            label="Card corner (project cards)"
+            value={(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!).corner}
+            onChange={(v: ButtonCorner) => updateCardStyle({ corner: v })}
+            options={[
+              { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">

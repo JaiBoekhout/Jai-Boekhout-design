@@ -2,6 +2,7 @@
 
 import { MotionConfig } from "motion/react";
 import { ThemeProvider } from "@/store/themeStore";
+import { StyleThemeProvider } from "@/store/styleThemeStore";
 import { FontScaleProvider } from "@/store/fontScaleStore";
 import { DesignSystemStyle } from "@/components/DesignSystemStyle";
 
@@ -15,10 +16,12 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <MotionConfig reducedMotion="user">
       <ThemeProvider>
-        <FontScaleProvider>
-          <DesignSystemStyle />
-          {children}
-        </FontScaleProvider>
+        <StyleThemeProvider>
+          <FontScaleProvider>
+            <DesignSystemStyle />
+            {children}
+          </FontScaleProvider>
+        </StyleThemeProvider>
       </ThemeProvider>
     </MotionConfig>
   );

@@ -924,6 +924,15 @@ export interface CMSTagStyle {
   corner: ButtonCorner;
 }
 
+// Cards (project cards, currently the only consumer post the Phase 3 ProjectCard consolidation)
+// previously hardcoded borderRadius: 0 with no control at all — a theme wanting rounded cards had
+// no way to do that independent of Buttons/Tags, which often want a different corner value than a
+// card does (e.g. pill buttons/tags but only softly-rounded cards, never a fully pill card).
+// Optional for the same already-saved-content reason as CMSTagStyle above.
+export interface CMSCardStyle {
+  corner: ButtonCorner;
+}
+
 export interface CMSSavedTheme {
   id: string;
   name: string;
@@ -940,6 +949,11 @@ export interface CMSSavedTheme {
   textAreaStyle?: CMSTextAreaStyle;
   switchStyle?: CMSSwitchStyle;
   tagStyle?: CMSTagStyle;
+  cardStyle?: CMSCardStyle;
+  // Visitor-visible in the new style-theme switcher (see StyleThemeToggle.tsx) — absent/false
+  // keeps a theme in the Theme Gallery as an apply-able starting point without also surfacing it
+  // to visitors before it's ready.
+  visible?: boolean;
 }
 
 export interface CMSDesignSystem {
@@ -953,11 +967,19 @@ export interface CMSDesignSystem {
   tabBarStyle: CMSTabBarStyle;
   textAreaStyle: CMSTextAreaStyle;
   switchStyle: CMSSwitchStyle;
-  // Optional — see CMSTagStyle above for why.
+  // Optional — see CMSTagStyle/CMSCardStyle above for why.
   tagStyle?: CMSTagStyle;
+  cardStyle?: CMSCardStyle;
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
-  // the 3 curated THEME_PRESETS below.
+  // the 3 curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
+  // buttons, tags, cards, component colors) via CMSSavedTheme's optional fields — a theme flagged
+  // `visible` there also becomes selectable in the public style-theme switcher (StyleThemeToggle),
+  // rendered under a `[data-style-theme="<id>"]`-scoped CSS block (see buildDesignSystemCss below).
   savedThemes: CMSSavedTheme[];
+  // Which savedThemes id a first-time visitor sees by default in the style-theme switcher. Unset
+  // (the common case) means "whatever's live in the fields above" — i.e. no data-style-theme
+  // attribute at all, so the root/default block (this object) applies, same as before this existed.
+  defaultVisitorThemeId?: string;
 }
 
 // 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
@@ -1150,6 +1172,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
     trackOffLight: "#D6D3CE",
   },
   tagStyle: { corner: "square" },
+  cardStyle: { corner: "square" },
   savedThemes: [],
 };
 
@@ -1166,7 +1189,15 @@ function hexToRgbChannels(hex: string): string {
   return `${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}`;
 }
 
-export function buildDesignSystemCss(ds: CMSDesignSystem): string {
+// `selector` scopes every rule this emits — ":root" (the default) for the site's live/default
+// look, or `:root[data-style-theme="<id>"]` for one named theme in the visitor-facing style
+// switcher (see buildAllThemesCss below). A theme's dark block always uses `selector` bare; its
+// light block additionally requires `[data-theme="light"]` on top of it, mirroring how the
+// default block's own light override already works. This keeps the DEFAULT/root output exactly
+// byte-identical to before multi-theme support existed (selector defaults to ":root", same as
+// every literal ":root" this function used to hardcode) — switching back to Original after
+// visiting another style theme is meant to look pixel-identical to never having left it.
+export function buildDesignSystemCss(ds: CMSDesignSystem, selector: string = ":root"): string {
   const c = ds.colors;
   const cc = ds.componentColors ?? {};
   const isCustom = ds.fontPairing === "custom";
@@ -1244,36 +1275,38 @@ export function buildDesignSystemCss(ds: CMSDesignSystem): string {
           const m = computeTypeScaleSizes(ts.mobile!.baseFontSize, ts.mobile!.scaleRatio);
           return `
 @media (max-width: 767px) {
-  :root {
+  ${selector} {
     --h1-size: ${m.h1}px; --h2-size: ${m.h2}px; --h3-size: ${m.h3}px; --h6-size: ${m.h6}px;
     --body-size: ${m.p}px; --small-size: ${m.small}px;
   }
-  .hero-mobile-h1, .hero-mobile-h1 * { font-size: ${m.h1}px !important; }
-  .hero-mobile-h2, .hero-mobile-h2 * { font-size: ${m.h2}px !important; }
-  .hero-mobile-h3, .hero-mobile-h3 * { font-size: ${m.h3}px !important; }
+  ${selector} .hero-mobile-h1, ${selector} .hero-mobile-h1 * { font-size: ${m.h1}px !important; }
+  ${selector} .hero-mobile-h2, ${selector} .hero-mobile-h2 * { font-size: ${m.h2}px !important; }
+  ${selector} .hero-mobile-h3, ${selector} .hero-mobile-h3 * { font-size: ${m.h3}px !important; }
 }`;
         })()
       : "";
 
   const underline = ds.linkUnderline ?? "none";
   const linkCss = `
-.site-link { text-decoration: ${underline === "always" ? "underline" : "none"}; }
-.site-link:hover { text-decoration: ${underline === "none" ? "none" : "underline"}; }`;
+${selector} .site-link { text-decoration: ${underline === "always" ? "underline" : "none"}; }
+${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" : "underline"}; }`;
 
   const menu = ds.menuStyle;
   const tabBar = ds.tabBarStyle;
   const textArea = ds.textAreaStyle;
   const switchStyle = ds.switchStyle;
   const tagCorner = ds.tagStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.tagStyle!.corner;
+  const cardCorner = ds.cardStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.cardStyle!.corner;
   const structuralCss = `
-:root {
+${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
   --tabbar-corner: ${BUTTON_CORNER_RADIUS[tabBar.corner]}px;
   --tabbar-font-size: ${tabBar.fontSize}px;
   --tag-corner: ${BUTTON_CORNER_RADIUS[tagCorner]}px;
+  --card-corner: ${BUTTON_CORNER_RADIUS[cardCorner]}px;
 }`;
 
-  return `:root {
+  return `${selector} {
   --c-teal: ${c.accentDark};
   --c-teal-rgb: ${hexToRgbChannels(c.accentDark)};
   --primary: ${c.accentDark};
@@ -1302,7 +1335,7 @@ export function buildDesignSystemCss(ds: CMSDesignSystem): string {
   --switch-track-off: ${switchStyle.trackOffDark};
 ${darkComponentVars}${typeScaleVars}
 }
-:root[data-theme="light"] {
+${selector}[data-theme="light"] {
   --c-teal: ${c.accentLight};
   --c-teal-rgb: ${hexToRgbChannels(c.accentLight)};
   --primary: ${c.accentLight};
@@ -1329,6 +1362,42 @@ ${lightComponentVars}
 }
 ${structuralCss}
 ${linkCss}${mobileTypeScaleCss}`;
+}
+
+// A saved theme only carries the fields it explicitly overrides (see CMSSavedTheme) — filling in
+// every gap from DEFAULT_DESIGN_SYSTEM (not the live/root designSystem) so a named theme's look is
+// self-contained and portable, rather than silently depending on whatever unrelated fields happen
+// to be set on whatever's currently published. savedThemes is deliberately dropped: a theme's own
+// CSS block has no use for the Theme Gallery's list of saved snapshots.
+function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
+  return {
+    colors: theme.colors,
+    fontPairing: theme.fontPairing ?? DEFAULT_DESIGN_SYSTEM.fontPairing,
+    typeScale: theme.typeScale ?? DEFAULT_DESIGN_SYSTEM.typeScale,
+    componentColors: theme.componentColors ?? {},
+    linkUnderline: DEFAULT_DESIGN_SYSTEM.linkUnderline,
+    buttonStyles: theme.buttonStyles ?? DEFAULT_DESIGN_SYSTEM.buttonStyles,
+    menuStyle: theme.menuStyle ?? DEFAULT_DESIGN_SYSTEM.menuStyle,
+    tabBarStyle: theme.tabBarStyle ?? DEFAULT_DESIGN_SYSTEM.tabBarStyle,
+    textAreaStyle: theme.textAreaStyle ?? DEFAULT_DESIGN_SYSTEM.textAreaStyle,
+    switchStyle: theme.switchStyle ?? DEFAULT_DESIGN_SYSTEM.switchStyle,
+    tagStyle: theme.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
+    cardStyle: theme.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
+    savedThemes: [],
+  };
+}
+
+// The actual CSS the app injects (app/layout.tsx, DesignSystemStyle.tsx) — the live/default look
+// exactly as buildDesignSystemCss(ds) alone always produced, PLUS one additional scoped block per
+// savedThemes entry marked `visible`, each selectable at runtime by StyleThemeToggle setting
+// `data-style-theme` on <html>. A visitor who never touches that switcher sees byte-identical CSS
+// to before multi-theme support existed — the extra blocks are inert until that attribute is set.
+export function buildAllThemesCss(ds: CMSDesignSystem): string {
+  const themeBlocks = (ds.savedThemes ?? [])
+    .filter((t) => t.visible)
+    .map((t) => buildDesignSystemCss(themeToFullDesignSystem(t), `:root[data-style-theme="${t.id}"]`))
+    .join("\n");
+  return `${buildDesignSystemCss(ds)}\n${themeBlocks}`;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────

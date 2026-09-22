@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import {
   useContentStore,
-  buildDesignSystemCss,
+  buildAllThemesCss,
   DEFAULT_FAVICON_URL,
   DEFAULT_FAVICON_PNG_URL,
   DEFAULT_FAVICON_SVG_URL,
@@ -27,7 +27,7 @@ export function DesignSystemStyle() {
       tag.id = STYLE_TAG_ID;
       document.head.appendChild(tag);
     }
-    tag.textContent = buildDesignSystemCss(content.designSystem);
+    tag.textContent = buildAllThemesCss(content.designSystem);
   }, [content.designSystem]);
 
   useEffect(() => {

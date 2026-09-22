@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { StyleThemeToggle } from "@/components/StyleThemeToggle";
 import { useFontScale } from "@/store/fontScaleStore";
 import type { FontScale } from "@/store/fontScaleStore";
+import { useStyleTheme } from "@/store/styleThemeStore";
 
 const SIZES: { scale: FontScale; label: string }[] = [
   { scale: 0, label: "Default" },
@@ -19,6 +21,7 @@ const SIZES: { scale: FontScale; label: string }[] = [
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const { fontScale, setFontScale } = useFontScale();
+  const { availableThemes } = useStyleTheme();
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,6 +87,18 @@ export function MobileNavMenu() {
             </span>
             <ThemeToggle />
           </div>
+
+          {availableThemes.length > 0 && (
+            <>
+              <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
+              <div className="flex items-center justify-between" style={{ padding: "10px 12px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>
+                  Theme
+                </span>
+                <StyleThemeToggle />
+              </div>
+            </>
+          )}
 
           <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
 

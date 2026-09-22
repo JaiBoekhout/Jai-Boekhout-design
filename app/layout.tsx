@@ -4,7 +4,7 @@ import { InlineScript } from "@/components/InlineScript";
 import { getContent } from "@/store/serverContent";
 import { ContentProvider } from "@/store/ContentProvider";
 import {
-  buildDesignSystemCss,
+  buildAllThemesCss,
   DEFAULT_FAVICON_URL,
   DEFAULT_FAVICON_PNG_URL,
   DEFAULT_FAVICON_SVG_URL,
@@ -105,11 +105,17 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" id="cms-apple-touch-icon" href={initialContent.branding.appleTouchIconUrl || DEFAULT_APPLE_TOUCH_ICON_URL} />
         <InlineScript html={`(function(){try{var t=localStorage.getItem('portfolio_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`} />
         <InlineScript html={`(function(){try{var s=parseInt(localStorage.getItem('portfolio_font_scale')||'0',10);var pct={0:100,1:112.5,2:125}[s]||100;document.documentElement.style.zoom=pct+'%';}catch(e){}})();`} />
+        {/* Same pre-hydration pattern as the day/night script above, for the style-theme switcher
+            (StyleThemeToggle/styleThemeStore.tsx) — falls back to the CMS's chosen default theme
+            (embedded server-side, so a first-time visitor sees it immediately too, not just a
+            returning one with something already in localStorage) rather than always defaulting
+            to Original. */}
+        <InlineScript html={`(function(){try{var t=localStorage.getItem('portfolio_style_theme');var id=t||${JSON.stringify(initialContent.designSystem.defaultVisitorThemeId ?? "")};if(id)document.documentElement.setAttribute('data-style-theme',id);}catch(e){}})();`} />
         {/* Real Design System CSS, computed server-side from the same content the rest of the
             page uses — same id DesignSystemStyle.tsx (a client component) targets to keep this
             in sync with any later same-session edit, so there's exactly one <style id="cms-
             design-system"> tag throughout the page's life, not a client-created duplicate. */}
-        <style id="cms-design-system" dangerouslySetInnerHTML={{ __html: buildDesignSystemCss(initialContent.designSystem) }} />
+        <style id="cms-design-system" dangerouslySetInnerHTML={{ __html: buildAllThemesCss(initialContent.designSystem) }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
