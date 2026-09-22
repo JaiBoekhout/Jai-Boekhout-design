@@ -11,6 +11,7 @@ import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { buildHeroOverlayGradient, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import { FadeInImage } from "@/components/FadeInImage";
 import { ProjectCard } from "@/components/ProjectCard";
+import { useButtonCorner } from "@/components/SiteKit";
 import { stripHtml } from "@/lib/utils";
 
 const TAG_STYLE: CSSProperties = {
@@ -71,6 +72,7 @@ export function ProjectDetailBody({
   project, mode, onClose, onSelectProject, onOpenLightbox, viewMoreProjects, showExtras, openAttributionId, onToggleAttribution,
 }: ProjectDetailBodyProps) {
   const { content } = useContentStore();
+  const buttonCorner = useButtonCorner();
 
   // project arrives already enriched (via enrichProjectWithCaseStudy, called upstream by
   // getPublishedProjects/getPublishedProjectBySlug) — its own coverImageUrl already carries
@@ -177,7 +179,7 @@ export function ProjectDetailBody({
             display: "inline-flex", alignItems: "center", gap: 6,
             fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
             color: TEAL, background: "rgba(6,9,12,0.75)",
-            border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: 0,
+            border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: buttonCorner,
             padding: "7px 13px", textDecoration: "none",
           }}
         >
@@ -189,7 +191,7 @@ export function ProjectDetailBody({
           className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
           style={{
             fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
-            color: "#0C1117", background: TEAL, border: "none", borderRadius: 0,
+            color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner,
             padding: "7px 12px", cursor: "pointer",
           }}
         >

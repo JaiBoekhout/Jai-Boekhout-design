@@ -12,6 +12,7 @@ import { StatsBar } from "@/components/StatsBar";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { SkillNetwork } from "@/components/SkillNetwork";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
+import { useButtonCorner } from "@/components/SiteKit";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
@@ -159,6 +160,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
     });
   }
   const { content } = useContentStore();
+  const buttonCorner = useButtonCorner();
   const cms = content.evaluate;
   const hasHeroPhoto = !!cms.heroImageUrl;
   const publishedFaqs = [...(cms.faqItems ?? [])].filter((f) => f.published).sort((a, b) => a.order - b.order);
@@ -967,7 +969,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 <button
                   onClick={() => setShowAllFaqs(true)}
                   className="hover:opacity-70 transition-opacity"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "11px 24px", cursor: "pointer" }}
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: buttonCorner, padding: "11px 24px", cursor: "pointer" }}
                 >
                   Show All
                 </button>

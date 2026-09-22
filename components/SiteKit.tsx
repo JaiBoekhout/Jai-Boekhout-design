@@ -94,6 +94,20 @@ export function Button({ variant = "primary", icon, children, style, disabled, .
   );
 }
 
+// A handful of elements sitewide are genuinely buttons (trigger an action, not a navigation-as-
+// text-link or a tag/label) but are intentionally NOT styled via <Button> above — they carry a
+// deliberately neutral visual weight (a plain bordered toggle, not an accent-colored CTA), and
+// <Button>'s fill/outline variants always tie color to var(--btn-color). Forcing them through
+// <Button> would recolor them to the accent on top of fixing their corner, which is a bigger
+// visual change than "stay theme-consistent" calls for. This hook lets them track just the active
+// theme's button corner radius (so a "pill buttons" theme also gets pill toggles) while keeping
+// their own neutral color scheme untouched.
+export function useButtonCorner(variant: ButtonVariant = "secondary"): number {
+  const { content } = useContentStore();
+  const cfg = content.designSystem.buttonStyles?.[variant] ?? DEFAULT_DESIGN_SYSTEM.buttonStyles[variant];
+  return BUTTON_CORNER_RADIUS[cfg.corner];
+}
+
 // ─── Label ──────────────────────────────────────────────────────────────────────
 
 export function Label({ children, style, ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {

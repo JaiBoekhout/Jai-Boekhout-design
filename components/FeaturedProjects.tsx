@@ -7,6 +7,7 @@ import { getImageProps } from "next/image";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ProjectCard, ProjectCardPlaceholder } from "@/components/ProjectCard";
+import { useButtonCorner } from "@/components/SiteKit";
 
 const TEAL = "var(--c-teal)";
 const GRID_SIZE = 9;
@@ -43,6 +44,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const [listOpen, setListOpen]       = useState(false);
   const [featuredFilter, setFeaturedFilter] = useState("All");
   const { content } = useContentStore();
+  const buttonCorner = useButtonCorner();
 
   // Only show published (or legacy undefined) projects on the live site
   const publishedFeatured = featured.filter((p) => !p.status || p.status === "published");
@@ -192,7 +194,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               display: "inline-flex", alignItems: "center", gap: 11,
               fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.06em",
               color: "var(--c-text-70)", background: "var(--c-bg)",
-              border: "0.5px solid var(--c-divider)", borderRadius: 0, padding: "13px 26px", cursor: "pointer",
+              border: "0.5px solid var(--c-divider)", borderRadius: buttonCorner, padding: "13px 26px", cursor: "pointer",
             }}
           >
             <span>{listOpen ? "Close project list" : "View more projects"}</span>
@@ -311,7 +313,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               <button
                 onClick={() => setVisibleCount((v) => v + rowIncrement)}
                 className="hover:opacity-70 transition-opacity"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "11px 24px", cursor: "pointer" }}
+                style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: buttonCorner, padding: "11px 24px", cursor: "pointer" }}
               >
                 Load more Projects
               </button>
