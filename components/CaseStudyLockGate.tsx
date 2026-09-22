@@ -46,18 +46,18 @@ export function CaseStudyLockGate({ project, onClose, onUnlocked }: CaseStudyLoc
         exit={{ opacity: 0, y: 8, scale: 0.97 }}
         transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#0F1519", border: "1px solid rgba(20,173,181,0.2)", borderRadius: 20, padding: "40px 36px", maxWidth: 420, width: "100%", boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}
+        style={{ background: "var(--c-bg-deep)", border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)", borderRadius: 20, padding: "40px 36px", maxWidth: 420, width: "100%", boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}
       >
         {/* Icon */}
-        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(20,173,181,0.1)", border: "1px solid rgba(20,173,181,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "color-mix(in srgb, var(--c-teal) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--c-teal) 25%, transparent)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
           <Lock size={22} style={{ color: TEAL }} />
         </div>
 
         {/* Heading */}
-        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 400, color: "#EDE8DF", textAlign: "center", marginBottom: 8, lineHeight: 1.2 }}>
+        <h3 style={{ fontFamily: "var(--font-heading)", fontSize: 22, fontWeight: 400, color: "var(--c-text)", textAlign: "center", marginBottom: 8, lineHeight: 1.2 }}>
           Private Project
         </h3>
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "#EDE8DF", textAlign: "center", lineHeight: 1.7, fontWeight: 300, marginBottom: 28 }}>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--c-text)", textAlign: "center", lineHeight: 1.7, fontWeight: 300, marginBottom: 28 }}>
           This project is protected. Enter the access code below, or get in touch with me directly to request access.
         </p>
 
@@ -70,10 +70,10 @@ export function CaseStudyLockGate({ project, onClose, onUnlocked }: CaseStudyLoc
             onChange={(e) => { setLockInput(e.target.value); setLockError(false); }}
             onKeyDown={(e) => { if (e.key === "Enter") attemptUnlock(); }}
             placeholder="Enter access code…"
-            style={{ width: "100%", background: "rgba(237,232,223,0.05)", border: `1px solid ${lockError ? "rgba(192,57,43,0.6)" : "rgba(237,232,223,0.12)"}`, borderRadius: 10, padding: "12px 16px", fontFamily: "var(--font-mono)", fontSize: 13, color: "#EDE8DF", outline: "none", letterSpacing: "0.06em" }}
+            style={{ width: "100%", background: "var(--c-surface-4)", border: `1px solid ${lockError ? "color-mix(in srgb, var(--destructive) 60%, transparent)" : "var(--c-border-med)"}`, borderRadius: 10, padding: "12px 16px", fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--c-text)", outline: "none", letterSpacing: "0.06em" }}
           />
           {lockError && (
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#C0392B", marginTop: 6, letterSpacing: "0.04em" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--destructive)", marginTop: 6, letterSpacing: "0.04em" }}>
               Incorrect access code — try again
             </p>
           )}
@@ -89,10 +89,10 @@ export function CaseStudyLockGate({ project, onClose, onUnlocked }: CaseStudyLoc
         </button>
 
         {/* Divider */}
-        <div style={{ height: "0.5px", background: "rgba(237,232,223,0.08)", marginBottom: 20 }} />
+        <div style={{ height: "0.5px", background: "var(--c-border)", marginBottom: 20 }} />
 
         {/* Contact CTA */}
-        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "#EDE8DF", textAlign: "center", lineHeight: 1.6, fontWeight: 300 }}>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text)", textAlign: "center", lineHeight: 1.6, fontWeight: 300 }}>
           Don&apos;t have the code?{" "}
           <a
             href={`mailto:${content.global.email}`}
