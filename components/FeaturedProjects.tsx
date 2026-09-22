@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import NextImage, { getImageProps } from "next/image";
+import { getImageProps } from "next/image";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
-import { stripHtml } from "@/lib/utils";
-import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
+import { ProjectCard, ProjectCardPlaceholder } from "@/components/ProjectCard";
 
 const TEAL = "var(--c-teal)";
 const GRID_SIZE = 9;
@@ -149,165 +148,34 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
       {/* ── Featured grid ─────────────────────────────────────────────────── */}
       <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {slots.map((p, i) => {
+          if (!p) return <ProjectCardPlaceholder key={`ph-${i}`} index={i} />;
+
           // Resolve cover source once — same priority as the image block uses
-          const cardCS = p ? findLinkedCaseStudy(p) : null;
-          const cardCoverSrc = p ? (cardCS?.coverImageUrl || p.coverImageUrl || p.imgs?.[0] || null) : null;
+          const cardCS = findLinkedCaseStudy(p);
+          const fromCS = !!cardCS?.coverImageUrl;
+          const names = (p.categories ?? [])
+            .map((id) => categoryNameById.get(id))
+            .filter((n): n is string => !!n)
+            .slice(0, 2);
 
           return (
-            <div
-              key={p?.id ?? `ph-${i}`}
-              data-card
-              className="group relative flex flex-col"
-              style={{
-                borderRadius: 0,
-                background: "var(--c-bg-card)",
-                border: "0.5px solid var(--c-border-soft)",
-                outline: "none",
-                boxShadow: "none",
-                overflow: "hidden",
+            <ProjectCard
+              key={p.id}
+              project={p}
+              cover={{
+                src: cardCS?.coverImageUrl || p.coverImageUrl || p.imgs?.[0] || null,
+                position: (fromCS ? cardCS.coverImagePosition : p.coverImagePosition) || "center",
+                scale: (fromCS ? cardCS.coverImageScale : p.coverImageScale) ?? 1,
+                hoverSrc: fromCS ? cardCS.coverImageHoverUrl : p.coverImageHoverUrl,
+                hoverPosition: (fromCS ? cardCS.coverImageHoverPosition : p.coverImageHoverPosition) || "center",
+                hoverScale: (fromCS ? cardCS.coverImageHoverScale : p.coverImageHoverScale) ?? 1,
               }}
-            >
-              {/* Image — fixed aspect ratio; card text sits in its own panel below, not overlaid on top */}
-              <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
-                {/* Cover image — prefers linked case study coverImageUrl, then project coverImageUrl, then imgs[0] */}
-                {cardCoverSrc && p && (() => {
-                  const fromCS = !!cardCS?.coverImageUrl;
-                  const pos = (fromCS ? cardCS.coverImagePosition : p.coverImagePosition) || "center";
-                  const scale = (fromCS ? cardCS.coverImageScale : p.coverImageScale) ?? 1;
-                  const hoverSrc = fromCS ? cardCS.coverImageHoverUrl : p.coverImageHoverUrl;
-                  const hoverPos = (fromCS ? cardCS.coverImageHoverPosition : p.coverImageHoverPosition) || "center";
-                  const hoverScale = (fromCS ? cardCS.coverImageHoverScale : p.coverImageHoverScale) ?? 1;
-                  return (
-                    <>
-                      <NextImage
-                        src={cardCoverSrc}
-                        alt={p.name}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-                        style={{
-                          objectFit: "cover",
-                          objectPosition: pos,
-                          transform: `scale(${scale})`,
-                          transformOrigin: pos,
-                        }}
-                      />
-                      {hoverSrc && (
-                        <NextImage
-                          src={hoverSrc}
-                          alt=""
-                          fill
-                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                          className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                          style={{
-                            objectFit: "cover",
-                            objectPosition: hoverPos,
-                            transform: `scale(${hoverScale})`,
-                            transformOrigin: hoverPos,
-                          }}
-                        />
-                      )}
-                    </>
-                  );
-                })()}
-
-                {/* Placeholder — shown for an empty grid slot (no project assigned) as well as a
-                    real project with no cover image configured yet in CMS */}
-                {!cardCoverSrc && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-                  </div>
-                )}
-              </div>
-
-              {/* Card text — its own panel below the image, not overlaid on top of it */}
-              {p && (
-                <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px", pointerEvents: "none" }}>
-                  {/* Category pills — the project's own curated categories (Work tab → Filter
-                      Categories). A project with none assigned yet simply shows no pill here — it
-                      still appears under "All" in the filter bar above. */}
-                  {(() => {
-                    const names = (p.categories ?? [])
-                      .map((id) => categoryNameById.get(id))
-                      .filter((n): n is string => !!n)
-                      .slice(0, 2);
-                    return names.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
-                        {names.map((name, ni) => (
-                          <span key={`${name}-${ni}`} style={{
-                            fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-                            color: TEAL, background: "transparent", textTransform: "uppercase",
-                            border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
-                            padding: "4px 11px",
-                          }}>
-                            {name}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null;
-                  })()}
-                  {/* Name — 2-line clamp so a long title can never overflow the card */}
-                  <h2 style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: 17,
-                    fontWeight: 500,
-                    color: "var(--c-text)",
-                    lineHeight: 1.2,
-                    marginBottom: 7,
-                    letterSpacing: "-0.01em",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>
-                    {p.name}
-                  </h2>
-
-                  {/* Description — 2-line clamp */}
-                  <div style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: 12,
-                    color: "var(--c-text-70)",
-                    lineHeight: 1.55,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>
-                    {stripHtml(p.desc)}
-                  </div>
-
-                  {/* VIEW PROJECT → — the slot is always reserved (fixed height, not max-h-0→N)
-                      so hovering only fades/slides the text in rather than growing the card
-                      itself; animating height here made every card in the same grid row jump
-                      when just one of them was hovered, since the grid track sizes to the
-                      tallest cell. */}
-                  <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
-                    <div
-                      className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
-                      style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
-                    >
-                      View Project <span>→</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Full-card link — a same-app click is intercepted into the modal popup; a hard
-                  nav/refresh/crawler lands on the real page. Sits above the image/text (which are
-                  pointer-events:none) so the whole card, image and text panel alike, is one click
-                  target. */}
-              {p && (
-                <Link
-                  href={`/work/${projectUrlSlug(p)}`}
-                  aria-label={p.name}
-                  className="absolute inset-0"
-                  style={{ zIndex: 3, cursor: "pointer" }}
-                  onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
-                  onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
-                />
-              )}
-            </div>
+              labels={names}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              href={`/work/${projectUrlSlug(p)}`}
+              onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+              onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+            />
           );
         })}
       </div>
@@ -354,118 +222,25 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               {visibleRows.map((p) => {
                 const cardCS = findLinkedCaseStudy(p);
                 const cardFromCS = !!cardCS?.coverImageUrl;
-                const cardCoverSrc = cardCS?.coverImageUrl || p.coverImageUrl || p.imgs?.[0] || null;
-                const pos = (cardFromCS ? cardCS.coverImagePosition : p.coverImagePosition) || "center";
-                const scale = (cardFromCS ? cardCS.coverImageScale : p.coverImageScale) ?? 1;
-                const cardHoverSrc = cardFromCS ? cardCS.coverImageHoverUrl : p.coverImageHoverUrl;
-                const hoverPos = (cardFromCS ? cardCS.coverImageHoverPosition : p.coverImageHoverPosition) || "center";
-                const hoverScale = (cardFromCS ? cardCS.coverImageHoverScale : p.coverImageHoverScale) ?? 1;
+                const colSizes = `(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`;
                 return (
-                  <div
+                  <ProjectCard
                     key={p.id}
-                    data-card
-                    className="group relative flex flex-col"
-                    style={{
-                      borderRadius: 0,
-                      background: "var(--c-bg-card)",
-                      border: "0.5px solid var(--c-border-soft)",
-                      outline: "none",
-                      boxShadow: "none",
-                      overflow: "hidden",
+                    project={p}
+                    cover={{
+                      src: cardCS?.coverImageUrl || p.coverImageUrl || p.imgs?.[0] || null,
+                      position: (cardFromCS ? cardCS.coverImagePosition : p.coverImagePosition) || "center",
+                      scale: (cardFromCS ? cardCS.coverImageScale : p.coverImageScale) ?? 1,
+                      hoverSrc: cardFromCS ? cardCS.coverImageHoverUrl : p.coverImageHoverUrl,
+                      hoverPosition: (cardFromCS ? cardCS.coverImageHoverPosition : p.coverImageHoverPosition) || "center",
+                      hoverScale: (cardFromCS ? cardCS.coverImageHoverScale : p.coverImageHoverScale) ?? 1,
                     }}
-                  >
-                    {/* Image — fixed aspect ratio; card text sits in its own panel below, not overlaid on top */}
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
-                      {cardCoverSrc ? (
-                        <>
-                          <NextImage
-                            src={cardCoverSrc}
-                            alt={p.name}
-                            fill
-                            sizes={`(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`}
-                            className="transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-                            style={{ objectFit: "cover", objectPosition: pos, transform: `scale(${scale})`, transformOrigin: pos }}
-                          />
-                          {cardHoverSrc && (
-                            <NextImage
-                              src={cardHoverSrc}
-                              alt=""
-                              fill
-                              sizes={`(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`}
-                              className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                              style={{ objectFit: "cover", objectPosition: hoverPos, transform: `scale(${hoverScale})`, transformOrigin: hoverPos }}
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card text — its own panel below the image, not overlaid on top of it */}
-                    <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px", pointerEvents: "none" }}>
-                      {p.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
-                          {p.tags.slice(0, 2).map((t, ti) => (
-                            <span key={`${t}-${ti}`} style={{
-                              fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-                              color: TEAL, background: "transparent", textTransform: "uppercase",
-                              border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
-                              padding: "4px 11px",
-                            }}>
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <h2 style={{
-                        fontFamily: "var(--font-heading)",
-                        fontSize: 17,
-                        fontWeight: 500,
-                        color: "var(--c-text)",
-                        lineHeight: 1.2,
-                        marginBottom: 7,
-                        letterSpacing: "-0.01em",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}>
-                        {p.name}
-                      </h2>
-                      <div style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: 12,
-                        color: "var(--c-text-70)",
-                        lineHeight: 1.55,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}>
-                        {stripHtml(p.desc)}
-                      </div>
-                      <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
-                        <div
-                          className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
-                          style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
-                        >
-                          View Project <span>→</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/work/${projectUrlSlug(p)}`}
-                      aria-label={p.name}
-                      className="absolute inset-0"
-                      style={{ zIndex: 3, cursor: "pointer" }}
-                      onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
-                      onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
-                    />
-                  </div>
+                    labels={p.tags.slice(0, 2)}
+                    sizes={colSizes}
+                    href={`/work/${projectUrlSlug(p)}`}
+                    onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+                    onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
+                  />
                 );
               })}
             </div>
@@ -518,7 +293,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     {/* Tags — wraps naturally full-width below on mobile/tablet, fixed-width grid beside on desktop */}
                     <div className="flex flex-wrap lg:grid lg:grid-cols-4 lg:justify-items-end gap-1.5 w-full lg:w-[520px]" style={{ flexShrink: 0 }}>
                       {p.tags.map((t, ti) => (
-                        <span key={`${t}-${ti}`} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.05em", color: "var(--c-text-50)", border: "0.5px solid rgba(152,151,147,0.35)", borderRadius: 999, padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</span>
+                        <span key={`${t}-${ti}`} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.05em", color: "var(--c-text-50)", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</span>
                       ))}
                     </div>
 

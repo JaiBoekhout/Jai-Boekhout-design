@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, type KeyboardEvent, type CSSProperties } from "react";
+import { useState, useEffect, useMemo, useRef, type CSSProperties } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { ArrowLeft, X } from "lucide-react";
@@ -9,6 +9,8 @@ import { useContentStore, projectUrlSlug } from "@/store/contentStore";
 import { CompanyCredit } from "@/components/CompanyCredit";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { buildHeroOverlayGradient, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
+import { FadeInImage } from "@/components/FadeInImage";
+import { ProjectCard } from "@/components/ProjectCard";
 import { stripHtml } from "@/lib/utils";
 
 const TAG_STYLE: CSSProperties = {
@@ -44,44 +46,6 @@ const SECTION_HEADING_STYLE: CSSProperties = {
 // header the hero itself already clears via lg:top-16 (64px).
 function contentsNavTopOffset(mode: "modal" | "page") {
   return mode === "page" ? 80 : 12;
-}
-
-// A next/image `fill` that starts invisible and fades in on its own load, instead of popping in
-// the instant it's decoded — used anywhere a batch of images can appear together (the gallery,
-// View More) so the reveal reads as deliberate rather than as a layout hiccup. Deliberately not
-// a slower fetch (that would undo the actual perf work); the fetch stays exactly as fast as
-// next/image already makes it, only the reveal is paced.
-function FadeInImage({ src, alt, sizes, objectPosition = "center", scale = 1, className }: { src: string; alt: string; sizes: string; objectPosition?: string; scale?: number; className?: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-  // A cached image can finish loading before this component's onLoad listener is ever attached
-  // — the browser resolves it synchronously from cache and `.complete` is already true the
-  // moment this mounts, so the `load` event that would normally flip `loaded` never fires at
-  // all. A ref-callback checked at attach time is too early here (next/image hasn't applied the
-  // real src/srcset to the underlying <img> yet at that point) — checking again after mount, once
-  // next/image's own effects have had a chance to run, is what actually catches the cached case.
-  useEffect(() => {
-    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) setLoaded(true);
-  }, [src]);
-  return (
-    <NextImage
-      src={src}
-      alt={alt}
-      fill
-      sizes={sizes}
-      className={className}
-      ref={imgRef}
-      style={{
-        objectFit: "cover",
-        objectPosition,
-        transform: `scale(${scale})`,
-        transformOrigin: objectPosition,
-        opacity: loaded ? 1 : 0,
-        transition: "opacity 0.35s ease",
-      }}
-      onLoad={() => setLoaded(true)}
-    />
-  );
 }
 
 export interface ProjectDetailBodyProps {
@@ -679,86 +643,25 @@ export function ProjectDetailBody({
               {project.viewMoreHeading || "View More Projects"}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              {viewMoreProjects.map((vp) => {
-                const vpCover = vp.coverImageUrl || vp.imgs?.[0] || null;
-                return (
-                  <div
-                    key={vp.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onSelectProject(projectUrlSlug(vp))}
-                    onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(projectUrlSlug(vp)); } }}
-                    className="group relative flex flex-col cursor-pointer"
-                    style={{ borderRadius: 0, background: "var(--c-bg-card)", border: "0.5px solid var(--c-border-soft)", outline: "none", overflow: "hidden" }}
-                  >
-                    {/* Image — fixed aspect ratio; card text sits in its own panel below, matching the main Work grid card style */}
-                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
-                      {vpCover ? (
-                        <>
-                          <FadeInImage
-                            src={vpCover}
-                            alt={vp.name}
-                            sizes="(min-width: 1024px) 33vw, 100vw"
-                            objectPosition={vp.coverImagePosition || "center"}
-                            scale={vp.coverImageScale ?? 1}
-                            className="transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-                          />
-                          {vp.coverImageHoverUrl && (
-                            <NextImage
-                              src={vp.coverImageHoverUrl}
-                              alt=""
-                              fill
-                              sizes="(min-width: 1024px) 33vw, 100vw"
-                              className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                              style={{
-                                objectFit: "cover",
-                                objectPosition: vp.coverImageHoverPosition || "center",
-                                transform: `scale(${vp.coverImageHoverScale ?? 1})`,
-                                transformOrigin: vp.coverImageHoverPosition || "50% 50%",
-                              }}
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card text — its own panel below the image */}
-                    <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px" }}>
-                      {vp.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
-                          {vp.tags.slice(0, 2).map((t, ti) => (
-                            <span key={`${t}-${ti}`} style={TAG_STYLE}>{t}</span>
-                          ))}
-                        </div>
-                      )}
-                      <h3 style={{
-                        fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--c-text)", lineHeight: 1.2,
-                        marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                      }}>
-                        {vp.name}
-                      </h3>
-                      <div style={{
-                        fontFamily: "var(--font-body)", fontSize: 12, color: "var(--c-text-70)", lineHeight: 1.55,
-                        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                      }}>
-                        {stripHtml(vp.desc)}
-                      </div>
-                      <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
-                        <div
-                          className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
-                          style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
-                        >
-                          View project <span>→</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {viewMoreProjects.map((vp) => (
+                <ProjectCard
+                  key={vp.id}
+                  project={vp}
+                  cover={{
+                    src: vp.coverImageUrl || vp.imgs?.[0] || null,
+                    position: vp.coverImagePosition || "center",
+                    scale: vp.coverImageScale ?? 1,
+                    hoverSrc: vp.coverImageHoverUrl,
+                    hoverPosition: vp.coverImageHoverPosition || "center",
+                    hoverScale: vp.coverImageHoverScale ?? 1,
+                  }}
+                  labels={vp.tags.slice(0, 2)}
+                  sizes="(min-width: 1024px) 33vw, 100vw"
+                  headingLevel="h3"
+                  fadeInImage
+                  onActivate={() => onSelectProject(projectUrlSlug(vp))}
+                />
+              ))}
             </div>
           </div>
         )}
