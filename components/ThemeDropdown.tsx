@@ -1,33 +1,39 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/store/themeStore";
 import { useStyleTheme } from "@/store/styleThemeStore";
 
 const ROUNDED_ID = "playful-rounded";
 
-type Option = "dark" | "light" | "rounded";
+// Fixed, deliberately NOT var(--tag-corner)/var(--card-corner) — this is the switcher's own UI
+// chrome, not content being switched. Tying the panel's shape to the active theme's own corner
+// setting made it balloon into a near-circle the moment "Rounded" (pill = 999px) was selected,
+// since a tall narrow box at that radius reads as a stadium/circle rather than a subtly rounded
+// rectangle. "Soft" here matches the same value BUTTON_CORNER_RADIUS's "soft" option already
+// uses elsewhere (store/contentStore.ts), just as a fixed literal instead of a theme-driven var.
+const PANEL_CORNER = 8;
+const OPTION_CORNER = 6;
 
-// Replaces the old binary day/night switch (ThemeToggle) and the separate style-theme switcher
-// (the previous StyleThemeToggle) with one control. "Dark"/"Light" set the mode directly and
-// reset style to Original; "Rounded" applies the Playful & Rounded style on top of whatever mode
-// is currently active (it has its own light+dark CSS, so it doesn't need to fix one) — see
-// buildAllThemesCss() in store/contentStore.ts for why this specific preset always ships,
-// unlike a genuinely custom saved theme which stays behind the CMS's publish flow.
+const TRACK_W = 40;
+const TRACK_H = 22;
+const THUMB = 16;
+const PAD = 3;
+
+// Style (Square/Rounded — which CSS block applies, see buildAllThemesCss) and mode (Dark/Light —
+// unrelated, every color already has its own dark+light pair) are two independent axes living
+// under one trigger button/panel for a single, uncluttered nav-bar entry point — but rendered as
+// two distinct controls inside, not flattened into one list of 3 interchangeable options. Picking
+// a style leaves mode exactly as it was; the mode switch leaves style exactly as it was.
 export function ThemeDropdown() {
   const { theme, setThemeDirect } = useTheme();
   const { styleTheme, setStyleTheme } = useStyleTheme();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const current: Option = styleTheme === ROUNDED_ID ? "rounded" : theme === "light" ? "light" : "dark";
-
-  const options: { id: Option; label: string }[] = [
-    { id: "dark", label: "Dark" },
-    { id: "light", label: "Light" },
-    { id: "rounded", label: "Rounded" },
-  ];
+  const isDark = theme === "dark";
+  const currentStyleLabel = styleTheme === ROUNDED_ID ? "Rounded" : "Square";
 
   useEffect(() => {
     if (!open) return;
@@ -45,21 +51,14 @@ export function ThemeDropdown() {
     };
   }, [open]);
 
-  function select(id: Option) {
-    if (id === "dark") { setThemeDirect("dark"); setStyleTheme(null); }
-    else if (id === "light") { setThemeDirect("light"); setStyleTheme(null); }
-    else { setStyleTheme(ROUNDED_ID); }
-    setOpen(false);
-  }
-
   return (
     <div ref={rootRef} style={{ position: "relative", flexShrink: 0 }}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-haspopup="listbox"
+        aria-haspopup="true"
         aria-expanded={open}
-        aria-label="Theme"
+        aria-label="Theme settings"
         className="flex items-center gap-1.5"
         style={{
           background: "none",
@@ -73,44 +72,44 @@ export function ThemeDropdown() {
           color: "var(--c-text-muted)",
         }}
       >
-        {options.find((o) => o.id === current)?.label}
+        {currentStyleLabel}
         <ChevronDown size={12} strokeWidth={2.5} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }} />
       </button>
 
       {open && (
         <div
-          role="listbox"
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",
             right: 0,
-            minWidth: 120,
+            minWidth: 168,
             zIndex: 60,
             background: "var(--c-bg-card)",
             border: "1px solid var(--c-border-soft)",
-            borderRadius: "var(--tag-corner)",
+            borderRadius: PANEL_CORNER,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
-            padding: 4,
+            padding: 6,
             display: "flex",
             flexDirection: "column",
             gap: 1,
           }}
         >
-          {options.map((o) => {
-            const active = o.id === current;
+          {/* Style — which CSS block applies (Original/"Square" vs Playful & Rounded) */}
+          {[{ id: null as string | null, label: "Square" }, { id: ROUNDED_ID, label: "Rounded" }].map((opt) => {
+            const active = styleTheme === opt.id;
             return (
               <button
-                key={o.id}
+                key={opt.label}
                 type="button"
                 role="option"
                 aria-selected={active}
-                onClick={() => select(o.id)}
+                onClick={() => setStyleTheme(opt.id)}
                 style={{
                   background: active ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "none",
                   border: "none",
-                  borderRadius: "calc(var(--tag-corner) * 0.6)",
+                  borderRadius: OPTION_CORNER,
                   cursor: "pointer",
-                  padding: "8px 12px",
+                  padding: "8px 10px",
                   textAlign: "left",
                   fontFamily: "var(--font-mono)",
                   fontSize: 12,
@@ -118,10 +117,45 @@ export function ThemeDropdown() {
                   color: active ? "var(--c-teal)" : "var(--c-text)",
                 }}
               >
-                {o.label}
+                {opt.label}
               </button>
             );
           })}
+
+          <div style={{ height: 1, background: "var(--c-border-soft)", margin: "5px 4px" }} />
+
+          {/* Mode — Dark/Light, independent of the style choice above */}
+          <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
+              {isDark ? "Dark" : "Light"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark}
+              onClick={() => setThemeDirect(isDark ? "light" : "dark")}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex items-center"
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
+            >
+              <Moon size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginRight: 6, flexShrink: 0 }} />
+              <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "var(--c-border-med)", flexShrink: 0 }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    top: PAD,
+                    left: isDark ? PAD : TRACK_W - PAD - THUMB,
+                    width: THUMB,
+                    height: THUMB,
+                    borderRadius: "50%",
+                    background: "var(--c-teal)",
+                    transition: "left 0.2s ease",
+                  }}
+                />
+              </span>
+              <Sun size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginLeft: 6, flexShrink: 0 }} />
+            </button>
+          </div>
         </div>
       )}
     </div>
