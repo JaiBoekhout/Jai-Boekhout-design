@@ -11,101 +11,15 @@ import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
 import { StatsBar } from "@/components/StatsBar";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { SkillNetwork } from "@/components/SkillNetwork";
-import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { useButtonCorner } from "@/components/SiteKit";
+import { ProjectCard } from "@/components/ProjectCard";
+import { demoteNestedHeadings } from "@/lib/utils";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
 // reserved as scroll-margin so the Qualifications stat card's scroll-to-section jump doesn't
 // land underneath it.
 const TOP_BAR_HEIGHT = 64;
-
-// Summary is stored as rich-text HTML; strip tags for the compact card blurb — same helper
-// as FeaturedProjects.tsx's grid card uses, kept local since it isn't exported from there.
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-// Single-project "card" display mode — same image-on-top/content-below treatment as a tile in
-// the Work page's featured grid (FeaturedProjects.tsx), just standalone rather than part of a
-// 9-up grid.
-function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; onNavigate: () => void }) {
-  const coverSrc = project.coverImageUrl || project.imgs?.[0] || null;
-  return (
-    <button
-      type="button"
-      onClick={onNavigate}
-      className="group relative w-full text-left flex flex-col overflow-hidden"
-      style={{
-        borderRadius: "var(--card-corner)",
-        background: "var(--c-bg-card)",
-        border: "0.5px solid var(--c-border-soft)",
-        cursor: "pointer",
-        padding: 0,
-      }}
-    >
-      <div className="relative overflow-hidden" style={{ aspectRatio: "16/9", flexShrink: 0 }}>
-        {coverSrc ? (
-          <div
-            className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-            style={{
-              backgroundImage: `url(${coverSrc})`,
-              backgroundSize: "cover",
-              backgroundPosition: project.coverImagePosition || "center",
-              transform: `scale(${project.coverImageScale ?? 1})`,
-              transformOrigin: project.coverImagePosition || "center",
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <MissingImagePlaceholder logoWidth="38%" logoMaxWidth={120} />
-          </div>
-        )}
-      </div>
-
-      <div className="relative flex flex-col flex-1" style={{ padding: "18px 20px 19px" }}>
-        {project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
-            {project.tags.slice(0, 2).map((t, ti) => (
-              <span key={`${t}-${ti}`} style={{
-                fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-                color: TEAL, background: "transparent", textTransform: "uppercase",
-                border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: "var(--tag-corner)",
-                padding: "4px 11px",
-              }}>
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-        <div
-          style={{
-            fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--c-text)", lineHeight: 1.2,
-            marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}
-        >
-          {project.name}
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--font-body)", fontSize: 12, color: "var(--c-text-70)", lineHeight: 1.55,
-            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}
-        >
-          {stripHtml(project.desc)}
-        </div>
-        <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
-          <div
-            className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: TEAL, display: "flex", alignItems: "center", gap: 5 }}
-          >
-            View project <span>→</span>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
 
 export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string, projectId?: string) => void }) {
   // A Set (not a single index) — each entry opens/closes independently, so opening one never
@@ -269,7 +183,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.1 }}
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "10px",
@@ -286,7 +200,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.6 }}
+                  transition={{ delay: 0.15, duration: 0.6 }}
                   style={{
                     fontFamily: "var(--font-heading)",
                     // Not the actual rendered size (every span in this rich-text field carries its
@@ -298,7 +212,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     lineHeight: 1.1,
                     fontWeight: 400,
                   }}
-                  dangerouslySetInnerHTML={{ __html: cms.heroStatement }}
+                  dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatement) }}
                 />
                 {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
                     variants exist in the DOM regardless of which one CSS is currently hiding, so
@@ -308,7 +222,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     className="block md:hidden"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
+                    transition={{ delay: 0.15, duration: 0.6 }}
                     style={{
                       fontFamily: "var(--font-heading)",
                       fontSize: "clamp(28px, 4.5vw, 58px)",
@@ -317,7 +231,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       fontWeight: 400,
                       margin: 0,
                     }}
-                    dangerouslySetInnerHTML={{ __html: cms.heroStatementMobile }}
+                    dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatementMobile) }}
                   />
                 )}
                 {/* Industries — moved here from the About Me section so it sits over the hero
@@ -328,7 +242,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.2 }}
                     style={{ marginTop: "24px" }}
                   >
                     <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "12px" }}>
@@ -366,7 +280,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.2 }}
           className="mt-14 pb-10"
         >
           <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
@@ -393,7 +307,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
+          transition={{ delay: 0.225 }}
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)" }}
         >
@@ -431,7 +345,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           ref={experienceRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.25 }}
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
@@ -538,12 +452,26 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                   <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
                                     Projects
                                   </p>
-                                  {/* Capped to one grid-cell's width — ExperienceProjectCard has no
-                                      max-width of its own (it's designed to sit inside a multi-
-                                      column grid on the Work page), so a lone card here would
-                                      otherwise stretch to the full width of this column. */}
+                                  {/* Capped to one grid-cell's width — ProjectCard has no max-width
+                                      of its own (it's designed to sit inside a multi-column grid
+                                      on the Work page), so a lone card here would otherwise
+                                      stretch to the full width of this column. */}
                                   <div style={{ maxWidth: 380 }}>
-                                    <ExperienceProjectCard project={featured} onNavigate={() => onNavigate("work", projectUrlSlug(featured))} />
+                                    <ProjectCard
+                                      project={featured}
+                                      cover={{
+                                        src: featured.coverImageUrl || featured.imgs?.[0] || null,
+                                        position: featured.coverImagePosition || "center",
+                                        scale: featured.coverImageScale ?? 1,
+                                        hoverSrc: featured.coverImageHoverUrl,
+                                        hoverPosition: featured.coverImageHoverPosition || "center",
+                                        hoverScale: featured.coverImageHoverScale ?? 1,
+                                      }}
+                                      labels={featured.tags.slice(0, 2)}
+                                      sizes="380px"
+                                      headingLevel="div"
+                                      onActivate={() => onNavigate("work", projectUrlSlug(featured))}
+                                    />
                                   </div>
                                 </div>
                               );
@@ -605,7 +533,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.53 }}
+          transition={{ delay: 0.265 }}
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)" }}
         >
@@ -643,7 +571,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.54 }}
+            transition={{ delay: 0.27 }}
             className="mb-14 pb-14 border-b"
             style={{ borderColor: "var(--c-border-soft)" }}
           >
@@ -659,7 +587,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
+            transition={{ delay: 0.275 }}
             className="mb-14 pb-14 border-b"
             style={{ borderColor: "var(--c-border-soft)" }}
           >
@@ -676,7 +604,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           ref={qualificationsRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.3 }}
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
@@ -741,7 +669,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           ref={testimonialsRef}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
+          transition={{ delay: 0.325 }}
           className="mb-14 pb-14 border-b"
           style={{ borderColor: "var(--c-border-soft)", scrollMarginTop: TOP_BAR_HEIGHT + 16 }}
         >
@@ -865,7 +793,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.68 }}
+            transition={{ delay: 0.34 }}
             className="mb-14 pb-14 border-b"
             style={{ borderColor: "var(--c-border-soft)" }}
           >
@@ -983,7 +911,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.35 }}
             className="mb-14 pb-14 border-b"
             style={{ borderColor: "var(--c-border-soft)" }}
           >

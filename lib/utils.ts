@@ -28,6 +28,22 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
   };
 }
 
+// The rich-text editor's heading toolbar buttons let an author mark a run of text as h1-h6 —
+// meant for standalone body copy (Project Detail, Process sections) where that's a real,
+// correctly-nested heading. The same rich-text field also gets used for hero statements, which
+// this app already wraps in its own literal <h1>/<p> — a saved heading tag inside that wrapper
+// produces an invalid nested-heading (heading-inside-heading, or heading-inside-paragraph on the
+// mobile variant) instead of a description list of what content options exist. Rather than
+// rewriting already-saved CMS content (a real, separate decision — see TASKS.md), this demotes
+// any heading tag found in a hero field's HTML to a plain <span> at render time, keeping
+// whatever inline styling the editor attached (font-size, color, etc. all live on the tag's own
+// style attribute, not on its tag name) while removing the invalid nesting.
+export function demoteNestedHeadings(html: string): string {
+  return html
+    .replace(/<h[1-6](\s[^>]*)?>/gi, (_, attrs = "") => `<span${attrs}>`)
+    .replace(/<\/h[1-6]>/gi, "</span>");
+}
+
 // A plain .slice(0, n) cuts mid-word whenever the text happens to run past the limit right in
 // the middle of one — visibly broken in a real search result ("...across UX, brand, product, and
 // buil"). Ending at the last whole word is legible but often still reads as an unfinished

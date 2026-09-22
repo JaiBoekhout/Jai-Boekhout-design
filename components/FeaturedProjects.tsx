@@ -7,7 +7,7 @@ import { getImageProps } from "next/image";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ProjectCard, ProjectCardPlaceholder } from "@/components/ProjectCard";
-import { useButtonCorner } from "@/components/SiteKit";
+import { useButtonCorner, Tag } from "@/components/SiteKit";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 
 // Matches the identical constant in ExperienceProcess.tsx/ExperienceRecruiter.tsx — the shared
@@ -293,7 +293,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", color: TEAL, marginBottom: 5 }}>
                           {p.tags[0]}
                         </div>
-                        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em", marginBottom: 4, color: TEAL }}>{p.name}</h2>
+                        <h2 style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em", marginBottom: 4, color: "var(--link-color)" }}>{p.name}</h2>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>{p.client}</div>
                       </div>
                       {/* Arrow — inline here on mobile/tablet; moves to the row's end on desktop */}
@@ -303,7 +303,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     {/* Tags — wraps naturally full-width below on mobile/tablet, fixed-width grid beside on desktop */}
                     <div className="flex flex-wrap lg:grid lg:grid-cols-4 lg:justify-items-end gap-1.5 w-full lg:w-[520px]" style={{ flexShrink: 0 }}>
                       {p.tags.map((t, ti) => (
-                        <span key={`${t}-${ti}`} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.05em", color: "var(--c-text-50)", border: "0.5px solid var(--c-border-med)", borderRadius: "var(--tag-corner)", padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</span>
+                        <Tag key={`${t}-${ti}`} style={{ fontSize: 9.5, letterSpacing: "0.05em", padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</Tag>
                       ))}
                     </div>
 

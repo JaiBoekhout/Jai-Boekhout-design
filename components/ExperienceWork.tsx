@@ -7,6 +7,7 @@ import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { StatsBar } from "@/components/StatsBar";
 import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy } from "@/store/contentStore";
+import { demoteNestedHeadings } from "@/lib/utils";
 
 // Same 3 stat ids Evaluate's own "At a Glance" row makes clickable there (the rest are purely
 // informational, no matching detail section to jump to) — mapped here to the #hash anchors
@@ -37,7 +38,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
+      transition={{ duration: 0.5, delay: 0.05 }}
       className="min-h-screen pb-32"
       style={{ background: "var(--c-bg)", transition: "background 0.3s ease" }}
     >
@@ -61,7 +62,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "10px",
@@ -78,7 +79,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
             className={content.work.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ delay: 0.15, duration: 0.6 }}
             style={{
               fontFamily: "var(--font-heading)",
               // Not the actual rendered size — every character of this field's rich-text content
@@ -95,7 +96,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
               fontWeight: 400,
               maxWidth: "800px",
             }}
-            dangerouslySetInnerHTML={{ __html: content.work.heroStatement }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.work.heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding
@@ -106,7 +107,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
               className="block md:hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
+              transition={{ delay: 0.15, duration: 0.6 }}
               style={{
                 fontFamily: "var(--font-heading)",
                 fontSize: "clamp(32px, 5vw, 64px)",
@@ -116,7 +117,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 maxWidth: "800px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: content.work.heroStatementMobile }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.work.heroStatementMobile) }}
             />
           )}
         </div>
@@ -127,7 +128,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.5 }}
+          transition={{ delay: 0.275, duration: 0.5 }}
           className="px-8 md:px-16 mt-6 max-w-[1280px] mx-auto"
         >
           <FeaturedProjects
@@ -142,7 +143,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
           className="px-8 md:px-16 mt-14 max-w-[1280px] mx-auto"
         >
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "20px" }}>
@@ -162,7 +163,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65, duration: 0.5 }}
+          transition={{ delay: 0.325, duration: 0.5 }}
           className="px-8 md:px-16 mt-14 max-w-[1280px] mx-auto"
         >
           <StatsBar

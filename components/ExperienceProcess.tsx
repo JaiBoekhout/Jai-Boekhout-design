@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useContentStore } from "@/store/contentStore";
+import { demoteNestedHeadings } from "@/lib/utils";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { PathCTA } from "@/components/PathCTA";
 import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
@@ -91,7 +92,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "10px",
@@ -108,7 +109,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
             className={content.process.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ delay: 0.15, duration: 0.6 }}
             style={{
               fontFamily: "var(--font-heading)",
               // Not the actual rendered size (every span in this rich-text field carries its own
@@ -121,7 +122,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               fontWeight: 400,
               maxWidth: "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: content.process.heroStatement }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.process.heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding, so
@@ -131,7 +132,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               className="block md:hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
+              transition={{ delay: 0.15, duration: 0.6 }}
               style={{
                 fontFamily: "var(--font-heading)",
                 fontSize: "clamp(32px, 5vw, 64px)",
@@ -141,7 +142,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 maxWidth: "700px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: content.process.heroStatementMobile }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.process.heroStatementMobile) }}
             />
           )}
         </div>
@@ -231,7 +232,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               ref={(el) => { panelRefs.current[step.id] = el; }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.06 }}
+              transition={{ delay: 0.15 + i * 0.03 }}
               // Always reserves space as if the top bar were visible, even though it's
               // conditionally hidden — useHideOnScroll shows it again on *any* upward scroll
               // (no threshold), so goToStep's own scroll-up reliably brings it back before
@@ -378,7 +379,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.15 }}
           className="mt-6 p-5 rounded-xl max-w-3xl lg:max-w-[1000px] w-full"
           style={{ background: "var(--c-bg-card)", border: "1px solid var(--c-border-soft)" }}
         >

@@ -381,7 +381,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
         className="px-8 md:px-16 mt-20 mb-20 max-w-[1280px] mx-auto"
       >
         {/* Separates this CTA from whatever content precedes it on every path (Work's project

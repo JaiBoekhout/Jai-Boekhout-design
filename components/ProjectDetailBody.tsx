@@ -66,6 +66,16 @@ export function ProjectDetailBody({
 }: ProjectDetailBodyProps) {
   const { content } = useContentStore();
   const buttonCorner = useButtonCorner();
+  // In "page" mode this title is the document's own real heading — real <h1>. In "modal" mode
+  // this popup renders on top of whatever page opened it (e.g. the Work grid, which already has
+  // its own real <h1> hero statement underneath), so a second <h1> here would be a genuine
+  // duplicate rather than a cosmetic one — both exist in the DOM at the same time, not toggled
+  // by CSS the way the mobile/desktop hero variants are.
+  const TitleTag = mode === "page" ? "h1" : "h2";
+  // Every "Summary"/"Role"/etc. section heading below nests one level under TitleTag — h2 in
+  // page mode (correctly a child of the real h1), h3 in modal mode (correctly a child of the
+  // now-h2 title, rather than a sibling h2 sitting next to it).
+  const SectionTag = mode === "page" ? "h2" : "h3";
 
   // project arrives already enriched (via enrichProjectWithCaseStudy, called upstream by
   // getPublishedProjects/getPublishedProjectBySlug) — its own coverImageUrl already carries
@@ -287,9 +297,9 @@ export function ProjectDetailBody({
                   copyTemplate={content.companyCreditCopy}
                 />
               </div>
-              <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(22px, 5.5vw, 34px)", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 6, color: "#F5F1EA" }}>
+              <TitleTag className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(22px, 5.5vw, 34px)", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 6, color: "#F5F1EA" }}>
                 {project.name}
-              </h1>
+              </TitleTag>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(245,241,234,0.65)", marginBottom: 14 }}>
                 {project.client}
               </div>
@@ -314,9 +324,9 @@ export function ProjectDetailBody({
               {closeButtonPlain}
             </div>
 
-            <h1 className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
+            <TitleTag className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
               {project.name}
-            </h1>
+            </TitleTag>
 
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>
               {project.client}
@@ -389,7 +399,7 @@ export function ProjectDetailBody({
             {/* Description */}
             {project.desc && (
               <>
-                <h2 style={SECTION_HEADING_STYLE}>Summary</h2>
+                <SectionTag style={SECTION_HEADING_STYLE}>Summary</SectionTag>
                 <div
                   className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.desc }}
@@ -425,7 +435,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.role = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <h2 style={SECTION_HEADING_STYLE}>Role</h2>
+                <SectionTag style={SECTION_HEADING_STYLE}>Role</SectionTag>
                 <div
                   className="grid grid-cols-1 md:grid-cols-2"
                   style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
@@ -472,7 +482,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section1 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <h2 style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</h2>
+                <SectionTag style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</SectionTag>
                 <div
                   className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullContent || "" }}
@@ -497,7 +507,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section2 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <h2 style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</h2>
+                <SectionTag style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</SectionTag>
                 <div
                   className={`rte-content ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent || "" }}
@@ -561,7 +571,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.section3 = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                {project.section3Heading && <h2 style={SECTION_HEADING_STYLE}>{project.section3Heading}</h2>}
+                {project.section3Heading && <SectionTag style={SECTION_HEADING_STYLE}>{project.section3Heading}</SectionTag>}
                 <div
                   className={`rte-content ${project.section3ContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.section3Content || "" }}
@@ -585,9 +595,9 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.outcomes = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+                <SectionTag style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
                   Key Outcomes
-                </h2>
+                </SectionTag>
                 <div style={{ borderTop: "0.5px solid var(--c-divider)", marginBottom: 24 }}>
                   {project.outcomes.map((o, k) => (
                     <div key={k} className="flex items-baseline gap-3" style={{ padding: "10px 0", borderBottom: "0.5px solid var(--c-divider)" }}>
@@ -602,9 +612,9 @@ export function ProjectDetailBody({
             )}
 
             {/* Tags */}
-            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+            <SectionTag style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
               Tags
-            </h2>
+            </SectionTag>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
               {project.tags.map((t, ti) => (
                 <Tag key={`${t}-${ti}`}>{t}</Tag>
@@ -632,9 +642,9 @@ export function ProjectDetailBody({
             start decoding/painting until the open transition has already settled. */}
         {showExtras && viewMoreProjects.length > 0 && (
           <div style={{ marginTop: 40, paddingTop: 28, borderTop: "0.5px solid var(--c-divider)" }}>
-            <h2 style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
+            <SectionTag style={{ fontFamily: "var(--font-mono)", fontSize: 25, letterSpacing: "0.14em", color: TEAL, textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
               {project.viewMoreHeading || "View More Projects"}
-            </h2>
+            </SectionTag>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               {viewMoreProjects.map((vp) => (
                 <ProjectCard
@@ -650,7 +660,7 @@ export function ProjectDetailBody({
                   }}
                   labels={vp.tags.slice(0, 2)}
                   sizes="(min-width: 1024px) 33vw, 100vw"
-                  headingLevel="h3"
+                  headingLevel={mode === "page" ? "h3" : "h4"}
                   fadeInImage
                   onActivate={() => onSelectProject(projectUrlSlug(vp))}
                 />

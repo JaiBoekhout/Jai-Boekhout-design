@@ -10,6 +10,7 @@ import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { useContentStore } from "@/store/contentStore";
 import type { CMSHomeCard } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
+import { demoteNestedHeadings } from "@/lib/utils";
 
 // cta/hoverLabel stay fixed (not CMS-editable, per the Home tab's scoped fields); question and
 // description are pulled live from content.homepage.cards[id] at render time instead.
@@ -146,7 +147,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           className={home.headlineMobile ? "hidden md:block hero-mobile-h1" : "hero-mobile-h1"}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.7, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
           style={{
             fontFamily: "var(--font-heading)",
             // Not the actual rendered size (every span in this rich-text field carries its own
@@ -166,7 +167,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             className="block md:hidden"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.7, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{
               fontFamily: "var(--font-heading)",
               fontSize: "clamp(52px, 8vw, 96px)",
@@ -185,7 +186,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           className={home.subheadlineMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+          transition={{ duration: 0.7, delay: 0.125, ease: "easeOut" }}
           style={{
             fontFamily: "var(--font-body)",
             fontSize: "clamp(16px, 2vw, 20px)",
@@ -193,7 +194,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             lineHeight: 1.6,
             fontWeight: 300,
           }}
-          dangerouslySetInnerHTML={{ __html: home.subheadline }}
+          dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(home.subheadline) }}
         />
         {/* Mobile override of the same H1 above (hidden md:block there, block md:hidden here) —
             deliberately NOT itself an <h1>. Two real <h1> elements both exist in the DOM at once
@@ -204,7 +205,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             className="block md:hidden"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
+            transition={{ duration: 0.7, delay: 0.125, ease: "easeOut" }}
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "clamp(16px, 2vw, 20px)",
@@ -213,7 +214,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               fontWeight: 300,
               margin: 0,
             }}
-            dangerouslySetInnerHTML={{ __html: home.subheadlineMobile }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(home.subheadlineMobile) }}
           />
         )}
 
@@ -221,7 +222,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           className={home.questionMobile ? "hidden md:block" : undefined}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
+          transition={{ duration: 0.6, delay: 0.225 }}
           style={{
             fontFamily: "var(--font-heading)",
             fontStyle: "italic",
@@ -236,7 +237,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             className="block md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
+            transition={{ duration: 0.6, delay: 0.225 }}
             style={{
               fontFamily: "var(--font-heading)",
               fontStyle: "italic",
@@ -258,7 +259,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
       <motion.div
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
+        transition={{ duration: 0.7, delay: 0.275, ease: "easeOut" }}
         className="grid grid-cols-1 lg:grid-cols-4 max-w-6xl mx-auto w-full border overflow-hidden"
         style={{ borderColor: "var(--c-border-soft)" }}
       >

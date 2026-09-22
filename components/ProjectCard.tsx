@@ -24,7 +24,10 @@ export interface ProjectCardProps {
    *  tags; resolving which is the caller's job, not this component's. */
   labels: string[];
   sizes: string;
-  headingLevel?: "h2" | "h3";
+  /** "div" for a title that isn't a real page heading in its context (e.g. a small "related
+   *  project" callout nested inside a job-history entry, several levels deeper than any
+   *  reasonable heading depth) — matches how such a card rendered before consolidation. */
+  headingLevel?: "h2" | "h3" | "h4" | "div";
   /** The "View Project →" hover reveal, shown on the main Work grid/list but not the project-page
    *  "View More Projects" card. */
   showHoverHint?: boolean;
@@ -98,7 +101,7 @@ export function ProjectCard({
           </div>
         )}
         <Heading style={{
-          fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--c-text)", lineHeight: 1.2,
+          fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--link-color)", lineHeight: 1.2,
           marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {project.name}
