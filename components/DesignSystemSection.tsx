@@ -716,6 +716,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     tabBarStyle: rawData.tabBarStyle ?? DEFAULT_DESIGN_SYSTEM.tabBarStyle,
     textAreaStyle: rawData.textAreaStyle ?? DEFAULT_DESIGN_SYSTEM.textAreaStyle,
     switchStyle: rawData.switchStyle ?? DEFAULT_DESIGN_SYSTEM.switchStyle,
+    tagStyle: rawData.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     savedThemes: rawData.savedThemes ?? [],
   };
 
@@ -743,6 +744,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       ...(theme.tabBarStyle ? { tabBarStyle: theme.tabBarStyle } : {}),
       ...(theme.textAreaStyle ? { textAreaStyle: theme.textAreaStyle } : {}),
       ...(theme.switchStyle ? { switchStyle: theme.switchStyle } : {}),
+      ...(theme.tagStyle ? { tagStyle: theme.tagStyle } : {}),
     });
   }
 
@@ -759,6 +761,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       tabBarStyle: data.tabBarStyle,
       textAreaStyle: data.textAreaStyle,
       switchStyle: data.switchStyle,
+      tagStyle: data.tagStyle,
     };
     onChange({ ...data, savedThemes: [...data.savedThemes, theme] });
   }
@@ -785,6 +788,10 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
   function updateTabBarStyle(patch: Partial<typeof data.tabBarStyle>) {
     onChange({ ...data, tabBarStyle: { ...data.tabBarStyle, ...patch } });
+  }
+
+  function updateTagStyle(patch: Partial<NonNullable<typeof data.tagStyle>>) {
+    onChange({ ...data, tagStyle: { ...(data.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle!), ...patch } });
   }
 
   function updateTextAreaStyle(patch: Partial<typeof data.textAreaStyle>) {
@@ -1091,7 +1098,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         </a>
       </Section>
 
-      <Section id="ds-labels" title="Labels">
+      <Section id="ds-labels" title="Tags & Labels" note="Corner applies to every project tag, filter-category pill, and credit badge sitewide — independent of the Buttons corner above, so a theme can pair (for example) pill buttons with square tags or vice versa.">
         <div className="mb-5">
           <ComponentColorControl
             label="Label"
@@ -1102,8 +1109,26 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
             onChange={updateComponentColors}
           />
         </div>
+        <div className="mb-5" style={{ maxWidth: 220 }}>
+          <SelectField
+            label="Tag / badge corner"
+            value={(data.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle!).corner}
+            onChange={(v: ButtonCorner) => updateTagStyle({ corner: v })}
+            options={[
+              { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+            ]}
+          />
+        </div>
         <p style={{ fontFamily: pairing.mono, fontSize: 10, color: labelColor, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>Field Label · SEO</p>
-        <p style={{ fontFamily: pairing.mono, fontSize: 10, color: c.mutedDark, letterSpacing: "0.12em", textTransform: "uppercase" }}>Muted Caption Text</p>
+        <p style={{ fontFamily: pairing.mono, fontSize: 10, color: c.mutedDark, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 14 }}>Muted Caption Text</p>
+        <span style={{
+          display: "inline-block", fontFamily: pairing.mono, fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase",
+          color: labelColor, background: "transparent",
+          border: `0.5px solid ${labelColor}`, borderRadius: BUTTON_CORNER_RADIUS[(data.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle!).corner],
+          padding: "4px 11px",
+        }}>
+          UX Design
+        </span>
       </Section>
 
       <Section id="ds-fields" title="Input Fields" note="Focus-state border color; the field's own background/border/text still come from Card/Divider/Text above.">

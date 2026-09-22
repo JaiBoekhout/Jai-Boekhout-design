@@ -914,6 +914,16 @@ export interface CMSSwitchStyle {
   trackOffLight: string;
 }
 
+// Tags/pills/badges (project categories, filter chips, credit badges) previously always squared
+// off with the same hardcoded borderRadius: 0 as buttons happened to use, with no control of
+// their own — a theme wanting pill buttons but square tags (or vice versa) had no way to do that.
+// Optional, like componentColors/typeScale.mobile above: absent on any already-saved design system
+// falls back to DEFAULT_DESIGN_SYSTEM.tagStyle in buildDesignSystemCss() below, so it can't ever
+// resolve to undefined for existing saved content.
+export interface CMSTagStyle {
+  corner: ButtonCorner;
+}
+
 export interface CMSSavedTheme {
   id: string;
   name: string;
@@ -929,6 +939,7 @@ export interface CMSSavedTheme {
   tabBarStyle?: CMSTabBarStyle;
   textAreaStyle?: CMSTextAreaStyle;
   switchStyle?: CMSSwitchStyle;
+  tagStyle?: CMSTagStyle;
 }
 
 export interface CMSDesignSystem {
@@ -942,6 +953,8 @@ export interface CMSDesignSystem {
   tabBarStyle: CMSTabBarStyle;
   textAreaStyle: CMSTextAreaStyle;
   switchStyle: CMSSwitchStyle;
+  // Optional — see CMSTagStyle above for why.
+  tagStyle?: CMSTagStyle;
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
   // the 3 curated THEME_PRESETS below.
   savedThemes: CMSSavedTheme[];
@@ -1136,6 +1149,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
     trackOffDark: "#2F353A",
     trackOffLight: "#D6D3CE",
   },
+  tagStyle: { corner: "square" },
   savedThemes: [],
 };
 
@@ -1250,11 +1264,13 @@ export function buildDesignSystemCss(ds: CMSDesignSystem): string {
   const tabBar = ds.tabBarStyle;
   const textArea = ds.textAreaStyle;
   const switchStyle = ds.switchStyle;
+  const tagCorner = ds.tagStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.tagStyle!.corner;
   const structuralCss = `
 :root {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
   --tabbar-corner: ${BUTTON_CORNER_RADIUS[tabBar.corner]}px;
   --tabbar-font-size: ${tabBar.fontSize}px;
+  --tag-corner: ${BUTTON_CORNER_RADIUS[tagCorner]}px;
 }`;
 
   return `:root {

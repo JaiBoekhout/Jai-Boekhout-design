@@ -131,7 +131,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   className="transition-all"
                   style={{
                     fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
-                    padding: "7px 15px", borderRadius: 0, cursor: "pointer", flexShrink: 0,
+                    padding: "7px 15px", borderRadius: "var(--tag-corner)", cursor: "pointer", flexShrink: 0,
                     background: active ? TEAL : "transparent",
                     color: active ? "#0C1117" : "var(--c-text-50)",
                     border: active ? "0.5px solid transparent" : "0.5px solid var(--c-border-med)",

@@ -5,16 +5,7 @@ import type { CMSProject } from "@/store/contentStore";
 import { stripHtml } from "@/lib/utils";
 import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { FadeInImage } from "@/components/FadeInImage";
-
-// Same tag/category-pill treatment everywhere a project card shows one — pulled out once so it's
-// obviously identical rather than three copies that could quietly drift apart (see
-// design-system-audit.md §2.4).
-const TAG_STYLE = {
-  fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-  color: "var(--c-teal)", background: "transparent", textTransform: "uppercase" as const,
-  border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
-  padding: "4px 11px",
-};
+import { Tag } from "@/components/SiteKit";
 
 export interface ProjectCardCover {
   src: string | null;
@@ -102,7 +93,7 @@ export function ProjectCard({
         {labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
             {labels.map((label, i) => (
-              <span key={`${label}-${i}`} style={TAG_STYLE}>{label}</span>
+              <Tag key={`${label}-${i}`}>{label}</Tag>
             ))}
           </div>
         )}

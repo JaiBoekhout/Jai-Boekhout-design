@@ -11,15 +11,8 @@ import { MissingImagePlaceholder } from "@/components/MissingImagePlaceholder";
 import { buildHeroOverlayGradient, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import { FadeInImage } from "@/components/FadeInImage";
 import { ProjectCard } from "@/components/ProjectCard";
-import { useButtonCorner } from "@/components/SiteKit";
+import { useButtonCorner, Tag, Label } from "@/components/SiteKit";
 import { stripHtml } from "@/lib/utils";
-
-const TAG_STYLE: CSSProperties = {
-  fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
-  color: "var(--c-teal)", background: "transparent", textTransform: "uppercase",
-  border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
-  padding: "4px 11px",
-};
 
 // Same tag treatment as TAG_STYLE, but for sitting directly on the hero photo overlay — fixed
 // light colors instead of the themed teal/var(--c-text), since the photo is always dark
@@ -201,7 +194,7 @@ export function ProjectDetailBody({
       <div style={{
         fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
         color: TEAL, background: "rgba(6,9,12,0.75)",
-        border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: 0,
+        border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: "var(--tag-corner)",
         padding: "5px 13px",
       }}>
         {project.num} — {project.tags[0]?.toUpperCase()}
@@ -448,9 +441,9 @@ export function ProjectDetailBody({
                     const isLastOdd = roleCards.length % 2 === 1 && i === roleCards.length - 1;
                     return (
                       <div key={card.key} style={{ background: "var(--c-bg-card)", padding: "16px 18px", gridColumn: isLastOdd ? "1 / -1" : undefined }}>
-                        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                        <Label as="p" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 6 }}>
                           {card.label}
-                        </p>
+                        </Label>
                         <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
                           {card.value}
                         </p>
@@ -614,9 +607,7 @@ export function ProjectDetailBody({
             </h2>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
               {project.tags.map((t, ti) => (
-                <span key={`${t}-${ti}`} style={TAG_STYLE}>
-                  {t}
-                </span>
+                <Tag key={`${t}-${ti}`}>{t}</Tag>
               ))}
             </div>
 

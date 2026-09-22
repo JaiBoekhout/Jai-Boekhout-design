@@ -103,7 +103,7 @@ export function CompanyCredit({
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
           letterSpacing: "0.08em", textTransform: "uppercase", color: "#0C1117",
-          background: "var(--c-teal)", borderRadius: 4, padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
+          background: "var(--c-teal)", borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
         }}>
           {company.logoUrl && (
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 3, padding: "3px 5px", flexShrink: 0 }}>

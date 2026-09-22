@@ -108,11 +108,55 @@ export function useButtonCorner(variant: ButtonVariant = "secondary"): number {
   return BUTTON_CORNER_RADIUS[cfg.corner];
 }
 
-// ─── Label ──────────────────────────────────────────────────────────────────────
+// ─── Tag ────────────────────────────────────────────────────────────────────────
+// The static outlined chip used for project categories/tags — corner tracks the Design System's
+// Tags & Labels corner setting (--tag-corner) independently of Button's own corner, and color
+// tracks --label-color (the CMS's "Labels" component-color control, previously wired up but
+// consumed by nothing — see design-system-audit.md §2.8). Not used for the filter-pill toggles
+// or the CompanyCredit/project-modal badges, which have their own active/inactive or fixed-ink
+// treatments too different from a plain static chip to share this component; those instead read
+// var(--tag-corner) directly to stay corner-consistent without adopting this color scheme.
 
-export function Label({ children, style, ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+export function Tag({ children, style, ...rest }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
-    <label
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.1em",
+        color: "var(--label-color)",
+        background: "transparent",
+        textTransform: "uppercase",
+        border: "0.5px solid color-mix(in srgb, var(--label-color) 45%, transparent)",
+        borderRadius: "var(--tag-corner)",
+        padding: "4px 11px",
+        ...style,
+      }}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
+}
+
+// ─── Label ──────────────────────────────────────────────────────────────────────
+// Renders a real <label> by default (a form field's caption). Some call sites (the project-page
+// Role/Client/Platform/Scope captions) use this exact visual treatment for a plain data display,
+// not a form field — a bare <label> with no associated control there would be invalid semantics,
+// so `as="p"` swaps the element while keeping the identical --label-color-driven look.
+
+interface LabelProps {
+  as?: "label" | "p";
+  children?: React.ReactNode;
+  style?: React.CSSProperties;
+  htmlFor?: string;
+  className?: string;
+}
+
+export function Label({ children, style, as = "label", ...rest }: LabelProps) {
+  const Tag = as as React.ElementType;
+  return (
+    <Tag
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 10,
@@ -126,7 +170,7 @@ export function Label({ children, style, ...rest }: React.LabelHTMLAttributes<HT
       {...rest}
     >
       {children}
-    </label>
+    </Tag>
   );
 }
 

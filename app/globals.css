@@ -60,7 +60,7 @@
   --switch-color:   var(--c-teal);
   --menu-color:     var(--c-teal);
   --tabbar-color:   var(--c-teal);
-  /* Menu/Tab Bar/Text Area/Switch structural + standalone color options — defaults match
+  /* Menu/Tab Bar/Text Area/Switch/Tag structural + standalone color options — defaults match
      DEFAULT_DESIGN_SYSTEM in store/contentStore.ts, overridden by the CMS at runtime. */
   --menu-panel-bg:      #1A2128;
   --menu-panel-border:  #989793;
@@ -73,6 +73,7 @@
   --textarea-text:      #EDE8DF;
   --switch-thumb:       #0F1519;
   --switch-track-off:   #2F353A;
+  --tag-corner:         0px;
 }
 
 /* ── Light mode overrides ────────────────────────────────────────────────── */
