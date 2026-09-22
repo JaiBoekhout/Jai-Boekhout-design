@@ -295,7 +295,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     {/* Tags — wraps naturally full-width below on mobile/tablet, fixed-width grid beside on desktop */}
                     <div className="flex flex-wrap lg:grid lg:grid-cols-4 lg:justify-items-end gap-1.5 w-full lg:w-[520px]" style={{ flexShrink: 0 }}>
                       {p.tags.map((t, ti) => (
-                        <span key={`${t}-${ti}`} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.05em", color: "var(--c-text-50)", border: "0.5px solid var(--c-border-med)", borderRadius: 0, padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</span>
+                        <span key={`${t}-${ti}`} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.05em", color: "var(--c-text-50)", border: "0.5px solid var(--c-border-med)", borderRadius: "var(--tag-corner)", padding: "3px 9px", whiteSpace: "nowrap" }}>{t}</span>
                       ))}
                     </div>
 

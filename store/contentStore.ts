@@ -950,7 +950,7 @@ export interface CMSSavedTheme {
   switchStyle?: CMSSwitchStyle;
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
-  // Visitor-visible in the new style-theme switcher (see StyleThemeToggle.tsx) — absent/false
+  // Visitor-visible in the style-theme switcher (see ThemeDropdown.tsx) — absent/false
   // keeps a theme in the Theme Gallery as an apply-able starting point without also surfacing it
   // to visitors before it's ready.
   visible?: boolean;
@@ -973,7 +973,7 @@ export interface CMSDesignSystem {
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
   // the 3 curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
   // buttons, tags, cards, component colors) via CMSSavedTheme's optional fields — a theme flagged
-  // `visible` there also becomes selectable in the public style-theme switcher (StyleThemeToggle),
+  // `visible` there also becomes selectable in the public style-theme switcher (ThemeDropdown),
   // rendered under a `[data-style-theme="<id>"]`-scoped CSS block (see buildDesignSystemCss below).
   savedThemes: CMSSavedTheme[];
   // Which savedThemes id a first-time visitor sees by default in the style-theme switcher. Unset
@@ -1437,15 +1437,26 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
 
 // The actual CSS the app injects (app/layout.tsx, DesignSystemStyle.tsx) — the live/default look
 // exactly as buildDesignSystemCss(ds) alone always produced, PLUS one additional scoped block per
-// savedThemes entry marked `visible`, each selectable at runtime by StyleThemeToggle setting
+// savedThemes entry marked `visible`, each selectable at runtime by ThemeDropdown setting
 // `data-style-theme` on <html>. A visitor who never touches that switcher sees byte-identical CSS
 // to before multi-theme support existed — the extra blocks are inert until that attribute is set.
+// "Playful & Rounded" is the ThemeDropdown's built-in "Rounded" option — ships unconditionally,
+// not gated behind the CMS's Save Current + publish flow the way a genuinely custom saved theme
+// would be. That flow still exists below for whatever Jai creates himself; this one specific
+// preset is meant to always be selectable, since it's a fixed dropdown option, not an
+// admin-managed list.
+const PLAYFUL_ROUNDED_PRESET = THEME_PRESETS.find((t) => t.id === "playful-rounded")!;
+
 export function buildAllThemesCss(ds: CMSDesignSystem): string {
-  const themeBlocks = (ds.savedThemes ?? [])
-    .filter((t) => t.visible)
+  const builtInBlock = buildDesignSystemCss(
+    themeToFullDesignSystem(PLAYFUL_ROUNDED_PRESET),
+    `:root[data-style-theme="${PLAYFUL_ROUNDED_PRESET.id}"]`
+  );
+  const publishedBlocks = (ds.savedThemes ?? [])
+    .filter((t) => t.visible && t.id !== PLAYFUL_ROUNDED_PRESET.id)
     .map((t) => buildDesignSystemCss(themeToFullDesignSystem(t), `:root[data-style-theme="${t.id}"]`))
     .join("\n");
-  return `${buildDesignSystemCss(ds)}\n${themeBlocks}`;
+  return `${buildDesignSystemCss(ds)}\n${builtInBlock}\n${publishedBlocks}`;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────

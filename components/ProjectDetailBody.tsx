@@ -20,7 +20,7 @@ import { stripHtml } from "@/lib/utils";
 const OVERLAY_TAG_STYLE: CSSProperties = {
   fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
   color: "#F5F1EA", background: "rgba(15,21,25,0.35)", textTransform: "uppercase",
-  border: "0.5px solid rgba(245,241,234,0.4)", borderRadius: 0,
+  border: "0.5px solid rgba(245,241,234,0.4)", borderRadius: "var(--tag-corner)",
   padding: "4px 11px",
 };
 
@@ -410,7 +410,7 @@ export function ProjectDetailBody({
             {project.live && (
               <a href={project.live} target="_blank" rel="noreferrer"
                 className="hover:opacity-80 transition-opacity"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: 0, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
+                style={{ fontFamily: "var(--font-mono)", fontSize: 11, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "0.04em", borderRadius: buttonCorner, padding: "8px 18px", color: "#0C1117", background: TEAL, border: "none", marginBottom: 22 }}>
                 View Live Site →
               </a>
             )}
@@ -457,9 +457,9 @@ export function ProjectDetailBody({
             {/* Cover image — sits directly under Role (or, when a project has no Role/Platform/
                 Scope set, right after Summary/the live-site link instead). */}
             {coverSrc ? (
-              <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
+              <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
             ) : (
-              <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: 0, border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
+              <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
                 <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
               </div>
             )}
@@ -536,7 +536,7 @@ export function ProjectDetailBody({
                     <button
                       key={k}
                       onClick={() => onOpenLightbox(item.src!)}
-                      style={{ flex: 1, aspectRatio: "4/3", borderRadius: 0, border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
+                      style={{ flex: 1, aspectRatio: "4/3", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
                     >
                       <FadeInImage
                         src={item.src!}

@@ -181,7 +181,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 <div
                   className="w-6 h-6 md:w-9 md:h-9"
                   style={{
-                    borderRadius: 0,
+                    borderRadius: "var(--tag-corner)",
                     border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
                     background: openSteps.has(step.id) ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
                     display: "flex",
@@ -243,7 +243,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               <button
                 className="w-full text-left p-5 border transition-colors"
                 style={{
-                  borderRadius: 0,
+                  borderRadius: "var(--card-corner)",
                   background: "color-mix(in srgb, var(--c-teal) 3%, transparent)",
                   borderColor: "color-mix(in srgb, var(--c-teal) 25%, transparent)",
                 }}
@@ -338,7 +338,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                         </div>
                         <div
                           className="md:col-span-2 p-4"
-                          style={{ borderRadius: 0, background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
+                          style={{ borderRadius: "var(--card-corner)", background: "var(--c-surface-3)", border: "1px solid rgba(237,232,223,0.04)" }}
                         >
                           <p
                             style={{

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Home, Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
 import { PATH_URLS, PATH_DISPLAY_NAMES, type PathKey } from "@/lib/paths";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
+import { useButtonCorner } from "@/components/SiteKit";
 
 const PATH_ORDER: PathKey[] = ["work", "recruit", "process", "story"];
 const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
@@ -34,6 +35,7 @@ interface NavButtonProps {
 // below) — icon-only at rest, label expands on hover or while active, same treatment for both
 // so Home doesn't read as a visually distinct bolt-on.
 function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, onHoverStart, onHoverEnd }: NavButtonProps) {
+  const buttonCorner = useButtonCorner();
   return (
     <button
       type="button"
@@ -44,7 +46,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       aria-label={label}
       className="flex items-center transition-colors"
       style={{
-        borderRadius: 0,
+        borderRadius: buttonCorner,
         border: isActive ? "1px solid var(--c-teal)" : "1px solid transparent",
         background: isActive ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
@@ -88,6 +90,7 @@ const HOME_HOVER_KEY = "home";
 export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   const router = useRouter();
   const hidden = useHideOnScroll();
+  const buttonCorner = useButtonCorner();
   const [hoveredKey, setHoveredKey] = useState<PathKey | typeof HOME_HOVER_KEY | null>(null);
 
   return (
@@ -105,7 +108,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
         style={{
           background: "var(--c-bg-glass)",
           border: "1px solid var(--c-border-med)",
-          borderRadius: 0,
+          borderRadius: buttonCorner,
           backdropFilter: "blur(20px)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
         }}

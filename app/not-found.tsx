@@ -7,8 +7,7 @@ import { ThemeProvider } from "@/store/themeStore";
 import { StyleThemeProvider } from "@/store/styleThemeStore";
 import { FontScaleProvider } from "@/store/fontScaleStore";
 import { DesignSystemStyle } from "@/components/DesignSystemStyle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { StyleThemeToggle } from "@/components/StyleThemeToggle";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { Button } from "@/components/SiteKit";
 
 // Copy/image are CMS-editable (Design System → 404 Page) rather than hardcoded, so this stays
@@ -28,8 +27,7 @@ export default function NotFound() {
         style={{ background: "var(--c-bg)", transition: "background 0.3s ease" }}
       >
         <div className="fixed top-6 right-6 md:top-8 md:right-8 flex items-center gap-3">
-          <StyleThemeToggle />
-          <ThemeToggle />
+          <ThemeDropdown />
         </div>
 
         {nf.imageUrl && (

@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { track } from "@vercel/analytics";
 import { ArrowLeft, X } from "lucide-react";
 import type { CMSProject } from "@/store/contentStore";
+import { useButtonCorner } from "@/components/SiteKit";
 
 const TEAL = "var(--c-teal)";
 
@@ -36,6 +37,7 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
   // for the modal (a real page navigation was never separately instrumented before this).
   const popupRef = useRef<HTMLDivElement>(null);
   const popupTriggerRef = useRef<HTMLElement | null>(null);
+  const buttonCorner = useButtonCorner();
   useEffect(() => {
     if (mode !== "modal") return;
     track("project_viewed", { project: project.name });
@@ -115,7 +117,7 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: 0, padding: "7px 12px", cursor: "pointer" }}
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner, padding: "7px 12px", cursor: "pointer" }}
           >
             <ArrowLeft size={11} /> Back to Projects
           </button>

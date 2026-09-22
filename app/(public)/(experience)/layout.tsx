@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { StyleThemeToggle } from "@/components/StyleThemeToggle";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { PathSwitcher } from "@/components/PathSwitcher";
@@ -74,8 +73,7 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
           />
 
           <div className="flex items-center justify-end gap-3">
-            <StyleThemeToggle />
-            <ThemeToggle />
+            <ThemeDropdown />
             <FontSizeToggle />
           </div>
         </div>

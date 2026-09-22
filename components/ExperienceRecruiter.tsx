@@ -37,7 +37,7 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
       onClick={onNavigate}
       className="group relative w-full text-left flex flex-col overflow-hidden"
       style={{
-        borderRadius: 0,
+        borderRadius: "var(--card-corner)",
         background: "var(--c-bg-card)",
         border: "0.5px solid var(--c-border-soft)",
         cursor: "pointer",
@@ -70,7 +70,7 @@ function ExperienceProjectCard({ project, onNavigate }: { project: CMSProject; o
               <span key={`${t}-${ti}`} style={{
                 fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.1em",
                 color: TEAL, background: "transparent", textTransform: "uppercase",
-                border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: 0,
+                border: "0.5px solid color-mix(in srgb, var(--c-teal) 45%, transparent)", borderRadius: "var(--tag-corner)",
                 padding: "4px 11px",
               }}>
                 {t}
@@ -343,7 +343,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                             fontSize: "12px",
                             color: hasHeroPhoto ? "#F5F1EA" : "var(--c-text)",
                             border: hasHeroPhoto ? "1px solid rgba(245,241,234,0.35)" : "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
-                            borderRadius: 0,
+                            borderRadius: "var(--tag-corner)",
                             padding: "6px 14px",
                             background: hasHeroPhoto ? "rgba(6,9,12,0.35)" : "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                           }}
@@ -417,7 +417,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                 display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "20px",
                 fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.04em",
                 background: "var(--btn-color)", color: "var(--c-bg)", border: "1px solid var(--btn-color)",
-                borderRadius: 0, padding: "9px 16px", textDecoration: "none",
+                borderRadius: buttonCorner, padding: "9px 16px", textDecoration: "none",
               }}
             >
               <Download size={13} /> Download Resume
@@ -505,7 +505,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                       fontFamily: "var(--font-body)",
                                       fontSize: "12px",
                                       color: "var(--c-text-muted)",
-                                      borderRadius: 0,
+                                      borderRadius: "var(--tag-corner)",
                                       padding: "6px 14px",
                                     }}
                                   >
@@ -561,13 +561,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                       type="button"
                                       onClick={() => onNavigate("work", projectUrlSlug(p))}
                                       className="group flex items-center gap-3 w-full text-left transition-opacity hover:opacity-75 pro-exp-outline"
-                                      style={{ background: "var(--c-bg-card)", borderRadius: 0, padding: "6px", cursor: "pointer" }}
+                                      style={{ background: "var(--c-bg-card)", borderRadius: "var(--card-corner)", padding: "6px", cursor: "pointer" }}
                                     >
                                       {(p.coverImageUrl || p.heroImageUrl || p.imgs[0]) ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" style={{ width: 44, height: 32, borderRadius: 0, objectFit: "cover", flexShrink: 0 }} />
+                                        <img src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" style={{ width: 44, height: 32, borderRadius: "var(--card-corner)", objectFit: "cover", flexShrink: 0 }} />
                                       ) : (
-                                        <div style={{ width: 44, height: 32, borderRadius: 0, background: "var(--c-border-soft)", flexShrink: 0 }} />
+                                        <div style={{ width: 44, height: 32, borderRadius: "var(--card-corner)", background: "var(--c-border-soft)", flexShrink: 0 }} />
                                       )}
                                       {/* Swap the name for "View Project" on hover — relative/absolute stack keeps
                                           both in the same box so the row's height never jumps between states. */}
@@ -723,7 +723,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     fontSize: "12px",
                     color: "var(--c-text)",
                     border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
-                    borderRadius: 0,
+                    borderRadius: "var(--tag-corner)",
                     padding: "6px 14px",
                     background: "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                   }}
@@ -842,7 +842,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         fontSize: "11px",
                         color: "var(--c-teal)",
                         border: "1px solid color-mix(in srgb, var(--c-teal) 20%, transparent)",
-                        borderRadius: 0,
+                        borderRadius: "var(--tag-corner)",
                         padding: "6px 14px",
                         background: "color-mix(in srgb, var(--c-teal) 5%, transparent)",
                       }}
@@ -901,7 +901,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                           fontSize: 12,
                           letterSpacing: "0.04em",
                           padding: "9px 16px",
-                          borderRadius: 0,
+                          borderRadius: "var(--tag-corner)",
                           cursor: "pointer",
                           background: "transparent",
                           border: `1px solid ${active ? "var(--c-teal)" : "var(--c-border-med)"}`,

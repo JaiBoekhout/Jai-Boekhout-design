@@ -106,7 +106,7 @@ export default async function RootLayout({
         <InlineScript html={`(function(){try{var t=localStorage.getItem('portfolio_theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`} />
         <InlineScript html={`(function(){try{var s=parseInt(localStorage.getItem('portfolio_font_scale')||'0',10);var pct={0:100,1:112.5,2:125}[s]||100;document.documentElement.style.zoom=pct+'%';}catch(e){}})();`} />
         {/* Same pre-hydration pattern as the day/night script above, for the style-theme switcher
-            (StyleThemeToggle/styleThemeStore.tsx) — falls back to the CMS's chosen default theme
+            (ThemeDropdown/styleThemeStore.tsx) — falls back to the CMS's chosen default theme
             (embedded server-side, so a first-time visitor sees it immediately too, not just a
             returning one with something already in localStorage) rather than always defaulting
             to Original. */}

@@ -2,11 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { StyleThemeToggle } from "@/components/StyleThemeToggle";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { useFontScale } from "@/store/fontScaleStore";
 import type { FontScale } from "@/store/fontScaleStore";
-import { useStyleTheme } from "@/store/styleThemeStore";
 
 const SIZES: { scale: FontScale; label: string }[] = [
   { scale: 0, label: "Default" },
@@ -14,14 +12,13 @@ const SIZES: { scale: FontScale; label: string }[] = [
   { scale: 2, label: "Larger" },
 ];
 
-// Mobile replacement for the desktop nav bar's separate ThemeToggle/FontSizeToggle icons —
+// Mobile replacement for the desktop nav bar's separate ThemeDropdown/FontSizeToggle icons —
 // those rely on hover (FontSizeToggle's size dropdown) or sit too close together for a
 // comfortable tap target, so on small screens they're collapsed into one hamburger button that
 // opens a proper tap-friendly menu instead.
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const { fontScale, setFontScale } = useFontScale();
-  const { availableThemes } = useStyleTheme();
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,25 +77,13 @@ export function MobileNavMenu() {
             gap: 2,
           }}
         >
-          {/* Dark Mode */}
+          {/* Theme */}
           <div className="flex items-center justify-between" style={{ padding: "10px 12px" }}>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>
-              Dark Mode
+              Theme
             </span>
-            <ThemeToggle />
+            <ThemeDropdown />
           </div>
-
-          {availableThemes.length > 0 && (
-            <>
-              <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
-              <div className="flex items-center justify-between" style={{ padding: "10px 12px" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>
-                  Theme
-                </span>
-                <StyleThemeToggle />
-              </div>
-            </>
-          )}
 
           <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
 

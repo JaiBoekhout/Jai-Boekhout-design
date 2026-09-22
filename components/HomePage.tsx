@@ -4,8 +4,7 @@ import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { StyleThemeToggle } from "@/components/StyleThemeToggle";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { useContentStore } from "@/store/contentStore";
@@ -93,8 +92,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <StyleThemeToggle />
-          <ThemeToggle />
+          <ThemeDropdown />
           <FontSizeToggle />
         </div>
       </div>

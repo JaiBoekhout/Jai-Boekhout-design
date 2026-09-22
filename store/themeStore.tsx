@@ -7,9 +7,12 @@ type Theme = "dark" | "light";
 interface ThemeContextValue {
   theme: Theme;
   toggle: () => void;
+  /** Sets the mode directly rather than flipping it — needed by ThemeDropdown's 3-option control,
+   *  where picking "Dark" or "Light" must land on that exact mode regardless of the current one. */
+  setThemeDirect: (theme: Theme) => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({ theme: "dark", toggle: () => {} });
+const ThemeContext = createContext<ThemeContextValue>({ theme: "dark", toggle: () => {}, setThemeDirect: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
@@ -21,15 +24,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute("data-theme", initial);
   }, []);
 
-  function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+  function apply(next: Theme) {
     setTheme(next);
     localStorage.setItem("portfolio_theme", next);
     document.documentElement.setAttribute("data-theme", next);
   }
 
+  function toggle() {
+    apply(theme === "dark" ? "light" : "dark");
+  }
+
   return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
+    <ThemeContext.Provider value={{ theme, toggle, setThemeDirect: apply }}>
       {children}
     </ThemeContext.Provider>
   );
