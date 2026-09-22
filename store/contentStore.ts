@@ -982,53 +982,6 @@ export interface CMSDesignSystem {
   defaultVisitorThemeId?: string;
 }
 
-// 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
-// each a full CMSDesignColors set designed to hang together (accent hue relates to the
-// dark/light neutrals rather than sitting on top of the site's default teal-and-cream base).
-export const THEME_PRESETS: { id: string; name: string; colors: CMSDesignColors }[] = [
-  {
-    id: "sunset-coral",
-    name: "Sunset Coral",
-    colors: {
-      accentDark: "#FF7A59", accentLight: "#E85A3C",
-      headingDark: "#FBF3EC", headingLight: "#241611",
-      textDark: "#F0E6DC", textLight: "#2B1D16",
-      mutedDark: "#F0E6DC", mutedLight: "#7A6255",
-      bodyDark: "#C4B2A6", bodyLight: "#5C4A3F",
-      bgDark: "#17110D", bgLight: "#FBF1E9",
-      cardDark: "#241A14", cardLight: "#F2E5D8",
-      dividerDark: "#94827A", dividerLight: "#C7B6A9",
-    },
-  },
-  {
-    id: "violet-dusk",
-    name: "Violet Dusk",
-    colors: {
-      accentDark: "#9B7BFF", accentLight: "#7C5CE0",
-      headingDark: "#F3F0FB", headingLight: "#150E2A",
-      textDark: "#E8E3F5", textLight: "#1E1735",
-      mutedDark: "#E8E3F5", mutedLight: "#5C5480",
-      bodyDark: "#B3A9CE", bodyLight: "#4A4270",
-      bgDark: "#0F0B1A", bgLight: "#F5F2FB",
-      cardDark: "#1B1530", cardLight: "#E9E4F5",
-      dividerDark: "#8C82A6", dividerLight: "#B0A6CB",
-    },
-  },
-  {
-    id: "sage-forest",
-    name: "Sage Forest",
-    colors: {
-      accentDark: "#6FBF8B", accentLight: "#3F9A63",
-      headingDark: "#F1F6EF", headingLight: "#10190F",
-      textDark: "#E5EDE1", textLight: "#182A17",
-      mutedDark: "#E5EDE1", mutedLight: "#526B4F",
-      bodyDark: "#ABC0A6", bodyLight: "#445E41",
-      bgDark: "#0D1410", bgLight: "#F3F6EF",
-      cardDark: "#172119", cardLight: "#E6EBDE",
-      dividerDark: "#8A9C85", dividerLight: "#A9BBA2",
-    },
-  },
-];
 
 // [cssVariable, darkFieldKey, lightFieldKey] — the single source of truth for which
 // CMSComponentColors field feeds which CSS variable, used by buildDesignSystemCss() below.
@@ -1175,6 +1128,101 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   cardStyle: { corner: "square" },
   savedThemes: [],
 };
+
+// 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
+// each a full CMSDesignColors set designed to hang together (accent hue relates to the
+// dark/light neutrals rather than sitting on top of the site's default teal-and-cream base).
+// A preset's extra fields beyond colors are optional (same shape as CMSSavedTheme, which
+// applyTheme() already accepts structurally) — only "Playful & Rounded" below uses them, to
+// bundle its font pairing + button/tag/card corners into the one-click apply.
+export const THEME_PRESETS: {
+  id: string;
+  name: string;
+  colors: CMSDesignColors;
+  fontPairing?: CMSFontPairingId;
+  buttonStyles?: CMSButtonStyles;
+  tagStyle?: CMSTagStyle;
+  cardStyle?: CMSCardStyle;
+}[] = [
+  {
+    id: "sunset-coral",
+    name: "Sunset Coral",
+    colors: {
+      accentDark: "#FF7A59", accentLight: "#E85A3C",
+      headingDark: "#FBF3EC", headingLight: "#241611",
+      textDark: "#F0E6DC", textLight: "#2B1D16",
+      mutedDark: "#F0E6DC", mutedLight: "#7A6255",
+      bodyDark: "#C4B2A6", bodyLight: "#5C4A3F",
+      bgDark: "#17110D", bgLight: "#FBF1E9",
+      cardDark: "#241A14", cardLight: "#F2E5D8",
+      dividerDark: "#94827A", dividerLight: "#C7B6A9",
+    },
+  },
+  {
+    id: "violet-dusk",
+    name: "Violet Dusk",
+    colors: {
+      accentDark: "#9B7BFF", accentLight: "#7C5CE0",
+      headingDark: "#F3F0FB", headingLight: "#150E2A",
+      textDark: "#E8E3F5", textLight: "#1E1735",
+      mutedDark: "#E8E3F5", mutedLight: "#5C5480",
+      bodyDark: "#B3A9CE", bodyLight: "#4A4270",
+      bgDark: "#0F0B1A", bgLight: "#F5F2FB",
+      cardDark: "#1B1530", cardLight: "#E9E4F5",
+      dividerDark: "#8C82A6", dividerLight: "#B0A6CB",
+    },
+  },
+  {
+    id: "sage-forest",
+    name: "Sage Forest",
+    colors: {
+      accentDark: "#6FBF8B", accentLight: "#3F9A63",
+      headingDark: "#F1F6EF", headingLight: "#10190F",
+      textDark: "#E5EDE1", textLight: "#182A17",
+      mutedDark: "#E5EDE1", mutedLight: "#526B4F",
+      bodyDark: "#ABC0A6", bodyLight: "#445E41",
+      bgDark: "#0D1410", bgLight: "#F3F6EF",
+      cardDark: "#172119", cardLight: "#E6EBDE",
+      dividerDark: "#8A9C85", dividerLight: "#A9BBA2",
+    },
+  },
+  {
+    id: "playful-rounded",
+    name: "Playful & Rounded",
+    // Neutrals (bg/card/text/muted/body/divider) deliberately kept identical to the site's own
+    // Original defaults below — the point of this theme is a different shape and type
+    // personality (rounder font, pill buttons/tags, softly-rounded cards), not a different color
+    // mood. Accent 1 stays the same teal for brand continuity (it's core to the logo mark);
+    // accent 2 adds a warm coral so the CMS's existing 3-accent-slot system has something to
+    // actually offer variety with, per an explicit Jai decision — pairs with a rounder,
+    // friendlier direction without abandoning the existing brand color.
+    colors: {
+      accentDark: "#14ADB5", accentLight: "#0B9AA2",
+      accent2Dark: "#FF8A5C", accent2Light: "#E8663A",
+      headingDark: "#F5F1EA", headingLight: "#0D1318",
+      textDark: "#EDE8DF", textLight: "#1A2128",
+      mutedDark: "#EDE8DF", mutedLight: "#4A5D6B",
+      bodyDark: "#A8B4BC", bodyLight: "#3D5260",
+      bgDark: "#0F1519", bgLight: "#F5F1EB",
+      cardDark: "#1A2128", cardLight: "#EBE7E0",
+      dividerDark: "#989793", dividerLight: "#A9A9A7",
+    },
+    // "modern" = Poppins/DM Sans/DM Mono (see FONT_PAIRINGS) — already loaded, zero new font
+    // requests, and reads rounder/friendlier than Original's default serif-italic headline
+    // treatment.
+    fontPairing: "modern",
+    buttonStyles: {
+      primary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.primary, corner: "pill" },
+      secondary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.secondary, corner: "pill" },
+      tertiary: { ...DEFAULT_DESIGN_SYSTEM.buttonStyles.tertiary, corner: "pill" },
+    },
+    tagStyle: { corner: "pill" },
+    // "round" (12px, BUTTON_CORNER_RADIUS) rather than pill — a fully pill card reads odd at
+    // that size; softly rounded panels pair better with pill buttons/tags than matching them
+    // exactly would.
+    cardStyle: { corner: "round" },
+  },
+];
 
 // Builds a <style> tag's worth of CSS overriding both the app's own --c-* variables and the
 // handful of shadcn-style variables (--background, --foreground, etc.) still read directly by
