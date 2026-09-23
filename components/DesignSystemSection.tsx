@@ -834,7 +834,13 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     visiblePresetIds: rawData.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [],
     presetNameOverrides: rawData.presetNameOverrides ?? {},
     presetOverrides: rawData.presetOverrides ?? {},
+    removedPresetIds: rawData.removedPresetIds ?? [],
   };
+
+  // What the Theme Gallery actually renders for presets — filters out anything removed. Paired
+  // with data.savedThemes.length for the "always keep at least one theme" guard below.
+  const galleryPresets = THEME_PRESETS.filter((t) => !(data.removedPresetIds ?? []).includes(t.id));
+  const totalThemes = galleryPresets.length + data.savedThemes.length;
 
   // Every field-editing handler below (colors, corners, buttons, fonts, components...) calls
   // this rather than onChangeProp directly — so an edit made while a theme is loaded (see
@@ -924,11 +930,31 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   }
 
   function deleteTheme(id: string) {
+    if (totalThemes <= 1) return; // the Theme Gallery always keeps at least one theme
     if (activeThemeId === id) setActiveThemeId(null);
     onChangeProp({
       ...data,
       savedThemes: data.savedThemes.filter((t) => t.id !== id),
       // A deleted theme can't stay the default for new visitors — falls back to Original.
+      defaultVisitorThemeId: data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
+    });
+  }
+
+  // Presets are source-level constants (THEME_PRESETS), so "removing" one can't splice it out of
+  // an array the way deleteTheme does — instead it's permanently filtered out of the gallery via
+  // removedPresetIds, with its visibility/name/color overrides cleared alongside it so nothing
+  // orphaned lingers keyed to an id the gallery no longer shows.
+  function removePreset(id: string) {
+    if (totalThemes <= 1) return;
+    if (activeThemeId === id) setActiveThemeId(null);
+    const { [id]: _removedOverride, ...restOverrides } = data.presetOverrides ?? {};
+    const { [id]: _removedName, ...restNames } = data.presetNameOverrides ?? {};
+    onChangeProp({
+      ...data,
+      removedPresetIds: [...(data.removedPresetIds ?? []), id],
+      visiblePresetIds: (data.visiblePresetIds ?? []).filter((pid) => pid !== id),
+      presetOverrides: restOverrides,
+      presetNameOverrides: restNames,
       defaultVisitorThemeId: data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
     });
   }
@@ -1052,10 +1078,10 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
-          Click a swatch to load it into the editor below — it&rsquo;s outlined and marked &ldquo;Editing&rdquo; while active. Anything you change below (colors, corners, buttons, fonts...) is saved into that theme automatically once you hit Save Changes, not just the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it. The moon/sun icons set which mode (dark/light) it switches to when picked.
+          Click a swatch to load it into the editor below — it&rsquo;s outlined and marked &ldquo;Editing&rdquo; while active. Anything you change below (colors, corners, buttons, fonts...) is saved into that theme automatically once you hit Save Changes, not just the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, the pencil icon renames it, and the &times; removes it permanently (at least one theme always has to remain). The moon/sun icons set which mode (dark/light) it switches to when picked.
         </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
-          {THEME_PRESETS.map((t) => {
+          {galleryPresets.map((t) => {
             const displayName = data.presetNameOverrides?.[t.id] ?? t.name;
             const presetVisible = (data.visiblePresetIds ?? []).includes(t.id);
             const override = data.presetOverrides?.[t.id];
@@ -1067,6 +1093,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                 colors={displayColors}
                 active={activeThemeId === t.id}
                 onClick={() => applyTheme({ ...t, ...override, colors: displayColors })}
+                onDelete={totalThemes > 1 ? () => removePreset(t.id) : undefined}
                 visible={presetVisible}
                 onToggleVisible={() => togglePresetVisible(t.id)}
                 isDefault={data.defaultVisitorThemeId === t.id}
@@ -1084,7 +1111,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               colors={t.colors}
               active={activeThemeId === t.id}
               onClick={() => applyTheme(t)}
-              onDelete={() => deleteTheme(t.id)}
+              onDelete={totalThemes > 1 ? () => deleteTheme(t.id) : undefined}
               visible={!!t.visible}
               onToggleVisible={() => toggleThemeVisible(t.id)}
               isDefault={data.defaultVisitorThemeId === t.id}

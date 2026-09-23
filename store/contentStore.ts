@@ -997,6 +997,13 @@ export interface CMSDesignSystem {
   // shape since a preset override is structurally the same kind of snapshot, just keyed by the
   // preset's fixed id instead of living in savedThemes. Only appears here once actually edited.
   presetOverrides?: Record<string, Partial<CMSSavedTheme>>;
+  // A THEME_PRESETS entry can't be spliced out of that source-level array the way a savedThemes
+  // entry can, so "removing" one from the Theme Gallery instead means permanently suppressing it
+  // by id here — filtered out of the gallery entirely (not just hidden from visitors, unlike
+  // visiblePresetIds), with its visiblePresetIds/presetOverrides/presetNameOverrides entries
+  // cleared alongside it. The Theme Gallery always keeps at least one theme, so this can never
+  // reach every preset AND every savedThemes entry at once.
+  removedPresetIds?: string[];
   // Which theme id (a THEME_PRESETS id or a savedThemes id) a first-time visitor sees by default
   // in the style-theme switcher. Unset (the common case) means "whatever's live in the fields
   // above" — i.e. no data-style-theme attribute at all, so the root/default block (this object)
@@ -1152,6 +1159,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   visiblePresetIds: ["playful-rounded"],
   presetNameOverrides: {},
   presetOverrides: {},
+  removedPresetIds: [],
 };
 
 // 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
@@ -1477,7 +1485,8 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
 // one preset this used to hardcode.
 export function buildAllThemesCss(ds: CMSDesignSystem): string {
   const visiblePresetIds = ds.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [];
-  const presetBlocks = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
+  const removedPresetIds = ds.removedPresetIds ?? [];
+  const presetBlocks = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id) && !removedPresetIds.includes(t.id))
     .map((t) => {
       const override = ds.presetOverrides?.[t.id];
       const theme: CMSSavedTheme = override ? { ...t, ...override, colors: override.colors ?? t.colors } : t;
