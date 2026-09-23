@@ -929,8 +929,19 @@ export interface CMSTagStyle {
 // no way to do that independent of Buttons/Tags, which often want a different corner value than a
 // card does (e.g. pill buttons/tags but only softly-rounded cards, never a fully pill card).
 // Optional for the same already-saved-content reason as CMSTagStyle above.
+//
+// bgDark/bgLight are their own dedicated fields (mirroring menuStyle.panelBg*/tabBarStyle.bg*)
+// rather than reusing the Color Palette's shared "Card / Panel Background" token
+// (colors.cardDark/cardLight, --c-bg-card) — that token is also used by menus, the nav, and
+// several other unrelated surfaces (see the CSS var's usages), so tying project cards to it meant
+// there was no way to make cards a different color from everything else sharing it. Optional,
+// unlike corner — unset falls back to that same shared token in buildDesignSystemCss below, so
+// every existing theme (including THEME_PRESETS entries that only ever set `corner`) keeps
+// looking exactly as it did before this existed, until a card background is set explicitly.
 export interface CMSCardStyle {
   corner: ButtonCorner;
+  bgDark?: string;
+  bgLight?: string;
 }
 
 export interface CMSSavedTheme {
@@ -1382,6 +1393,8 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const switchStyle = ds.switchStyle;
   const tagCorner = ds.tagStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.tagStyle!.corner;
   const cardCorner = ds.cardStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.cardStyle!.corner;
+  const cardBgDark = ds.cardStyle?.bgDark ?? c.cardDark;
+  const cardBgLight = ds.cardStyle?.bgLight ?? c.cardLight;
   const structuralCss = `
 ${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
@@ -1409,6 +1422,7 @@ ${selector} {
   --background: ${c.bgDark};
   --c-bg-card: ${c.cardDark};
   --card: ${c.cardDark};
+  --project-card-bg: ${cardBgDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
   --font-body: ${fontBody};
@@ -1439,6 +1453,7 @@ ${selector}[data-theme="light"] {
   --background: ${c.bgLight};
   --c-bg-card: ${c.cardLight};
   --card: ${c.cardLight};
+  --project-card-bg: ${cardBgLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};
   --tabbar-bg: ${tabBar.bgLight}; --tabbar-border: ${tabBar.borderLight};

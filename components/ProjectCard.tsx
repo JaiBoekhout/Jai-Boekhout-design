@@ -128,7 +128,7 @@ export function ProjectCard({
 
   const cardStyle = {
     borderRadius: "var(--card-corner)",
-    background: "var(--c-bg-card)",
+    background: "var(--project-card-bg)",
     border: "0.5px solid var(--c-border-soft)",
     outline: "none",
     boxShadow: "none",
@@ -172,7 +172,7 @@ export function ProjectCardPlaceholder({ index }: { index: number }): ReactNode 
       key={`ph-${index}`}
       className="relative flex flex-col"
       style={{
-        borderRadius: "var(--card-corner)", background: "var(--c-bg-card)", border: "0.5px solid var(--c-border-soft)",
+        borderRadius: "var(--card-corner)", background: "var(--project-card-bg)", border: "0.5px solid var(--c-border-soft)",
         outline: "none", boxShadow: "none", overflow: "hidden",
       }}
     >

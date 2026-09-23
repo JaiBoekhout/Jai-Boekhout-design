@@ -1167,15 +1167,28 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           )}
         </div>
 
-        <div className="mb-8" style={{ maxWidth: 220 }}>
-          <SelectField
-            label="Card corner (project cards)"
-            value={(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!).corner}
-            onChange={(v: ButtonCorner) => updateCardStyle({ corner: v })}
-            options={[
-              { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
-            ]}
-          />
+        <div className="mb-8 flex flex-wrap gap-6 items-start">
+          <div style={{ maxWidth: 220 }}>
+            <SelectField
+              label="Card corner (project cards)"
+              value={(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!).corner}
+              onChange={(v: ButtonCorner) => updateCardStyle({ corner: v })}
+              options={[
+                { value: "square", label: "Square" }, { value: "sharp", label: "Sharp" }, { value: "soft", label: "Soft" }, { value: "round", label: "Round" }, { value: "pill", label: "Pill" },
+              ]}
+            />
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Card background (project cards)"
+              darkValue={data.cardStyle?.bgDark ?? data.colors.cardDark}
+              lightValue={data.cardStyle?.bgLight ?? data.colors.cardLight}
+              defaultDark={data.colors.cardDark}
+              defaultLight={data.colors.cardLight}
+              onDarkChange={(v) => updateCardStyle({ bgDark: v })}
+              onLightChange={(v) => updateCardStyle({ bgLight: v })}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
