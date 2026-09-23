@@ -31,7 +31,10 @@ export function ThemeDropdown() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const isDark = theme === "dark";
-  const styleOptions = [{ id: null as string | null, label: "Original" }, ...availableThemes.map((t) => ({ id: t.id as string | null, label: t.name }))];
+  // No "Original" entry — the switcher only ever offers named, curated themes now. A visitor who
+  // somehow still has styleTheme === null (an old localStorage value, or no CMS default set) just
+  // sees the live/default look with nothing highlighted in this list, same as before this existed.
+  const styleOptions = availableThemes.map((t) => ({ id: t.id as string | null, label: t.name }));
   const currentStyleLabel = styleOptions.find((o) => o.id === styleTheme)?.label ?? "Original";
 
   useEffect(() => {

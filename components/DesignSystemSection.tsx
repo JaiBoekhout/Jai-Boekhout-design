@@ -1062,7 +1062,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
-          Click a swatch to apply it as the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher, alongside Original — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it. Editing anything below (colors, corners, buttons...) doesn&rsquo;t update a swatch on its own — click a swatch first to load it, make your changes, then use its refresh icon to save them back into it. The moon/sun icons set which mode (dark/light) it switches to when picked.
+          Click a swatch to apply it as the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it. Editing anything below (colors, corners, buttons...) doesn&rsquo;t update a swatch on its own — click a swatch first to load it, make your changes, then use its refresh icon to save them back into it. The moon/sun icons set which mode (dark/light) it switches to when picked.
         </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
           {THEME_PRESETS.map((t) => {
