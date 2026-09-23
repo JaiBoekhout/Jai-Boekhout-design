@@ -1188,6 +1188,8 @@ export const THEME_PRESETS: {
     name: "Violet Dusk",
     colors: {
       accentDark: "#9B7BFF", accentLight: "#7C5CE0",
+      // A dusky rose alongside the primary violet — the two hues a dusk sky actually shows.
+      accent2Dark: "#FF8FC0", accent2Light: "#D65FA0",
       headingDark: "#F3F0FB", headingLight: "#150E2A",
       textDark: "#E8E3F5", textLight: "#1E1735",
       mutedDark: "#E8E3F5", mutedLight: "#5C5480",
@@ -1202,6 +1204,8 @@ export const THEME_PRESETS: {
     name: "Sage Forest",
     colors: {
       accentDark: "#6FBF8B", accentLight: "#3F9A63",
+      // Warm amber alongside the primary sage green — sunlight through a forest canopy.
+      accent2Dark: "#D9A441", accent2Light: "#B8822A",
       headingDark: "#F1F6EF", headingLight: "#10190F",
       textDark: "#E5EDE1", textLight: "#182A17",
       mutedDark: "#E5EDE1", mutedLight: "#526B4F",
