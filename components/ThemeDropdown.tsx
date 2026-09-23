@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Moon, Sun } from "lucide-react";
+import { PaintRoller, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/store/themeStore";
 import { useStyleTheme } from "@/store/styleThemeStore";
 
@@ -58,22 +58,25 @@ export function ThemeDropdown() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label="Theme settings"
-        className="flex items-center gap-1.5"
+        aria-label={`Theme settings — currently ${currentStyleLabel}, ${isDark ? "Dark" : "Light"}`}
+        title="Theme settings"
         style={{
-          background: "none",
-          border: "none",
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          background: "var(--c-bg-card)",
+          border: "0.5px solid var(--c-border-soft)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           cursor: "pointer",
-          padding: "11px 7px",
-          margin: "-11px -7px",
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.04em",
-          color: "var(--c-text-muted)",
+          flexShrink: 0,
+          padding: 0,
+          transition: "opacity 0.15s ease, transform 0.15s ease",
         }}
+        className="hover:opacity-80"
       >
-        {currentStyleLabel}
-        <ChevronDown size={12} strokeWidth={2.5} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }} />
+        <PaintRoller size={15} strokeWidth={2} style={{ color: "var(--c-text)" }} />
       </button>
 
       {open && (
