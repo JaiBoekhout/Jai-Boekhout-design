@@ -4,6 +4,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light";
 
+// Exported so styleThemeStore.tsx can check/write the same key when a theme's own configured
+// defaultMode needs to apply (first-time visitor, or an explicit style switch) without duplicating
+// the literal and risking the two drifting apart.
+export const THEME_STORAGE_KEY = "portfolio_theme";
+
 interface ThemeContextValue {
   theme: Theme;
   toggle: () => void;
@@ -18,7 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const stored = localStorage.getItem("portfolio_theme") as Theme | null;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
     const initial = stored ?? "dark";
     setTheme(initial);
     document.documentElement.setAttribute("data-theme", initial);
@@ -26,7 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   function apply(next: Theme) {
     setTheme(next);
-    localStorage.setItem("portfolio_theme", next);
+    localStorage.setItem(THEME_STORAGE_KEY, next);
     document.documentElement.setAttribute("data-theme", next);
   }
 

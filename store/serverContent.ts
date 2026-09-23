@@ -76,6 +76,9 @@ export async function getContent(): Promise<CMSContent> {
     if (!merged.designSystem.presetNameOverrides || typeof merged.designSystem.presetNameOverrides !== "object") {
       merged.designSystem.presetNameOverrides = {};
     }
+    if (!merged.designSystem.presetOverrides || typeof merged.designSystem.presetOverrides !== "object") {
+      merged.designSystem.presetOverrides = {};
+    }
 
     return merged;
   } catch {

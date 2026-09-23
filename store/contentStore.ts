@@ -954,6 +954,10 @@ export interface CMSSavedTheme {
   // keeps a theme in the Theme Gallery as an apply-able starting point without also surfacing it
   // to visitors before it's ready.
   visible?: boolean;
+  // Which color mode this theme should switch to when selected (picking a theme in the switcher,
+  // or landing on it as a first-time visitor's default) — undefined leaves whatever mode the
+  // visitor already had. Independent of `visible`: can be set before a theme is published.
+  defaultMode?: "dark" | "light";
 }
 
 export interface CMSDesignSystem {
@@ -987,6 +991,12 @@ export interface CMSDesignSystem {
   // id; every place a preset's name is displayed (gallery swatch, switcher option) reads this
   // first and falls back to the preset's own hardcoded name.
   presetNameOverrides?: Record<string, string>;
+  // Same idea as presetNameOverrides, for the rest of a THEME_PRESETS entry that can't be edited
+  // in place: everything a saved theme can carry (colors, buttons, tags, cards, fonts...), plus
+  // defaultMode. Captured wholesale via each swatch's "update" action — reuses CMSSavedTheme's
+  // shape since a preset override is structurally the same kind of snapshot, just keyed by the
+  // preset's fixed id instead of living in savedThemes. Only appears here once actually edited.
+  presetOverrides?: Record<string, Partial<CMSSavedTheme>>;
   // Which theme id (a THEME_PRESETS id or a savedThemes id) a first-time visitor sees by default
   // in the style-theme switcher. Unset (the common case) means "whatever's live in the fields
   // above" — i.e. no data-style-theme attribute at all, so the root/default block (this object)
@@ -1141,6 +1151,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   savedThemes: [],
   visiblePresetIds: ["playful-rounded"],
   presetNameOverrides: {},
+  presetOverrides: {},
 };
 
 // 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
@@ -1461,7 +1472,11 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
 export function buildAllThemesCss(ds: CMSDesignSystem): string {
   const visiblePresetIds = ds.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [];
   const presetBlocks = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
-    .map((t) => buildDesignSystemCss(themeToFullDesignSystem(t), `:root[data-style-theme="${t.id}"]`))
+    .map((t) => {
+      const override = ds.presetOverrides?.[t.id];
+      const theme: CMSSavedTheme = override ? { ...t, ...override, colors: override.colors ?? t.colors } : t;
+      return buildDesignSystemCss(themeToFullDesignSystem(theme), `:root[data-style-theme="${t.id}"]`);
+    })
     .join("\n");
   const savedBlocks = (ds.savedThemes ?? [])
     .filter((t) => t.visible)

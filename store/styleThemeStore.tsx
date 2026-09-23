@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useContentStore, THEME_PRESETS } from "@/store/contentStore";
+import { useTheme, THEME_STORAGE_KEY } from "@/store/themeStore";
 
 const STORAGE_KEY = "portfolio_style_theme";
 
@@ -10,7 +11,7 @@ interface StyleThemeContextValue {
   styleTheme: string | null;
   /** Every THEME_PRESETS entry in visiblePresetIds, plus every savedThemes entry flagged
    *  visitor-visible — combined, in that order. */
-  availableThemes: { id: string; name: string }[];
+  availableThemes: { id: string; name: string; defaultMode?: "dark" | "light" }[];
   setStyleTheme: (id: string | null) => void;
 }
 
@@ -29,13 +30,15 @@ const StyleThemeContext = createContext<StyleThemeContextValue>({
 // wrong style theme on load, same as day/night already avoids.
 export function StyleThemeProvider({ children }: { children: React.ReactNode }) {
   const { content } = useContentStore();
+  const { setThemeDirect } = useTheme();
   const visiblePresetIds = content.designSystem.visiblePresetIds ?? [];
   const nameOverrides = content.designSystem.presetNameOverrides ?? {};
+  const presetOverrides = content.designSystem.presetOverrides ?? {};
   const visiblePresets = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
-    .map((t) => ({ id: t.id, name: nameOverrides[t.id] ?? t.name }));
+    .map((t) => ({ id: t.id, name: nameOverrides[t.id] ?? t.name, defaultMode: presetOverrides[t.id]?.defaultMode }));
   const visibleSaved = (content.designSystem.savedThemes ?? [])
     .filter((t) => t.visible)
-    .map((t) => ({ id: t.id, name: t.name }));
+    .map((t) => ({ id: t.id, name: t.name, defaultMode: t.defaultMode }));
   const availableThemes = [...visiblePresets, ...visibleSaved];
   const defaultThemeId = content.designSystem.defaultVisitorThemeId ?? null;
 
@@ -47,6 +50,17 @@ export function StyleThemeProvider({ children }: { children: React.ReactNode }) 
     setStyleThemeState(initial);
     if (initial) document.documentElement.setAttribute("data-style-theme", initial);
     else document.documentElement.removeAttribute("data-style-theme");
+
+    // A first-time visitor (no explicit mode choice saved yet) lands on whichever mode the
+    // resolved theme is configured to default to, if any. This runs as ThemeProvider's own mount
+    // effect's *child* effect (StyleThemeProvider is always nested inside ThemeProvider), so it
+    // commits first — ThemeProvider's effect then reads the localStorage value this just wrote,
+    // rather than clobbering it back to "dark". A visitor who already picked a mode is never
+    // overridden here.
+    if (initial && !localStorage.getItem(THEME_STORAGE_KEY)) {
+      const mode = availableThemes.find((t) => t.id === initial)?.defaultMode;
+      if (mode) setThemeDirect(mode);
+    }
     // Only ever meant to run once per page load (matches ThemeProvider's mount-only effect) —
     // defaultThemeId changing later (a live CMS edit) shouldn't yank a visitor who already chose
     // something out of their own pick.
@@ -62,6 +76,11 @@ export function StyleThemeProvider({ children }: { children: React.ReactNode }) 
       localStorage.removeItem(STORAGE_KEY);
       document.documentElement.removeAttribute("data-style-theme");
     }
+    // Explicitly picking a theme in the switcher applies its configured default mode too, same as
+    // landing on it as a first-time visitor — but here it always wins, since choosing a theme is
+    // itself an explicit action.
+    const mode = id ? availableThemes.find((t) => t.id === id)?.defaultMode : undefined;
+    if (mode) setThemeDirect(mode);
   }
 
   return (
