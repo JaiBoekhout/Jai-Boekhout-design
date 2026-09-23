@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff, Pencil, RefreshCw, Moon, Sun } from "lucide-react";
+import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff, Pencil, Moon, Sun } from "lucide-react";
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
@@ -169,7 +169,7 @@ function TextInputField({ label, value, onChange }: { label: string; value: stri
 // Swatch dots preview accent/card/heading so a theme is recognizable before applying it.
 function ThemeSwatch({
   name, colors, active, onClick, onDelete, visible, onToggleVisible, isDefault, onSetDefault, onRename,
-  onUpdateColors, defaultMode, onSetDefaultMode,
+  defaultMode, onSetDefaultMode,
 }: {
   name: string;
   colors: CMSDesignColors;
@@ -188,11 +188,6 @@ function ThemeSwatch({
    *  the preset object itself, which is a source-level constant; a saved theme's name field is
    *  just updated directly. Either way this component doesn't need to know which. */
   onRename?: (newName: string) => void;
-  /** Overwrites this theme's own stored colors with whatever's currently live in the editor below
-   *  (the Accent/Background/etc. fields) — the swatch's dots only ever reflect this theme's own
-   *  saved snapshot, never the live editor state, so this is the only way to make them match after
-   *  tweaking colors post-apply. */
-  onUpdateColors?: () => void;
   /** Which color mode this theme switches to when selected — undefined leaves the mode as-is. */
   defaultMode?: "dark" | "light";
   onSetDefaultMode?: (mode: "dark" | "light" | undefined) => void;
@@ -296,35 +291,22 @@ function ThemeSwatch({
           )}
         </div>
       )}
-      {(onUpdateColors || onSetDefaultMode) && !editing && (
-        <div className="flex items-center justify-between" style={{ marginTop: 3, padding: "0 1px" }}>
-          {onUpdateColors ? (
-            <button
-              onClick={onUpdateColors}
-              title="Update this theme to match what's currently live below (colors, buttons, tags, cards, fonts)"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: "#8C9AA3" }}
-            >
-              <RefreshCw size={10} />
-            </button>
-          ) : <span />}
-          {onSetDefaultMode && (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onSetDefaultMode(defaultMode === "dark" ? undefined : "dark")}
-                title={defaultMode === "dark" ? "Defaults to dark mode — click to unset" : "Default to dark mode when selected"}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: defaultMode === "dark" ? "#14ADB5" : "#8C9AA3" }}
-              >
-                <Moon size={10} />
-              </button>
-              <button
-                onClick={() => onSetDefaultMode(defaultMode === "light" ? undefined : "light")}
-                title={defaultMode === "light" ? "Defaults to light mode — click to unset" : "Default to light mode when selected"}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: defaultMode === "light" ? "#14ADB5" : "#8C9AA3" }}
-              >
-                <Sun size={10} />
-              </button>
-            </div>
-          )}
+      {onSetDefaultMode && !editing && (
+        <div className="flex items-center justify-end gap-1" style={{ marginTop: 3, padding: "0 1px" }}>
+          <button
+            onClick={() => onSetDefaultMode(defaultMode === "dark" ? undefined : "dark")}
+            title={defaultMode === "dark" ? "Defaults to dark mode — click to unset" : "Default to dark mode when selected"}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: defaultMode === "dark" ? "#14ADB5" : "#8C9AA3" }}
+          >
+            <Moon size={10} />
+          </button>
+          <button
+            onClick={() => onSetDefaultMode(defaultMode === "light" ? undefined : "light")}
+            title={defaultMode === "light" ? "Defaults to light mode — click to unset" : "Default to light mode when selected"}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: defaultMode === "light" ? "#14ADB5" : "#8C9AA3" }}
+          >
+            <Sun size={10} />
+          </button>
         </div>
       )}
     </div>
@@ -815,7 +797,7 @@ function ButtonVariantEditor({
   );
 }
 
-export function DesignSystemSection({ data: rawData, branding, socials, notFound, companies, companyCreditCopy, onChange, onBrandingChange, onSocialsChange, onNotFoundChange, onCompaniesChange, onCompanyCreditCopyChange }: Props) {
+export function DesignSystemSection({ data: rawData, branding, socials, notFound, companies, companyCreditCopy, onChange: onChangeProp, onBrandingChange, onSocialsChange, onNotFoundChange, onCompaniesChange, onCompanyCreditCopyChange }: Props) {
   const [checkPreview, setCheckPreview] = useState(true);
   const [radioPreview, setRadioPreview] = useState("a");
   const [switchPreview, setSwitchPreview] = useState(true);
@@ -854,6 +836,43 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     presetOverrides: rawData.presetOverrides ?? {},
   };
 
+  // Every field-editing handler below (colors, corners, buttons, fonts, components...) calls
+  // this rather than onChangeProp directly — so an edit made while a theme is loaded (see
+  // activeThemeId) lands in that theme's own stored snapshot too, not just the live root. Without
+  // this, "Save Changes" only ever persisted the live root; a theme's own colors stayed frozen at
+  // whatever they were the last time it was explicitly re-synced, and nothing about a successful
+  // save indicated that the theme itself hadn't actually changed.
+  //
+  // Theme-gallery operations (apply/save-as/rename/delete/visibility/default/reset) call
+  // onChangeProp directly instead, bypassing this — switching *which* theme is active must never
+  // fold the just-loaded theme's own values back into whatever was active a moment ago, and an
+  // operation that's already writing its own explicit snapshot (applyTheme, saveCurrentAsTheme)
+  // would otherwise double-write using a stale activeThemeId from before React re-renders with it.
+  function onChange(next: CMSDesignSystem) {
+    if (!activeThemeId) { onChangeProp(next); return; }
+    const snapshot: Partial<CMSSavedTheme> = {
+      colors: next.colors,
+      fontPairing: next.fontPairing,
+      typeScale: next.typeScale,
+      componentColors: next.componentColors,
+      buttonStyles: next.buttonStyles,
+      menuStyle: next.menuStyle,
+      tabBarStyle: next.tabBarStyle,
+      textAreaStyle: next.textAreaStyle,
+      switchStyle: next.switchStyle,
+      tagStyle: next.tagStyle,
+      cardStyle: next.cardStyle,
+    };
+    if (THEME_PRESETS.some((t) => t.id === activeThemeId)) {
+      onChangeProp({
+        ...next,
+        presetOverrides: { ...(next.presetOverrides ?? {}), [activeThemeId]: { ...(next.presetOverrides?.[activeThemeId] ?? {}), ...snapshot } },
+      });
+    } else {
+      onChangeProp({ ...next, savedThemes: next.savedThemes.map((t) => (t.id === activeThemeId ? { ...t, ...snapshot } : t)) });
+    }
+  }
+
   function updateColor(key: keyof CMSDesignColors, value: string) {
     onChange({ ...data, colors: { ...data.colors, [key]: value } });
   }
@@ -868,7 +887,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   // saved since this expanded to a full snapshot restores everything at once.
   function applyTheme(theme: CMSSavedTheme) {
     setActiveThemeId(theme.id);
-    onChange({
+    onChangeProp({
       ...data,
       colors: { ...theme.colors },
       ...(theme.fontPairing ? { fontPairing: theme.fontPairing } : {}),
@@ -901,12 +920,12 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       cardStyle: data.cardStyle,
     };
     setActiveThemeId(theme.id);
-    onChange({ ...data, savedThemes: [...data.savedThemes, theme] });
+    onChangeProp({ ...data, savedThemes: [...data.savedThemes, theme] });
   }
 
   function deleteTheme(id: string) {
     if (activeThemeId === id) setActiveThemeId(null);
-    onChange({
+    onChangeProp({
       ...data,
       savedThemes: data.savedThemes.filter((t) => t.id !== id),
       // A deleted theme can't stay the default for new visitors — falls back to Original.
@@ -917,7 +936,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   function toggleThemeVisible(id: string) {
     const theme = data.savedThemes.find((t) => t.id === id);
     const nowVisible = !theme?.visible;
-    onChange({
+    onChangeProp({
       ...data,
       savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, visible: nowVisible } : t)),
       // Hiding the current default falls back to Original rather than leaving new visitors
@@ -927,7 +946,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   }
 
   function setDefaultVisitorTheme(id: string | undefined) {
-    onChange({ ...data, defaultVisitorThemeId: id });
+    onChangeProp({ ...data, defaultVisitorThemeId: id });
   }
 
   // THEME_PRESETS entries are source-level constants, not persisted content — visibility and
@@ -936,7 +955,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   function togglePresetVisible(id: string) {
     const current = data.visiblePresetIds ?? [];
     const nowVisible = !current.includes(id);
-    onChange({
+    onChangeProp({
       ...data,
       visiblePresetIds: nowVisible ? [...current, id] : current.filter((pid) => pid !== id),
       defaultVisitorThemeId: !nowVisible && data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
@@ -944,48 +963,19 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   }
 
   function renamePreset(id: string, newName: string) {
-    onChange({ ...data, presetNameOverrides: { ...(data.presetNameOverrides ?? {}), [id]: newName } });
+    onChangeProp({ ...data, presetNameOverrides: { ...(data.presetNameOverrides ?? {}), [id]: newName } });
   }
 
   function renameSavedTheme(id: string, newName: string) {
-    onChange({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, name: newName } : t)) });
-  }
-
-  // The full live snapshot a swatch's "update" action captures — same fields saveCurrentAsTheme
-  // captures for a brand-new theme, just written back into an existing one instead. Deliberately
-  // everything applyTheme() can copy OUT (colors, buttons, tags, cards, fonts...) so the round trip
-  // is complete: load a theme, tweak anything below (including structural fields like Card Corner,
-  // not just color pickers), update, and re-applying that theme later reproduces the tweak.
-  function liveSnapshot(): Partial<CMSSavedTheme> {
-    return {
-      colors: { ...data.colors },
-      fontPairing: data.fontPairing,
-      typeScale: data.typeScale,
-      componentColors: data.componentColors,
-      buttonStyles: data.buttonStyles,
-      menuStyle: data.menuStyle,
-      tabBarStyle: data.tabBarStyle,
-      textAreaStyle: data.textAreaStyle,
-      switchStyle: data.switchStyle,
-      tagStyle: data.tagStyle,
-      cardStyle: data.cardStyle,
-    };
-  }
-
-  function updatePresetColors(id: string) {
-    onChange({ ...data, presetOverrides: { ...(data.presetOverrides ?? {}), [id]: { ...(data.presetOverrides?.[id] ?? {}), ...liveSnapshot() } } });
-  }
-
-  function updateSavedThemeColors(id: string) {
-    onChange({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, ...liveSnapshot() } : t)) });
+    onChangeProp({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, name: newName } : t)) });
   }
 
   function setPresetDefaultMode(id: string, mode: "dark" | "light" | undefined) {
-    onChange({ ...data, presetOverrides: { ...(data.presetOverrides ?? {}), [id]: { ...(data.presetOverrides?.[id] ?? {}), defaultMode: mode } } });
+    onChangeProp({ ...data, presetOverrides: { ...(data.presetOverrides ?? {}), [id]: { ...(data.presetOverrides?.[id] ?? {}), defaultMode: mode } } });
   }
 
   function setSavedThemeDefaultMode(id: string, mode: "dark" | "light" | undefined) {
-    onChange({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, defaultMode: mode } : t)) });
+    onChangeProp({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, defaultMode: mode } : t)) });
   }
 
   function updateComponentColors(patch: Partial<CMSComponentColors>) {
@@ -1062,7 +1052,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
-          Click a swatch to apply it as the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it. Editing anything below (colors, corners, buttons...) doesn&rsquo;t update a swatch on its own — click a swatch first to load it, make your changes, then use its refresh icon to save them back into it. The moon/sun icons set which mode (dark/light) it switches to when picked.
+          Click a swatch to load it into the editor below — it&rsquo;s outlined and marked &ldquo;Editing&rdquo; while active. Anything you change below (colors, corners, buttons, fonts...) is saved into that theme automatically once you hit Save Changes, not just the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it. The moon/sun icons set which mode (dark/light) it switches to when picked.
         </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
           {THEME_PRESETS.map((t) => {
@@ -1082,7 +1072,6 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                 isDefault={data.defaultVisitorThemeId === t.id}
                 onSetDefault={() => setDefaultVisitorTheme(t.id)}
                 onRename={(newName) => renamePreset(t.id, newName)}
-                onUpdateColors={() => updatePresetColors(t.id)}
                 defaultMode={override?.defaultMode}
                 onSetDefaultMode={(mode) => setPresetDefaultMode(t.id, mode)}
               />
@@ -1101,7 +1090,6 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               isDefault={data.defaultVisitorThemeId === t.id}
               onSetDefault={() => setDefaultVisitorTheme(t.id)}
               onRename={(newName) => renameSavedTheme(t.id, newName)}
-              onUpdateColors={() => updateSavedThemeColors(t.id)}
               defaultMode={t.defaultMode}
               onSetDefaultMode={(mode) => setSavedThemeDefaultMode(t.id, mode)}
             />
@@ -1895,7 +1883,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       </div>
 
       <button
-        onClick={() => onChange(DEFAULT_DESIGN_SYSTEM)}
+        onClick={() => { setActiveThemeId(null); onChangeProp(DEFAULT_DESIGN_SYSTEM); }}
         className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity"
         style={{ background: "none", border: "1px solid rgba(237,232,223,0.12)", borderRadius: "10px", padding: "10px 18px", cursor: "pointer", color: "#EDE8DF", fontFamily: "'DM Mono', monospace", fontSize: "11px", letterSpacing: "0.06em" }}
       >
