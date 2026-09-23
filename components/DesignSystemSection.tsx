@@ -237,14 +237,20 @@ function ThemeSwatch({
         <button
           onClick={onClick}
           style={{
-            width: 92, background: colors.bgDark, border: `1.5px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.12)"}`,
-            borderRadius: 10, padding: 8, cursor: "pointer", textAlign: "left", display: "block",
+            width: 92, background: colors.bgDark, border: `${active ? 2 : 1.5}px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.12)"}`,
+            borderRadius: 10, padding: active ? 7 : 8, cursor: "pointer", textAlign: "left", display: "block",
+            boxShadow: active ? "0 0 0 3px rgba(20,173,181,0.22)" : "none",
           }}
         >
           {dots}
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: colors.textDark, letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
             {name}
           </p>
+          {active && (
+            <p className="flex items-center gap-1" style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#14ADB5", letterSpacing: "0.06em", textTransform: "uppercase", margin: "4px 0 0" }}>
+              <Check size={8} strokeWidth={3} /> Editing
+            </p>
+          )}
         </button>
       )}
       {onRename && !editing && (
@@ -817,6 +823,12 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   const [tabPreview, setTabPreview] = useState("work");
   const [linkHovered, setLinkHovered] = useState(false);
   const [namingTheme, setNamingTheme] = useState(false);
+  // Which swatch is currently loaded into the editor below — purely local UI state (not
+  // persisted, not derived from the live colors themselves) so it stays put while you tweak
+  // things and the live values naturally diverge from that theme's own saved snapshot. Cleared
+  // by nothing except picking a different swatch; there's no way back to an explicit "none"
+  // short of reloading the page, same as there's no "Original" swatch in this gallery to click.
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [themeName, setThemeName] = useState("");
   const companiesDrag = useDragReorder(companies, onCompaniesChange);
 
@@ -855,6 +867,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   // only ever has `colors`, so this leaves fonts/buttons/components alone for those; a theme
   // saved since this expanded to a full snapshot restores everything at once.
   function applyTheme(theme: CMSSavedTheme) {
+    setActiveThemeId(theme.id);
     onChange({
       ...data,
       colors: { ...theme.colors },
@@ -887,10 +900,12 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       tagStyle: data.tagStyle,
       cardStyle: data.cardStyle,
     };
+    setActiveThemeId(theme.id);
     onChange({ ...data, savedThemes: [...data.savedThemes, theme] });
   }
 
   function deleteTheme(id: string) {
+    if (activeThemeId === id) setActiveThemeId(null);
     onChange({
       ...data,
       savedThemes: data.savedThemes.filter((t) => t.id !== id),
@@ -1060,6 +1075,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                 key={t.id}
                 name={displayName}
                 colors={displayColors}
+                active={activeThemeId === t.id}
                 onClick={() => applyTheme({ ...t, ...override, colors: displayColors })}
                 visible={presetVisible}
                 onToggleVisible={() => togglePresetVisible(t.id)}
@@ -1077,6 +1093,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               key={t.id}
               name={t.name}
               colors={t.colors}
+              active={activeThemeId === t.id}
               onClick={() => applyTheme(t)}
               onDelete={() => deleteTheme(t.id)}
               visible={!!t.visible}
