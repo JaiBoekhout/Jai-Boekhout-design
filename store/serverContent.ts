@@ -70,6 +70,12 @@ export async function getContent(): Promise<CMSContent> {
     merged.designSystem.tagStyle = { ...DEFAULT_DESIGN_SYSTEM.tagStyle!, ...merged.designSystem.tagStyle };
     merged.designSystem.cardStyle = { ...DEFAULT_DESIGN_SYSTEM.cardStyle!, ...merged.designSystem.cardStyle };
     if (!Array.isArray(merged.designSystem.savedThemes)) merged.designSystem.savedThemes = [];
+    if (!Array.isArray(merged.designSystem.visiblePresetIds)) {
+      merged.designSystem.visiblePresetIds = DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [];
+    }
+    if (!merged.designSystem.presetNameOverrides || typeof merged.designSystem.presetNameOverrides !== "object") {
+      merged.designSystem.presetNameOverrides = {};
+    }
 
     return merged;
   } catch {

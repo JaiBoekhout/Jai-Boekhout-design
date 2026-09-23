@@ -971,14 +971,26 @@ export interface CMSDesignSystem {
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
-  // the 3 curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
+  // the curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
   // buttons, tags, cards, component colors) via CMSSavedTheme's optional fields — a theme flagged
   // `visible` there also becomes selectable in the public style-theme switcher (ThemeDropdown),
   // rendered under a `[data-style-theme="<id>"]`-scoped CSS block (see buildDesignSystemCss below).
   savedThemes: CMSSavedTheme[];
-  // Which savedThemes id a first-time visitor sees by default in the style-theme switcher. Unset
-  // (the common case) means "whatever's live in the fields above" — i.e. no data-style-theme
-  // attribute at all, so the root/default block (this object) applies, same as before this existed.
+  // THEME_PRESETS entries are hardcoded (not persisted content), so their own visibility in the
+  // public switcher can't live on the preset object itself the way CMSSavedTheme.visible does —
+  // tracked here instead, by id, alongside the same field for savedThemes. Absent/undefined
+  // defaults to ["playful-rounded"] at the getContent() backfill layer (see serverContent.ts),
+  // matching the behavior from before this list existed (that one preset always shipped).
+  visiblePresetIds?: string[];
+  // A THEME_PRESETS entry's own `name` is a source-level constant — can't be edited in place the
+  // way a saved theme's name field can. A rename in the CMS writes here instead, keyed by preset
+  // id; every place a preset's name is displayed (gallery swatch, switcher option) reads this
+  // first and falls back to the preset's own hardcoded name.
+  presetNameOverrides?: Record<string, string>;
+  // Which theme id (a THEME_PRESETS id or a savedThemes id) a first-time visitor sees by default
+  // in the style-theme switcher. Unset (the common case) means "whatever's live in the fields
+  // above" — i.e. no data-style-theme attribute at all, so the root/default block (this object)
+  // applies, same as before this existed.
   defaultVisitorThemeId?: string;
 }
 
@@ -1127,6 +1139,8 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   tagStyle: { corner: "square" },
   cardStyle: { corner: "square" },
   savedThemes: [],
+  visiblePresetIds: ["playful-rounded"],
+  presetNameOverrides: {},
 };
 
 // 3 curated, ready-to-apply color combinations shown in the Color Palette's Theme Gallery —
@@ -1440,23 +1454,20 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
 // savedThemes entry marked `visible`, each selectable at runtime by ThemeDropdown setting
 // `data-style-theme` on <html>. A visitor who never touches that switcher sees byte-identical CSS
 // to before multi-theme support existed — the extra blocks are inert until that attribute is set.
-// "Playful & Rounded" is the ThemeDropdown's built-in "Rounded" option — ships unconditionally,
-// not gated behind the CMS's Save Current + publish flow the way a genuinely custom saved theme
-// would be. That flow still exists below for whatever Jai creates himself; this one specific
-// preset is meant to always be selectable, since it's a fixed dropdown option, not an
-// admin-managed list.
-const PLAYFUL_ROUNDED_PRESET = THEME_PRESETS.find((t) => t.id === "playful-rounded")!;
-
+// Any THEME_PRESETS entry whose id is in ds.visiblePresetIds, and any savedThemes entry flagged
+// `visible`, gets its own scoped block here — both are equally eligible for the public switcher
+// now (ThemeDropdown reads the same two lists via useStyleTheme's availableThemes), not just the
+// one preset this used to hardcode.
 export function buildAllThemesCss(ds: CMSDesignSystem): string {
-  const builtInBlock = buildDesignSystemCss(
-    themeToFullDesignSystem(PLAYFUL_ROUNDED_PRESET),
-    `:root[data-style-theme="${PLAYFUL_ROUNDED_PRESET.id}"]`
-  );
-  const publishedBlocks = (ds.savedThemes ?? [])
-    .filter((t) => t.visible && t.id !== PLAYFUL_ROUNDED_PRESET.id)
+  const visiblePresetIds = ds.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [];
+  const presetBlocks = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
     .map((t) => buildDesignSystemCss(themeToFullDesignSystem(t), `:root[data-style-theme="${t.id}"]`))
     .join("\n");
-  return `${buildDesignSystemCss(ds)}\n${builtInBlock}\n${publishedBlocks}`;
+  const savedBlocks = (ds.savedThemes ?? [])
+    .filter((t) => t.visible)
+    .map((t) => buildDesignSystemCss(themeToFullDesignSystem(t), `:root[data-style-theme="${t.id}"]`))
+    .join("\n");
+  return `${buildDesignSystemCss(ds)}\n${presetBlocks}\n${savedBlocks}`;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────

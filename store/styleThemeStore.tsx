@@ -1,14 +1,15 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { useContentStore } from "@/store/contentStore";
+import { useContentStore, THEME_PRESETS } from "@/store/contentStore";
 
 const STORAGE_KEY = "portfolio_style_theme";
 
 interface StyleThemeContextValue {
   /** null = "Original" — the site's live/default look, no data-style-theme attribute set. */
   styleTheme: string | null;
-  /** Every savedThemes entry currently flagged visitor-visible. */
+  /** Every THEME_PRESETS entry in visiblePresetIds, plus every savedThemes entry flagged
+   *  visitor-visible — combined, in that order. */
   availableThemes: { id: string; name: string }[];
   setStyleTheme: (id: string | null) => void;
 }
@@ -28,9 +29,14 @@ const StyleThemeContext = createContext<StyleThemeContextValue>({
 // wrong style theme on load, same as day/night already avoids.
 export function StyleThemeProvider({ children }: { children: React.ReactNode }) {
   const { content } = useContentStore();
-  const availableThemes = (content.designSystem.savedThemes ?? [])
+  const visiblePresetIds = content.designSystem.visiblePresetIds ?? [];
+  const nameOverrides = content.designSystem.presetNameOverrides ?? {};
+  const visiblePresets = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
+    .map((t) => ({ id: t.id, name: nameOverrides[t.id] ?? t.name }));
+  const visibleSaved = (content.designSystem.savedThemes ?? [])
     .filter((t) => t.visible)
     .map((t) => ({ id: t.id, name: t.name }));
+  const availableThemes = [...visiblePresets, ...visibleSaved];
   const defaultThemeId = content.designSystem.defaultVisitorThemeId ?? null;
 
   const [styleTheme, setStyleThemeState] = useState<string | null>(null);

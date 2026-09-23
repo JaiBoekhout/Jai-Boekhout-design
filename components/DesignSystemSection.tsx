@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff } from "lucide-react";
+import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff, Pencil } from "lucide-react";
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
@@ -168,40 +168,86 @@ function TextInputField({ label, value, onChange }: { label: string; value: stri
 // One tile in the Color Palette's Theme Gallery — a curated preset or a user-saved snapshot.
 // Swatch dots preview accent/card/heading so a theme is recognizable before applying it.
 function ThemeSwatch({
-  name, colors, active, onClick, onDelete, visible, onToggleVisible, isDefault, onSetDefault,
+  name, colors, active, onClick, onDelete, visible, onToggleVisible, isDefault, onSetDefault, onRename,
 }: {
   name: string;
   colors: CMSDesignColors;
   active?: boolean;
   onClick: () => void;
   onDelete?: () => void;
-  /** Only meaningful for a saved theme (not a THEME_PRESETS entry) — whether it's selectable in
-   *  the visitor-facing style switcher. Omit entirely for presets, which aren't switcher entries
-   *  themselves (applying one just overwrites the live/default look, same as always). */
+  /** Whether this theme is selectable in the visitor-facing style switcher — works the same way
+   *  for a THEME_PRESETS entry (backed by CMSDesignSystem.visiblePresetIds, since the preset
+   *  itself is a source-level constant with nowhere of its own to persist this) and a saved theme
+   *  (backed by that theme's own `visible` field). */
   visible?: boolean;
   onToggleVisible?: () => void;
   isDefault?: boolean;
   onSetDefault?: () => void;
+  /** Renaming a preset writes to presetNameOverrides (keyed by the preset's fixed id) rather than
+   *  the preset object itself, which is a source-level constant; a saved theme's name field is
+   *  just updated directly. Either way this component doesn't need to know which. */
+  onRename?: (newName: string) => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+
+  function commitRename() {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== name) onRename?.(trimmed);
+    setEditing(false);
+  }
+
+  const dots = (
+    <div className="flex gap-1" style={{ marginBottom: 6 }}>
+      <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.accentDark, border: "1px solid rgba(0,0,0,0.15)" }} />
+      <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.cardDark, border: "1px solid rgba(255,255,255,0.1)" }} />
+      <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.headingDark, border: "1px solid rgba(0,0,0,0.15)" }} />
+    </div>
+  );
+
   return (
     <div style={{ position: "relative" }}>
-      <button
-        onClick={onClick}
-        style={{
-          width: 92, background: colors.bgDark, border: `1.5px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.12)"}`,
-          borderRadius: 10, padding: 8, cursor: "pointer", textAlign: "left", display: "block",
-        }}
-      >
-        <div className="flex gap-1" style={{ marginBottom: 6 }}>
-          <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.accentDark, border: "1px solid rgba(0,0,0,0.15)" }} />
-          <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.cardDark, border: "1px solid rgba(255,255,255,0.1)" }} />
-          <span style={{ width: 14, height: 14, borderRadius: "50%", background: colors.headingDark, border: "1px solid rgba(0,0,0,0.15)" }} />
+      {editing ? (
+        // A plain div, not a <button> — an <input> isn't valid content inside a <button> element.
+        <div style={{ width: 92, background: colors.bgDark, border: "1.5px solid #14ADB5", borderRadius: 10, padding: 8 }}>
+          {dots}
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); commitRename(); }
+              if (e.key === "Escape") { setDraft(name); setEditing(false); }
+            }}
+            style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "none", borderRadius: 4, fontFamily: "'DM Mono', monospace", fontSize: 9, color: colors.textDark, letterSpacing: "0.02em", padding: "2px 3px", outline: "none" }}
+          />
         </div>
-        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: colors.textDark, letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
-          {name}
-        </p>
-      </button>
-      {onDelete && (
+      ) : (
+        <button
+          onClick={onClick}
+          style={{
+            width: 92, background: colors.bgDark, border: `1.5px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.12)"}`,
+            borderRadius: 10, padding: 8, cursor: "pointer", textAlign: "left", display: "block",
+          }}
+        >
+          {dots}
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: colors.textDark, letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
+            {name}
+          </p>
+        </button>
+      )}
+      {onRename && !editing && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setDraft(name); setEditing(true); }}
+          title="Rename theme"
+          style={{ position: "absolute", top: -6, left: -6, width: 16, height: 16, borderRadius: "50%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.2)", color: "#EDE8DF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+        >
+          <Pencil size={8} />
+        </button>
+      )}
+      {onDelete && !editing && (
         <button
           onClick={onDelete}
           title="Remove theme"
@@ -210,7 +256,7 @@ function ThemeSwatch({
           <X size={9} />
         </button>
       )}
-      {onToggleVisible && (
+      {onToggleVisible && !editing && (
         <div className="flex items-center justify-between" style={{ marginTop: 4, padding: "0 1px" }}>
           <button
             onClick={onToggleVisible}
@@ -751,6 +797,8 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     tagStyle: rawData.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     cardStyle: rawData.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
     savedThemes: rawData.savedThemes ?? [],
+    visiblePresetIds: rawData.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [],
+    presetNameOverrides: rawData.presetNameOverrides ?? {},
   };
 
   function updateColor(key: keyof CMSDesignColors, value: string) {
@@ -824,6 +872,27 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
   function setDefaultVisitorTheme(id: string | undefined) {
     onChange({ ...data, defaultVisitorThemeId: id });
+  }
+
+  // THEME_PRESETS entries are source-level constants, not persisted content — visibility and
+  // rename overrides live on CMSDesignSystem instead (visiblePresetIds / presetNameOverrides),
+  // keyed by the preset's own fixed id. No delete equivalent: a preset can be hidden, not removed.
+  function togglePresetVisible(id: string) {
+    const current = data.visiblePresetIds ?? [];
+    const nowVisible = !current.includes(id);
+    onChange({
+      ...data,
+      visiblePresetIds: nowVisible ? [...current, id] : current.filter((pid) => pid !== id),
+      defaultVisitorThemeId: !nowVisible && data.defaultVisitorThemeId === id ? undefined : data.defaultVisitorThemeId,
+    });
+  }
+
+  function renamePreset(id: string, newName: string) {
+    onChange({ ...data, presetNameOverrides: { ...(data.presetNameOverrides ?? {}), [id]: newName } });
+  }
+
+  function renameSavedTheme(id: string, newName: string) {
+    onChange({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, name: newName } : t)) });
   }
 
   function updateComponentColors(patch: Partial<CMSComponentColors>) {
@@ -900,12 +969,26 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
-          Click a swatch to apply it as the site&rsquo;s live look. A saved theme&rsquo;s eye icon controls whether visitors can also pick it themselves in the site&rsquo;s own style switcher, alongside Original — &ldquo;Set default&rdquo; picks which one a first-time visitor sees.
+          Click a swatch to apply it as the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher, alongside Original — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, and the pencil icon renames it.
         </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
-          {THEME_PRESETS.map((t) => (
-            <ThemeSwatch key={t.id} name={t.name} colors={t.colors} onClick={() => applyTheme(t)} />
-          ))}
+          {THEME_PRESETS.map((t) => {
+            const displayName = data.presetNameOverrides?.[t.id] ?? t.name;
+            const presetVisible = (data.visiblePresetIds ?? []).includes(t.id);
+            return (
+              <ThemeSwatch
+                key={t.id}
+                name={displayName}
+                colors={t.colors}
+                onClick={() => applyTheme(t)}
+                visible={presetVisible}
+                onToggleVisible={() => togglePresetVisible(t.id)}
+                isDefault={data.defaultVisitorThemeId === t.id}
+                onSetDefault={() => setDefaultVisitorTheme(t.id)}
+                onRename={(newName) => renamePreset(t.id, newName)}
+              />
+            );
+          })}
           {data.savedThemes.map((t) => (
             <ThemeSwatch
               key={t.id}
@@ -917,6 +1000,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               onToggleVisible={() => toggleThemeVisible(t.id)}
               isDefault={data.defaultVisitorThemeId === t.id}
               onSetDefault={() => setDefaultVisitorTheme(t.id)}
+              onRename={(newName) => renameSavedTheme(t.id, newName)}
             />
           ))}
           {namingTheme ? (

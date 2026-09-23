@@ -5,8 +5,6 @@ import { PaintRoller, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/store/themeStore";
 import { useStyleTheme } from "@/store/styleThemeStore";
 
-const ROUNDED_ID = "playful-rounded";
-
 // Fixed, deliberately NOT var(--tag-corner)/var(--card-corner) — this is the switcher's own UI
 // chrome, not content being switched. Tying the panel's shape to the active theme's own corner
 // setting made it balloon into a near-circle the moment "Rounded" (pill = 999px) was selected,
@@ -28,12 +26,13 @@ const PAD = 3;
 // a style leaves mode exactly as it was; the mode switch leaves style exactly as it was.
 export function ThemeDropdown() {
   const { theme, setThemeDirect } = useTheme();
-  const { styleTheme, setStyleTheme } = useStyleTheme();
+  const { styleTheme, availableThemes, setStyleTheme } = useStyleTheme();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const isDark = theme === "dark";
-  const currentStyleLabel = styleTheme === ROUNDED_ID ? "Rounded" : "Square";
+  const styleOptions = [{ id: null as string | null, label: "Original" }, ...availableThemes.map((t) => ({ id: t.id as string | null, label: t.name }))];
+  const currentStyleLabel = styleOptions.find((o) => o.id === styleTheme)?.label ?? "Original";
 
   useEffect(() => {
     if (!open) return;
@@ -97,12 +96,13 @@ export function ThemeDropdown() {
             gap: 1,
           }}
         >
-          {/* Style — which CSS block applies (Original/"Square" vs Playful & Rounded) */}
-          {[{ id: null as string | null, label: "Square" }, { id: ROUNDED_ID, label: "Rounded" }].map((opt) => {
+          {/* Style — which CSS block applies (Original, or any theme the CMS has marked
+              visitor-visible; see the Theme Gallery's eye-icon toggle) */}
+          {styleOptions.map((opt) => {
             const active = styleTheme === opt.id;
             return (
               <button
-                key={opt.label}
+                key={opt.id ?? "original"}
                 type="button"
                 role="option"
                 aria-selected={active}
