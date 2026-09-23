@@ -773,6 +773,17 @@ const COLOR_SWATCHES = [
   "#1A2832", "#0C1117",
 ];
 
+// Applies the CSS variable itself as the color, not its currently-resolved hex — Tiptap's Color
+// extension just writes whatever string it's given into the saved span's inline style, and
+// var(--c-teal)/var(--c-accent2) already track the live Design System (see buildDesignSystemCss
+// in store/contentStore.ts), including switching per visitor-selected style theme. So text
+// painted with these stays in sync with the theme automatically, unlike every swatch above,
+// which bakes in whatever hex was current the moment it was clicked.
+const THEME_COLOR_SWATCHES = [
+  { label: "Accent", value: "var(--c-teal)" },
+  { label: "Accent 2", value: "var(--c-accent2)" },
+];
+
 function ColorPicker({ currentColor, onSet, onClear }: { currentColor: string; onSet: (c: string) => void; onClear: () => void }) {
   const [hex, setHex] = useState(currentColor || "#EDE8DF");
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -803,6 +814,30 @@ function ColorPicker({ currentColor, onSet, onClear }: { currentColor: string; o
             }}
           />
         ))}
+      </div>
+
+      {/* Theme-aware — tracks the live Design System's accent colors instead of a fixed hex */}
+      <div>
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "8px", color: "#6A7A83", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 5px" }}>Match theme</p>
+        <div style={{ display: "flex", gap: 6 }}>
+          {THEME_COLOR_SWATCHES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              title={`${t.label} — updates automatically if the theme's ${t.label.toLowerCase()} color changes`}
+              onClick={() => apply(t.value)}
+              onMouseDown={(e) => e.preventDefault()}
+              style={{
+                flex: 1, display: "flex", alignItems: "center", gap: 5, padding: "5px 7px", minWidth: 0,
+                background: "#141D24", borderRadius: 6, cursor: "pointer",
+                border: t.value === currentColor ? `1.5px solid ${ACCENT}` : "1px solid rgba(237,232,223,0.1)",
+              }}
+            >
+              <span style={{ width: 13, height: 13, borderRadius: "50%", background: t.value, flexShrink: 0, border: "1px solid rgba(255,255,255,0.15)" }} />
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "9.5px", color: "#EDE8DF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Native colour wheel + hex input */}

@@ -1386,6 +1386,7 @@ ${selector} {
   return `${selector} {
   --c-teal: ${c.accentDark};
   --c-teal-rgb: ${hexToRgbChannels(c.accentDark)};
+  --c-accent2: ${c.accent2Dark ?? c.accentDark};
   --primary: ${c.accentDark};
   --sidebar-primary: ${c.accentDark};
   --c-heading: ${c.headingDark};
@@ -1415,6 +1416,7 @@ ${darkComponentVars}${typeScaleVars}
 ${selector}[data-theme="light"] {
   --c-teal: ${c.accentLight};
   --c-teal-rgb: ${hexToRgbChannels(c.accentLight)};
+  --c-accent2: ${c.accent2Light ?? c.accentLight};
   --primary: ${c.accentLight};
   --sidebar-primary: ${c.accentLight};
   --c-heading: ${c.headingLight};
