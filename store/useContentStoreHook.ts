@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DEFAULT_CONTENT, deepMerge } from "@/store/contentStore";
 import type { CMSContent } from "@/store/contentStore";
 import { saveCmsContentAction } from "@/app/actions/cms";
@@ -41,21 +41,32 @@ export function useContentStore() {
   const [isDirty, setIsDirty] = useState(false);
   const [isLoading, setIsLoading] = useState(!initialContent);
 
+  // Bumped on every local edit (and every successful save) — lets an in-flight fetchContent()
+  // below notice a newer edit landed while it was still in the air and skip clobbering it.
+  // cms_content_updated fires even for the very instance whose own persistContent() triggered
+  // it (see the comment on persistContent), so its fetch can still be mid-flight when the admin
+  // makes another edit; without this guard, that fetch resolving afterward would silently
+  // overwrite the newer edit with the (now stale) just-saved snapshot and clear isDirty, making
+  // it look like nothing was lost.
+  const editVersionRef = useRef(0);
+
   useEffect(() => {
     let cancelled = false;
     // Only re-fetch on mount when the provider didn't already give us real content — avoids a
     // redundant round trip (and the wrong-then-right flash it used to cause) on every page load.
     if (!initialContent) {
+      const versionAtFetchStart = editVersionRef.current;
       fetchContent().then((c) => {
-        if (cancelled) return;
+        if (cancelled || editVersionRef.current !== versionAtFetchStart) return;
         setContentState(c);
         setSavedContent(c);
         setIsLoading(false);
       });
     }
     const handler = () => {
+      const versionAtFetchStart = editVersionRef.current;
       fetchContent().then((c) => {
-        if (cancelled) return;
+        if (cancelled || editVersionRef.current !== versionAtFetchStart) return;
         setContentState(c);
         setSavedContent(c);
         setIsDirty(false);
@@ -69,6 +80,7 @@ export function useContentStore() {
   }, [initialContent]);
 
   function updateContent(updates: Partial<CMSContent>) {
+    editVersionRef.current++;
     const merged = deepMerge(content, updates);
     setContentState(merged);
     setIsDirty(true);
@@ -102,6 +114,7 @@ export function useContentStore() {
     try {
       const ok = await saveCmsContentAction(toSave);
       if (ok) {
+        editVersionRef.current++;
         setContentState(toSave);
         setSavedContent(toSave);
         setIsDirty(false);
