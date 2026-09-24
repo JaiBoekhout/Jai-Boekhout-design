@@ -20,6 +20,7 @@
   --stats-icon:    var(--c-teal);
   --stats-bg:      var(--c-bg);
   --stats-hover-bg: var(--c-bg-card);
+  --stats-text-hover: var(--stats-text);
   --c-bg-deep:     #141D24;
   --c-bg-deeper:   #0C1117;
   --c-bg-glass:    rgba(13, 12, 10, 0.9);
@@ -120,6 +121,7 @@
   --stats-icon:    var(--c-teal);
   --stats-bg:      var(--c-bg);
   --stats-hover-bg: var(--c-bg-card);
+  --stats-text-hover: var(--stats-text);
   --c-bg-deep:     #E2DDD6;
   --c-bg-deeper:   #D8D3CC;
   --c-bg-glass:    rgba(245, 241, 235, 0.92);
@@ -293,6 +295,7 @@
      colour, shows) and grows in on hover — it's pinned via `right`, not `left`, so the arrow
      itself never moves; the reveal grows leftward from it. */
   .stats-tile-clickable:hover { background: var(--stats-hover-bg) !important; }
+  .stats-tile-clickable:hover .stats-tile-text { color: var(--stats-text-hover) !important; }
   .stats-view-text {
     display: inline-block; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
     transition: max-width 0.25s ease, opacity 0.2s ease, margin-right 0.25s ease;

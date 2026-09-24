@@ -977,6 +977,11 @@ export interface CMSStatsStyle {
   // independently of every other menu/panel sharing that token.
   hoverBgDark?: string;
   hoverBgLight?: string;
+  // Value/label/sub color once a clickable tile is hovered — falls back to whatever the resting
+  // Text color resolves to (var(--stats-text), itself already override-or-Text), so unset means
+  // "text doesn't change on hover," matching the behavior before this existed.
+  textHoverDark?: string;
+  textHoverLight?: string;
 }
 
 export interface CMSSavedTheme {
@@ -1454,6 +1459,8 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const statsBgLight = ds.statsStyle?.bgLight || "var(--c-bg)";
   const statsHoverBgDark = ds.statsStyle?.hoverBgDark || "var(--c-bg-card)";
   const statsHoverBgLight = ds.statsStyle?.hoverBgLight || "var(--c-bg-card)";
+  const statsTextHoverDark = ds.statsStyle?.textHoverDark || "var(--stats-text)";
+  const statsTextHoverLight = ds.statsStyle?.textHoverLight || "var(--stats-text)";
   const structuralCss = `
 ${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
@@ -1490,6 +1497,7 @@ ${selector} {
   --stats-icon: ${statsIconDark};
   --stats-bg: ${statsBgDark};
   --stats-hover-bg: ${statsHoverBgDark};
+  --stats-text-hover: ${statsTextHoverDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
   --font-body: ${fontBody};
@@ -1529,6 +1537,7 @@ ${selector}[data-theme="light"] {
   --stats-icon: ${statsIconLight};
   --stats-bg: ${statsBgLight};
   --stats-hover-bg: ${statsHoverBgLight};
+  --stats-text-hover: ${statsTextHoverLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};
   --tabbar-bg: ${tabBar.bgLight}; --tabbar-border: ${tabBar.borderLight};

@@ -85,7 +85,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
             <div className="flex items-baseline gap-1.5" style={{ marginBottom: 9 }}>
               <div className="flex items-center gap-1.5">
                 <Icon size={16} style={{ color: "var(--stats-icon)", flexShrink: 0 }} />
-                <span style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--stats-text)", fontWeight: 400, lineHeight: 1 }}>
+                <span className="stats-tile-text" style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--stats-text)", fontWeight: 400, lineHeight: 1 }}>
                   {value}
                 </span>
               </div>
@@ -96,11 +96,11 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
               )}
             </div>
             <div>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--stats-text)", fontWeight: 600 }}>
+              <span className="stats-tile-text" style={{ fontFamily: "var(--font-body)", fontSize: "11.5px", color: "var(--stats-text)", fontWeight: 600 }}>
                 {label}
               </span>
               {sub && (
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--stats-text)", display: "block", marginTop: "4px" }}>
+                <span className="stats-tile-text" style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "var(--stats-text)", display: "block", marginTop: "4px" }}>
                   {sub}
                 </span>
               )}

@@ -1374,6 +1374,27 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               onLightChange={(v) => updateStatsStyle({ hoverBgLight: v })}
             />
           </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Text (hover, clickable tiles)"
+              darkValue={data.statsStyle?.textHoverDark ?? data.statsStyle?.textDark ?? data.colors.textDark}
+              lightValue={data.statsStyle?.textHoverLight ?? data.statsStyle?.textLight ?? data.colors.textLight}
+              defaultDark={data.statsStyle?.textDark ?? data.colors.textDark}
+              defaultLight={data.statsStyle?.textLight ?? data.colors.textLight}
+              onDarkChange={(v) => updateStatsStyle({ textHoverDark: v })}
+              onLightChange={(v) => updateStatsStyle({ textHoverLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge
+                ratio={contrastRatio(data.statsStyle?.textHoverDark ?? data.statsStyle?.textDark ?? data.colors.textDark, data.statsStyle?.hoverBgDark ?? data.colors.cardDark)}
+                label="Dark vs Hover background"
+              />
+              <ContrastBadge
+                ratio={contrastRatio(data.statsStyle?.textHoverLight ?? data.statsStyle?.textLight ?? data.colors.textLight, data.statsStyle?.hoverBgLight ?? data.colors.cardLight)}
+                label="Light vs Hover background"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
