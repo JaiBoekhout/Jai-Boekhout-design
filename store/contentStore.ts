@@ -944,6 +944,16 @@ export interface CMSCardStyle {
   bgLight?: string;
 }
 
+// Optional override for the Stats Bar's value/label/sub text (see components/StatsBar.tsx),
+// which otherwise follows the shared "Text" token (colors.textDark/textLight, --c-text) — that
+// token is also used inside menus/panels sitting on the Card background, so a theme whose Text
+// color was only ever tuned for one of those two surfaces can leave the other unreadable. Unset
+// falls back to Text in buildDesignSystemCss below, same pattern as CMSCardStyle's bg fields.
+export interface CMSStatsStyle {
+  textDark?: string;
+  textLight?: string;
+}
+
 export interface CMSSavedTheme {
   id: string;
   name: string;
@@ -961,6 +971,7 @@ export interface CMSSavedTheme {
   switchStyle?: CMSSwitchStyle;
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
+  statsStyle?: CMSStatsStyle;
   // Visitor-visible in the style-theme switcher (see ThemeDropdown.tsx) — absent/false
   // keeps a theme in the Theme Gallery as an apply-able starting point without also surfacing it
   // to visitors before it's ready.
@@ -990,6 +1001,7 @@ export interface CMSDesignSystem {
   // Optional — see CMSTagStyle/CMSCardStyle above for why.
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
+  statsStyle?: CMSStatsStyle;
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
   // the curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
   // buttons, tags, cards, component colors) via CMSSavedTheme's optional fields — a theme flagged
@@ -1171,6 +1183,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   },
   tagStyle: { corner: "square" },
   cardStyle: { corner: "square" },
+  statsStyle: {},
   savedThemes: [],
   visiblePresetIds: ["playful-rounded"],
   presetNameOverrides: {},
@@ -1400,6 +1413,8 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const cardCorner = ds.cardStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.cardStyle!.corner;
   const cardBgDark = ds.cardStyle?.bgDark ?? c.cardDark;
   const cardBgLight = ds.cardStyle?.bgLight ?? c.cardLight;
+  const statsTextDark = ds.statsStyle?.textDark ?? c.textDark;
+  const statsTextLight = ds.statsStyle?.textLight ?? c.textLight;
   const structuralCss = `
 ${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
@@ -1428,6 +1443,7 @@ ${selector} {
   --c-bg-card: ${c.cardDark};
   --card: ${c.cardDark};
   --project-card-bg: ${cardBgDark};
+  --stats-text: ${statsTextDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
   --font-body: ${fontBody};
@@ -1459,6 +1475,7 @@ ${selector}[data-theme="light"] {
   --c-bg-card: ${c.cardLight};
   --card: ${c.cardLight};
   --project-card-bg: ${cardBgLight};
+  --stats-text: ${statsTextLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};
   --tabbar-bg: ${tabBar.bgLight}; --tabbar-border: ${tabBar.borderLight};
@@ -1490,6 +1507,7 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
     switchStyle: theme.switchStyle ?? DEFAULT_DESIGN_SYSTEM.switchStyle,
     tagStyle: theme.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     cardStyle: theme.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
+    statsStyle: theme.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle,
     savedThemes: [],
   };
 }

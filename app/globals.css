@@ -12,6 +12,7 @@
   --c-bg:          #0F1519;
   --c-bg-card:     #1A2128;
   --project-card-bg: #1A2128;
+  --stats-text:    #EDE8DF;
   --c-bg-deep:     #141D24;
   --c-bg-deeper:   #0C1117;
   --c-bg-glass:    rgba(13, 12, 10, 0.9);
@@ -104,6 +105,7 @@
   --c-bg:          #F5F1EB;
   --c-bg-card:     #EBE7E0;
   --project-card-bg: #EBE7E0;
+  --stats-text:    #1A2128;
   --c-bg-deep:     #E2DDD6;
   --c-bg-deeper:   #D8D3CC;
   --c-bg-glass:    rgba(245, 241, 235, 0.92);

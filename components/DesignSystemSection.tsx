@@ -5,6 +5,7 @@ import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
+import { contrastRatio } from "@/lib/contrast";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
 import {
   FONT_PAIRINGS, DEFAULT_DESIGN_SYSTEM, DEFAULT_LOGO_URL, DEFAULT_FAVICON_URL,
@@ -66,6 +67,34 @@ const TOKENS: TokenDef[] = [
   { key: "cardDark", label: "Card / Panel Background", description: "Cards, panels and raised surfaces" },
   { key: "dividerDark", label: "Divider", description: "Lines between list items and sections" },
 ];
+
+// Which tokens actually render as text sitting on top of another color — Accent/Background/Card/
+// Divider are either the surface itself or too situational (a small dot, a hairline) for a
+// contrast warning to be meaningful the way it is for body copy people are meant to read.
+const TEXT_TOKEN_KEYS = new Set<TokenDef["key"]>(["headingDark", "textDark", "mutedDark", "bodyDark"]);
+
+// Below this ratio, text is outright hard to read (WCAG AA's 4.5:1 for normal text); below 2:1
+// it's practically invisible — distinguishes "worth a look" from "this is almost certainly a
+// mistake" without drowning every slightly-off pairing in the same alarm color.
+const CONTRAST_AA = 4.5;
+const CONTRAST_POOR = 2;
+
+function ContrastBadge({ ratio, label }: { ratio: number; label: string }) {
+  const ok = ratio >= CONTRAST_AA;
+  const poor = ratio < CONTRAST_POOR;
+  return (
+    <span
+      title={`${label}: contrast ratio ${ratio.toFixed(1)}:1${ok ? " — readable" : " — WCAG AA wants at least 4.5:1 for text"}`}
+      style={{
+        fontFamily: "'DM Mono', monospace", fontSize: 8.5, padding: "2px 6px", borderRadius: 4, whiteSpace: "nowrap",
+        background: ok ? "rgba(237,232,223,0.04)" : poor ? "rgba(224,90,90,0.15)" : "rgba(217,164,65,0.15)",
+        color: ok ? "#6B7E8A" : poor ? "#E85A5A" : "#D9A441",
+      }}
+    >
+      {label} {ratio.toFixed(1)}:1{!ok ? " ⚠" : ""}
+    </span>
+  );
+}
 
 export const DESIGN_SYSTEM_SECTIONS: { id: string; label: string }[] = [
   { id: "ds-colors", label: "Color Palette" },
@@ -848,6 +877,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     switchStyle: rawData.switchStyle ?? DEFAULT_DESIGN_SYSTEM.switchStyle,
     tagStyle: rawData.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     cardStyle: rawData.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
+    statsStyle: rawData.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle ?? {},
     savedThemes: rawData.savedThemes ?? [],
     visiblePresetIds: rawData.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [],
     presetNameOverrides: rawData.presetNameOverrides ?? {},
@@ -1068,6 +1098,10 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     onChange({ ...data, cardStyle: { ...(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!), ...patch } });
   }
 
+  function updateStatsStyle(patch: Partial<NonNullable<typeof data.statsStyle>>) {
+    onChange({ ...data, statsStyle: { ...(data.statsStyle ?? {}), ...patch } });
+  }
+
   function updateTextAreaStyle(patch: Partial<typeof data.textAreaStyle>) {
     onChange({ ...data, textAreaStyle: { ...data.textAreaStyle, ...patch } });
   }
@@ -1229,6 +1263,21 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               onLightChange={(v) => updateCardStyle({ bgLight: v })}
             />
           </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Stats Bar text (optional override)"
+              darkValue={data.statsStyle?.textDark ?? data.colors.textDark}
+              lightValue={data.statsStyle?.textLight ?? data.colors.textLight}
+              defaultDark={data.colors.textDark}
+              defaultLight={data.colors.textLight}
+              onDarkChange={(v) => updateStatsStyle({ textDark: v })}
+              onLightChange={(v) => updateStatsStyle({ textLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.colors.bgDark)} label="Dark vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.colors.bgLight)} label="Light vs Background" />
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
@@ -1242,6 +1291,14 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                 <ColorInput label="Dark mode" value={data.colors[token.key]} onChange={(v) => updateColor(token.key, v)} />
                 <ColorInput label="Light mode" value={data.colors[lightKey] ?? "#000000"} onChange={(v) => updateColor(lightKey, v)} />
               </div>
+              {TEXT_TOKEN_KEYS.has(token.key) && (
+                <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+                  <ContrastBadge ratio={contrastRatio(data.colors[token.key], data.colors.bgDark)} label="Dark vs Background" />
+                  <ContrastBadge ratio={contrastRatio(data.colors[token.key], data.colors.cardDark)} label="Dark vs Card" />
+                  <ContrastBadge ratio={contrastRatio(data.colors[lightKey] ?? "#000000", data.colors.bgLight)} label="Light vs Background" />
+                  <ContrastBadge ratio={contrastRatio(data.colors[lightKey] ?? "#000000", data.colors.cardLight)} label="Light vs Card" />
+                </div>
+              )}
               {token.key === "accentDark" && (
                 <div className="mt-4" style={{ paddingLeft: 14, borderLeft: "1px solid rgba(237,232,223,0.08)" }}>
                   {(["accent2", "accent3"] as const).map((slot) => {
