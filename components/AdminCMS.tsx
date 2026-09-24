@@ -140,6 +140,12 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   const [saveError, setSaveError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [pendingPersist, setPendingPersist] = useState(false);
+  // Which Theme Gallery swatch DesignSystemSection currently has "loaded" for editing — lifted up
+  // here (rather than local state inside that section) because it's only ever rendered while
+  // activeTab === "design", so it unmounts on every other tab; local state there was silently
+  // resetting to null on any tab switch, and edits made afterward landed on the live root design
+  // system instead of the theme the admin thought they were still editing.
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const { content, updateContent, persistContent, isDirty, savedContent } = useContentStore();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [enquiriesLoading, setEnquiriesLoading] = useState(false);
@@ -914,6 +920,8 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                     onNotFoundChange={(v) => updateContent({ notFound: v })}
                     onCompaniesChange={(v) => updateContent({ companies: v })}
                     onCompanyCreditCopyChange={(v) => updateContent({ companyCreditCopy: v })}
+                    activeThemeId={activeThemeId}
+                    onActiveThemeIdChange={setActiveThemeId}
                   />
                 )}
               </div>

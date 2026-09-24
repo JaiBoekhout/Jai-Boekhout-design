@@ -44,6 +44,11 @@ interface Props {
   onNotFoundChange: (notFound: CMSNotFound) => void;
   onCompaniesChange: (companies: CMSCompany[]) => void;
   onCompanyCreditCopyChange: (copy: string) => void;
+  /** Lifted up to AdminCMS — this section unmounts on every tab switch (only rendered while
+   *  activeTab === "design"), so local state here silently reset which theme was "loaded" on any
+   *  navigation away and back, and the next edit landed on the live root design system instead. */
+  activeThemeId: string | null;
+  onActiveThemeIdChange: (id: string | null) => void;
 }
 
 interface TokenDef {
@@ -844,7 +849,11 @@ function ButtonVariantEditor({
   );
 }
 
-export function DesignSystemSection({ data: rawData, branding, socials, notFound, companies, companyCreditCopy, onChange: onChangeProp, onBrandingChange, onSocialsChange, onNotFoundChange, onCompaniesChange, onCompanyCreditCopyChange }: Props) {
+export function DesignSystemSection({
+  data: rawData, branding, socials, notFound, companies, companyCreditCopy, onChange: onChangeProp,
+  onBrandingChange, onSocialsChange, onNotFoundChange, onCompaniesChange, onCompanyCreditCopyChange,
+  activeThemeId, onActiveThemeIdChange: setActiveThemeId,
+}: Props) {
   const [checkPreview, setCheckPreview] = useState(true);
   const [radioPreview, setRadioPreview] = useState("a");
   const [switchPreview, setSwitchPreview] = useState(true);
@@ -852,12 +861,6 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   const [tabPreview, setTabPreview] = useState("work");
   const [linkHovered, setLinkHovered] = useState(false);
   const [namingTheme, setNamingTheme] = useState(false);
-  // Which swatch is currently loaded into the editor below — purely local UI state (not
-  // persisted, not derived from the live colors themselves) so it stays put while you tweak
-  // things and the live values naturally diverge from that theme's own saved snapshot. Cleared
-  // by nothing except picking a different swatch; there's no way back to an explicit "none"
-  // short of reloading the page, same as there's no "Original" swatch in this gallery to click.
-  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [themeName, setThemeName] = useState("");
   const companiesDrag = useDragReorder(companies, onCompaniesChange);
 
