@@ -26,7 +26,7 @@ const PAD = 3;
 // a style leaves mode exactly as it was; the mode switch leaves style exactly as it was.
 export function ThemeDropdown() {
   const { theme, setThemeDirect } = useTheme();
-  const { styleTheme, availableThemes, setStyleTheme } = useStyleTheme();
+  const { styleTheme, availableThemes, setStyleTheme, modeLocked } = useStyleTheme();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -128,40 +128,45 @@ export function ThemeDropdown() {
             );
           })}
 
-          <div style={{ height: 1, background: "var(--c-border-soft)", margin: "5px 4px" }} />
-
-          {/* Mode — Dark/Light, independent of the style choice above */}
-          <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
-              {isDark ? "Dark" : "Light"}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isDark}
-              onClick={() => setThemeDirect(isDark ? "light" : "dark")}
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex items-center"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
-            >
-              <Moon size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginRight: 6, flexShrink: 0 }} />
-              <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "var(--c-border-med)", flexShrink: 0 }}>
-                <span
-                  style={{
-                    position: "absolute",
-                    top: PAD,
-                    left: isDark ? PAD : TRACK_W - PAD - THUMB,
-                    width: THUMB,
-                    height: THUMB,
-                    borderRadius: "50%",
-                    background: "var(--c-teal)",
-                    transition: "left 0.2s ease",
-                  }}
-                />
-              </span>
-              <Sun size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginLeft: 6, flexShrink: 0 }} />
-            </button>
-          </div>
+          {/* Mode — Dark/Light, independent of the style choice above. Hidden entirely while the
+              active theme is mode-locked (see the Theme Gallery's lock icon) — it was only ever
+              designed for one mode, so there's nothing for a visitor to toggle to. */}
+          {!modeLocked && (
+            <>
+              <div style={{ height: 1, background: "var(--c-border-soft)", margin: "5px 4px" }} />
+              <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
+                  {isDark ? "Dark" : "Light"}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isDark}
+                  onClick={() => setThemeDirect(isDark ? "light" : "dark")}
+                  aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                  className="flex items-center"
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
+                >
+                  <Moon size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginRight: 6, flexShrink: 0 }} />
+                  <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "var(--c-border-med)", flexShrink: 0 }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: PAD,
+                        left: isDark ? PAD : TRACK_W - PAD - THUMB,
+                        width: THUMB,
+                        height: THUMB,
+                        borderRadius: "50%",
+                        background: "var(--c-teal)",
+                        transition: "left 0.2s ease",
+                      }}
+                    />
+                  </span>
+                  <Sun size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginLeft: 6, flexShrink: 0 }} />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

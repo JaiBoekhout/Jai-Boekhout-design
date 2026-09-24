@@ -969,6 +969,11 @@ export interface CMSSavedTheme {
   // or landing on it as a first-time visitor's default) — undefined leaves whatever mode the
   // visitor already had. Independent of `visible`: can be set before a theme is published.
   defaultMode?: "dark" | "light";
+  // When true (only meaningful alongside a set defaultMode), this theme has only ever been
+  // designed for that one mode — the visitor-facing Dark/Light switch is hidden entirely while
+  // it's active, and defaultMode is forced every time, overriding any mode the visitor already
+  // had (not just a soft default for a first-time visitor, unlike defaultMode alone).
+  lockMode?: boolean;
 }
 
 export interface CMSDesignSystem {

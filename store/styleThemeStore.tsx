@@ -11,14 +11,19 @@ interface StyleThemeContextValue {
   styleTheme: string | null;
   /** Every THEME_PRESETS entry in visiblePresetIds, plus every savedThemes entry flagged
    *  visitor-visible — combined, in that order. */
-  availableThemes: { id: string; name: string; defaultMode?: "dark" | "light" }[];
+  availableThemes: { id: string; name: string; defaultMode?: "dark" | "light"; lockMode?: boolean }[];
   setStyleTheme: (id: string | null) => void;
+  /** True when the currently active style theme has lockMode set — ThemeDropdown hides the
+   *  Dark/Light switch entirely while this is true, since the theme was only ever designed for
+   *  one mode. */
+  modeLocked: boolean;
 }
 
 const StyleThemeContext = createContext<StyleThemeContextValue>({
   styleTheme: null,
   availableThemes: [],
   setStyleTheme: () => {},
+  modeLocked: false,
 });
 
 // Deliberately separate from ThemeProvider (dark/light) rather than folding into it — day/night
@@ -35,10 +40,10 @@ export function StyleThemeProvider({ children }: { children: React.ReactNode }) 
   const nameOverrides = content.designSystem.presetNameOverrides ?? {};
   const presetOverrides = content.designSystem.presetOverrides ?? {};
   const visiblePresets = THEME_PRESETS.filter((t) => visiblePresetIds.includes(t.id))
-    .map((t) => ({ id: t.id, name: nameOverrides[t.id] ?? t.name, defaultMode: presetOverrides[t.id]?.defaultMode }));
+    .map((t) => ({ id: t.id, name: nameOverrides[t.id] ?? t.name, defaultMode: presetOverrides[t.id]?.defaultMode, lockMode: presetOverrides[t.id]?.lockMode }));
   const visibleSaved = (content.designSystem.savedThemes ?? [])
     .filter((t) => t.visible)
-    .map((t) => ({ id: t.id, name: t.name, defaultMode: t.defaultMode }));
+    .map((t) => ({ id: t.id, name: t.name, defaultMode: t.defaultMode, lockMode: t.lockMode }));
   const availableThemes = [...visiblePresets, ...visibleSaved];
   const defaultThemeId = content.designSystem.defaultVisitorThemeId ?? null;
 
@@ -56,10 +61,11 @@ export function StyleThemeProvider({ children }: { children: React.ReactNode }) 
     // effect's *child* effect (StyleThemeProvider is always nested inside ThemeProvider), so it
     // commits first — ThemeProvider's effect then reads the localStorage value this just wrote,
     // rather than clobbering it back to "dark". A visitor who already picked a mode is never
-    // overridden here.
-    if (initial && !localStorage.getItem(THEME_STORAGE_KEY)) {
-      const mode = availableThemes.find((t) => t.id === initial)?.defaultMode;
-      if (mode) setThemeDirect(mode);
+    // overridden here — unless the resolved theme is mode-locked, in which case it always wins,
+    // even over a mode the visitor picked on some earlier, different theme.
+    const info = availableThemes.find((t) => t.id === initial);
+    if (initial && info?.defaultMode && (info.lockMode || !localStorage.getItem(THEME_STORAGE_KEY))) {
+      setThemeDirect(info.defaultMode);
     }
     // Only ever meant to run once per page load (matches ThemeProvider's mount-only effect) —
     // defaultThemeId changing later (a live CMS edit) shouldn't yank a visitor who already chose
@@ -83,8 +89,10 @@ export function StyleThemeProvider({ children }: { children: React.ReactNode }) 
     if (mode) setThemeDirect(mode);
   }
 
+  const modeLocked = !!availableThemes.find((t) => t.id === styleTheme)?.lockMode;
+
   return (
-    <StyleThemeContext.Provider value={{ styleTheme, availableThemes, setStyleTheme }}>
+    <StyleThemeContext.Provider value={{ styleTheme, availableThemes, setStyleTheme, modeLocked }}>
       {children}
     </StyleThemeContext.Provider>
   );

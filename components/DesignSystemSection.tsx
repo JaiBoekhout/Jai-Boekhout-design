@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff, Pencil, Moon, Sun } from "lucide-react";
+import { RotateCcw, Send, ChevronDown, Check, Plus, X, ArrowUp, ArrowDown, Trash2, Eye, EyeOff, Pencil, Moon, Sun, Lock, Unlock } from "lucide-react";
 import { CMSSectionHeading, CMSInput, CMSUrlInput, CMSTextarea, selectArrowStyle, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { ImagePicker } from "@/components/ImagePicker";
@@ -169,7 +169,7 @@ function TextInputField({ label, value, onChange }: { label: string; value: stri
 // Swatch dots preview accent/card/heading so a theme is recognizable before applying it.
 function ThemeSwatch({
   name, colors, active, onClick, onDelete, visible, onToggleVisible, isDefault, onSetDefault, onRename,
-  defaultMode, onSetDefaultMode,
+  defaultMode, onSetDefaultMode, lockMode, onToggleLockMode,
 }: {
   name: string;
   colors: CMSDesignColors;
@@ -191,6 +191,11 @@ function ThemeSwatch({
   /** Which color mode this theme switches to when selected — undefined leaves the mode as-is. */
   defaultMode?: "dark" | "light";
   onSetDefaultMode?: (mode: "dark" | "light" | undefined) => void;
+  /** When true, hides the visitor-facing Dark/Light switch entirely while this theme is active,
+   *  forcing defaultMode instead — for a theme only ever designed for one mode. Only meaningful
+   *  once defaultMode is set; toggling this on with no mode picked yet defaults to dark. */
+  lockMode?: boolean;
+  onToggleLockMode?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(name);
@@ -307,6 +312,19 @@ function ThemeSwatch({
           >
             <Sun size={10} />
           </button>
+          {onToggleLockMode && (
+            <button
+              onClick={() => onToggleLockMode()}
+              title={
+                lockMode
+                  ? "Only this mode is shown to visitors — click to allow switching again"
+                  : `Lock visitors to ${defaultMode ?? "dark"} mode only, hiding the switch (picks dark if no mode is set yet)`
+              }
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", color: lockMode ? "#14ADB5" : "#8C9AA3" }}
+            >
+              {lockMode ? <Lock size={10} /> : <Unlock size={10} />}
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -1004,6 +1022,24 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
     onChangeProp({ ...data, savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, defaultMode: mode } : t)) });
   }
 
+  // Locking with no defaultMode set yet wouldn't mean anything (locked to *what*?) — defaults to
+  // dark in that case, same as a visitor gets today before ever touching the switch.
+  function togglePresetLockMode(id: string) {
+    const current = data.presetOverrides?.[id];
+    const nowLocked = !current?.lockMode;
+    onChangeProp({
+      ...data,
+      presetOverrides: { ...(data.presetOverrides ?? {}), [id]: { ...current, lockMode: nowLocked, defaultMode: current?.defaultMode ?? "dark" } },
+    });
+  }
+
+  function toggleSavedThemeLockMode(id: string) {
+    onChangeProp({
+      ...data,
+      savedThemes: data.savedThemes.map((t) => (t.id === id ? { ...t, lockMode: !t.lockMode, defaultMode: t.defaultMode ?? "dark" } : t)),
+    });
+  }
+
   function updateComponentColors(patch: Partial<CMSComponentColors>) {
     onChange({ ...data, componentColors: { ...data.componentColors, ...patch } });
   }
@@ -1078,7 +1114,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
-          Click a swatch to load it into the editor below — it&rsquo;s outlined and marked &ldquo;Editing&rdquo; while active. Anything you change below (colors, corners, buttons, fonts...) is saved into that theme automatically once you hit Save Changes, not just the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, the pencil icon renames it, and the &times; removes it permanently (at least one theme always has to remain). The moon/sun icons set which mode (dark/light) it switches to when picked.
+          Click a swatch to load it into the editor below — it&rsquo;s outlined and marked &ldquo;Editing&rdquo; while active. Anything you change below (colors, corners, buttons, fonts...) is saved into that theme automatically once you hit Save Changes, not just the site&rsquo;s live look. The eye icon controls whether visitors can also pick that theme themselves in the site&rsquo;s own style switcher — &ldquo;Set default&rdquo; picks which one a first-time visitor sees, the pencil icon renames it, and the &times; removes it permanently (at least one theme always has to remain). The moon/sun icons set which mode (dark/light) it switches to when picked, and the lock icon hides the Dark/Light switch from visitors entirely, forcing that one mode — for a theme that&rsquo;s only ever been designed for it.
         </p>
         <div className="flex flex-wrap items-start gap-3 mb-8">
           {galleryPresets.map((t) => {
@@ -1101,6 +1137,8 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
                 onRename={(newName) => renamePreset(t.id, newName)}
                 defaultMode={override?.defaultMode}
                 onSetDefaultMode={(mode) => setPresetDefaultMode(t.id, mode)}
+                lockMode={override?.lockMode}
+                onToggleLockMode={() => togglePresetLockMode(t.id)}
               />
             );
           })}
@@ -1119,6 +1157,8 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
               onRename={(newName) => renameSavedTheme(t.id, newName)}
               defaultMode={t.defaultMode}
               onSetDefaultMode={(mode) => setSavedThemeDefaultMode(t.id, mode)}
+              lockMode={t.lockMode}
+              onToggleLockMode={() => toggleSavedThemeLockMode(t.id)}
             />
           ))}
           {namingTheme ? (
