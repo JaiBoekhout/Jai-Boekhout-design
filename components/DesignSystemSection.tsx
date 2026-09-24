@@ -890,6 +890,12 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
   const galleryPresets = THEME_PRESETS.filter((t) => !(data.removedPresetIds ?? []).includes(t.id));
   const totalThemes = galleryPresets.length + data.savedThemes.length;
 
+  // Drives the "you're editing Original" warning below — undefined whenever there's no default
+  // theme configured at all (visitors just see Original too, so editing it here is correct).
+  const defaultThemePreset = data.defaultVisitorThemeId ? galleryPresets.find((t) => t.id === data.defaultVisitorThemeId) : undefined;
+  const defaultThemeSaved = data.defaultVisitorThemeId ? data.savedThemes.find((t) => t.id === data.defaultVisitorThemeId) : undefined;
+  const defaultThemeName = defaultThemePreset ? (data.presetNameOverrides?.[defaultThemePreset.id] ?? defaultThemePreset.name) : defaultThemeSaved?.name;
+
   // Every field-editing handler below (colors, corners, buttons, fonts, components...) calls
   // this rather than onChangeProp directly — so an edit made while a theme is loaded (see
   // activeThemeId) lands in that theme's own stored snapshot too, not just the live root. Without
@@ -954,7 +960,24 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
       ...(theme.switchStyle ? { switchStyle: theme.switchStyle } : {}),
       ...(theme.tagStyle ? { tagStyle: theme.tagStyle } : {}),
       ...(theme.cardStyle ? { cardStyle: theme.cardStyle } : {}),
+      ...(theme.statsStyle ? { statsStyle: theme.statsStyle } : {}),
     });
+  }
+
+  // Jumps straight to editing whichever theme is actually live for visitors — used by the
+  // "editing Original" warning below, so fixing that mistake is one click instead of hunting the
+  // right swatch down manually.
+  function loadDefaultTheme() {
+    const id = data.defaultVisitorThemeId;
+    if (!id) return;
+    const preset = galleryPresets.find((t) => t.id === id);
+    if (preset) {
+      const override = data.presetOverrides?.[id];
+      applyTheme({ ...preset, ...override, colors: override?.colors ?? preset.colors });
+      return;
+    }
+    const saved = data.savedThemes.find((t) => t.id === id);
+    if (saved) applyTheme(saved);
   }
 
   function saveCurrentAsTheme(name: string) {
@@ -1145,6 +1168,23 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: -12, marginBottom: 16, lineHeight: 1.5 }}>
           Each color has a dark-mode and light-mode value, matching the site&rsquo;s existing light/dark toggle. Changes apply site-wide once saved.
         </p>
+
+        {!activeThemeId && defaultThemeName && (
+          <div
+            className="flex items-center justify-between gap-3 flex-wrap"
+            style={{ background: "rgba(217,164,65,0.08)", border: "1px solid rgba(217,164,65,0.3)", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}
+          >
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#D9A441", lineHeight: 1.5, margin: 0 }}>
+              You&rsquo;re editing the site&rsquo;s base look (&ldquo;Original&rdquo;) — but visitors currently see <strong>{defaultThemeName}</strong> by default. Edits here won&rsquo;t reach them.
+            </p>
+            <button
+              onClick={loadDefaultTheme}
+              style={{ background: "none", border: "1px solid #D9A441", borderRadius: 7, padding: "6px 12px", color: "#D9A441", fontFamily: "'DM Mono', monospace", fontSize: 10.5, letterSpacing: "0.04em", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+            >
+              Edit {defaultThemeName} instead
+            </button>
+          </div>
+        )}
 
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Theme Gallery</p>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
