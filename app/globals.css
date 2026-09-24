@@ -17,6 +17,9 @@
   --project-card-link: var(--c-teal);
   --project-card-tag: var(--label-color);
   --stats-text:    #EDE8DF;
+  --stats-icon:    var(--c-teal);
+  --stats-bg:      var(--c-bg);
+  --stats-hover-bg: var(--c-bg-card);
   --c-bg-deep:     #141D24;
   --c-bg-deeper:   #0C1117;
   --c-bg-glass:    rgba(13, 12, 10, 0.9);
@@ -114,6 +117,9 @@
   --project-card-link: var(--c-teal);
   --project-card-tag: var(--label-color);
   --stats-text:    #1A2128;
+  --stats-icon:    var(--c-teal);
+  --stats-bg:      var(--c-bg);
+  --stats-hover-bg: var(--c-bg-card);
   --c-bg-deep:     #E2DDD6;
   --c-bg-deeper:   #D8D3CC;
   --c-bg-glass:    rgba(245, 241, 235, 0.92);
@@ -286,7 +292,7 @@
      section" copy is collapsed to zero width at rest (only the arrow, already the highlight
      colour, shows) and grows in on hover — it's pinned via `right`, not `left`, so the arrow
      itself never moves; the reveal grows leftward from it. */
-  .stats-tile-clickable:hover { background: var(--c-bg-card) !important; }
+  .stats-tile-clickable:hover { background: var(--stats-hover-bg) !important; }
   .stats-view-text {
     display: inline-block; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
     transition: max-width 0.25s ease, opacity 0.2s ease, margin-right 0.25s ease;

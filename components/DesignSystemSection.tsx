@@ -1323,19 +1323,56 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
           Stats Bar
         </p>
-        <div className="mb-8" style={{ maxWidth: 320 }}>
-          <PlainColorPairControl
-            label="Text (optional override)"
-            darkValue={data.statsStyle?.textDark ?? data.colors.textDark}
-            lightValue={data.statsStyle?.textLight ?? data.colors.textLight}
-            defaultDark={data.colors.textDark}
-            defaultLight={data.colors.textLight}
-            onDarkChange={(v) => updateStatsStyle({ textDark: v })}
-            onLightChange={(v) => updateStatsStyle({ textLight: v })}
-          />
-          <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
-            <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.colors.bgDark)} label="Dark vs Background" />
-            <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.colors.bgLight)} label="Light vs Background" />
+        <div className="mb-8 flex flex-wrap gap-6 items-start">
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Text (value / label)"
+              darkValue={data.statsStyle?.textDark ?? data.colors.textDark}
+              lightValue={data.statsStyle?.textLight ?? data.colors.textLight}
+              defaultDark={data.colors.textDark}
+              defaultLight={data.colors.textLight}
+              onDarkChange={(v) => updateStatsStyle({ textDark: v })}
+              onLightChange={(v) => updateStatsStyle({ textLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.statsStyle?.bgDark ?? data.colors.bgDark)} label="Dark vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.statsStyle?.bgLight ?? data.colors.bgLight)} label="Light vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.statsStyle?.hoverBgDark ?? data.colors.cardDark)} label="Dark vs Hover" />
+              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.statsStyle?.hoverBgLight ?? data.colors.cardLight)} label="Light vs Hover" />
+            </div>
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Icon & link (View section)"
+              darkValue={data.statsStyle?.iconDark ?? data.colors.accentDark}
+              lightValue={data.statsStyle?.iconLight ?? data.colors.accentLight}
+              defaultDark={data.colors.accentDark}
+              defaultLight={data.colors.accentLight}
+              onDarkChange={(v) => updateStatsStyle({ iconDark: v })}
+              onLightChange={(v) => updateStatsStyle({ iconLight: v })}
+            />
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Background (default)"
+              darkValue={data.statsStyle?.bgDark ?? data.colors.bgDark}
+              lightValue={data.statsStyle?.bgLight ?? data.colors.bgLight}
+              defaultDark={data.colors.bgDark}
+              defaultLight={data.colors.bgLight}
+              onDarkChange={(v) => updateStatsStyle({ bgDark: v })}
+              onLightChange={(v) => updateStatsStyle({ bgLight: v })}
+            />
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Background (hover, clickable tiles)"
+              darkValue={data.statsStyle?.hoverBgDark ?? data.colors.cardDark}
+              lightValue={data.statsStyle?.hoverBgLight ?? data.colors.cardLight}
+              defaultDark={data.colors.cardDark}
+              defaultLight={data.colors.cardLight}
+              onDarkChange={(v) => updateStatsStyle({ hoverBgDark: v })}
+              onLightChange={(v) => updateStatsStyle({ hoverBgLight: v })}
+            />
           </div>
         </div>
 

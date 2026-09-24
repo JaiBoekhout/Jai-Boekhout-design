@@ -74,7 +74,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
             onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleActivate(); } } : undefined}
             className={`relative transition-colors${clickable ? " stats-tile-clickable" : ""}`}
             style={{
-              background: "var(--c-bg)",
+              background: "var(--stats-bg)",
               // Extra bottom room on clickable tiles reserves space for the "View section" link
               // pinned to the corner below, so it never sits on top of a label that wraps to
               // more than one line.
@@ -84,7 +84,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
           >
             <div className="flex items-baseline gap-1.5" style={{ marginBottom: 9 }}>
               <div className="flex items-center gap-1.5">
-                <Icon size={16} style={{ color: "var(--c-teal)", flexShrink: 0 }} />
+                <Icon size={16} style={{ color: "var(--stats-icon)", flexShrink: 0 }} />
                 <span style={{ fontFamily: "var(--font-secondary)", fontStyle: "italic", fontSize: "clamp(22px, 2.6vw, 32px)", color: "var(--stats-text)", fontWeight: 400, lineHeight: 1 }}>
                   {value}
                 </span>
@@ -112,7 +112,7 @@ export function StatsBar({ stats, evaluate, isClickable, onActivate }: StatsBarP
                 className="flex items-center"
                 style={{
                   position: "absolute", right: 16, bottom: 14,
-                  fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.02em", whiteSpace: "nowrap",
+                  fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--stats-icon)", letterSpacing: "0.02em", whiteSpace: "nowrap",
                 }}
               >
                 <span className="stats-view-text">View section</span>

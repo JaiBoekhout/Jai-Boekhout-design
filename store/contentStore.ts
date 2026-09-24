@@ -964,6 +964,19 @@ export interface CMSCardStyle {
 export interface CMSStatsStyle {
   textDark?: string;
   textLight?: string;
+  // Icon + the "View section" arrow/hover-reveal link — both are the tile's one accent element,
+  // sharing a color like the site's other icon/link pairings do. Falls back to --c-teal.
+  iconDark?: string;
+  iconLight?: string;
+  // Each tile's own resting background — falls back to --c-bg (the page background, its previous
+  // hardcoded value).
+  bgDark?: string;
+  bgLight?: string;
+  // A clickable tile's background on hover — previously hardcoded to the shared --c-bg-card
+  // token (see the .stats-tile-clickable:hover rule in globals.css), with no way to set it
+  // independently of every other menu/panel sharing that token.
+  hoverBgDark?: string;
+  hoverBgLight?: string;
 }
 
 export interface CMSSavedTheme {
@@ -1435,6 +1448,12 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const cardTagLight = ds.cardStyle?.tagTextLight || "var(--label-color)";
   const statsTextDark = ds.statsStyle?.textDark ?? c.textDark;
   const statsTextLight = ds.statsStyle?.textLight ?? c.textLight;
+  const statsIconDark = ds.statsStyle?.iconDark || "var(--c-teal)";
+  const statsIconLight = ds.statsStyle?.iconLight || "var(--c-teal)";
+  const statsBgDark = ds.statsStyle?.bgDark || "var(--c-bg)";
+  const statsBgLight = ds.statsStyle?.bgLight || "var(--c-bg)";
+  const statsHoverBgDark = ds.statsStyle?.hoverBgDark || "var(--c-bg-card)";
+  const statsHoverBgLight = ds.statsStyle?.hoverBgLight || "var(--c-bg-card)";
   const structuralCss = `
 ${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
@@ -1468,6 +1487,9 @@ ${selector} {
   --project-card-link: ${cardLinkDark};
   --project-card-tag: ${cardTagDark};
   --stats-text: ${statsTextDark};
+  --stats-icon: ${statsIconDark};
+  --stats-bg: ${statsBgDark};
+  --stats-hover-bg: ${statsHoverBgDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
   --font-body: ${fontBody};
@@ -1504,6 +1526,9 @@ ${selector}[data-theme="light"] {
   --project-card-link: ${cardLinkLight};
   --project-card-tag: ${cardTagLight};
   --stats-text: ${statsTextLight};
+  --stats-icon: ${statsIconLight};
+  --stats-bg: ${statsBgLight};
+  --stats-hover-bg: ${statsHoverBgLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};
   --tabbar-bg: ${tabBar.bgLight}; --tabbar-border: ${tabBar.borderLight};
