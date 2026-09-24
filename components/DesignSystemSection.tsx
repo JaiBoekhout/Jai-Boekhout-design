@@ -1241,10 +1241,13 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           )}
         </div>
 
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
+          Project Cards
+        </p>
         <div className="mb-8 flex flex-wrap gap-6 items-start">
           <div style={{ maxWidth: 220 }}>
             <SelectField
-              label="Card corner (project cards)"
+              label="Card corner"
               value={(data.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle!).corner}
               onChange={(v: ButtonCorner) => updateCardStyle({ corner: v })}
               options={[
@@ -1254,7 +1257,7 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           </div>
           <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
             <PlainColorPairControl
-              label="Card background (project cards)"
+              label="Card background"
               darkValue={data.cardStyle?.bgDark ?? data.colors.cardDark}
               lightValue={data.cardStyle?.bgLight ?? data.colors.cardLight}
               defaultDark={data.colors.cardDark}
@@ -1265,18 +1268,74 @@ export function DesignSystemSection({ data: rawData, branding, socials, notFound
           </div>
           <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
             <PlainColorPairControl
-              label="Stats Bar text (optional override)"
-              darkValue={data.statsStyle?.textDark ?? data.colors.textDark}
-              lightValue={data.statsStyle?.textLight ?? data.colors.textLight}
-              defaultDark={data.colors.textDark}
-              defaultLight={data.colors.textLight}
-              onDarkChange={(v) => updateStatsStyle({ textDark: v })}
-              onLightChange={(v) => updateStatsStyle({ textLight: v })}
+              label="Heading (title)"
+              darkValue={data.cardStyle?.headingDark ?? cc.linkDark ?? data.colors.accentDark}
+              lightValue={data.cardStyle?.headingLight ?? cc.linkLight ?? data.colors.accentLight}
+              defaultDark={cc.linkDark ?? data.colors.accentDark}
+              defaultLight={cc.linkLight ?? data.colors.accentLight}
+              onDarkChange={(v) => updateCardStyle({ headingDark: v })}
+              onLightChange={(v) => updateCardStyle({ headingLight: v })}
             />
             <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
-              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.colors.bgDark)} label="Dark vs Background" />
-              <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.colors.bgLight)} label="Light vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.cardStyle?.headingDark ?? cc.linkDark ?? data.colors.accentDark, data.cardStyle?.bgDark ?? data.colors.cardDark)} label="Dark vs Card" />
+              <ContrastBadge ratio={contrastRatio(data.cardStyle?.headingLight ?? cc.linkLight ?? data.colors.accentLight, data.cardStyle?.bgLight ?? data.colors.cardLight)} label="Light vs Card" />
             </div>
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Body text (description)"
+              darkValue={data.cardStyle?.bodyDark ?? data.colors.textDark}
+              lightValue={data.cardStyle?.bodyLight ?? data.colors.textLight}
+              defaultDark={data.colors.textDark}
+              defaultLight={data.colors.textLight}
+              onDarkChange={(v) => updateCardStyle({ bodyDark: v })}
+              onLightChange={(v) => updateCardStyle({ bodyLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge ratio={contrastRatio(data.cardStyle?.bodyDark ?? data.colors.textDark, data.cardStyle?.bgDark ?? data.colors.cardDark)} label="Dark vs Card" />
+              <ContrastBadge ratio={contrastRatio(data.cardStyle?.bodyLight ?? data.colors.textLight, data.cardStyle?.bgLight ?? data.colors.cardLight)} label="Light vs Card" />
+            </div>
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label='Link ("View Project")'
+              darkValue={data.cardStyle?.linkDark ?? data.colors.accentDark}
+              lightValue={data.cardStyle?.linkLight ?? data.colors.accentLight}
+              defaultDark={data.colors.accentDark}
+              defaultLight={data.colors.accentLight}
+              onDarkChange={(v) => updateCardStyle({ linkDark: v })}
+              onLightChange={(v) => updateCardStyle({ linkLight: v })}
+            />
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Tags"
+              darkValue={data.cardStyle?.tagTextDark ?? cc.labelDark ?? data.colors.accentDark}
+              lightValue={data.cardStyle?.tagTextLight ?? cc.labelLight ?? data.colors.accentLight}
+              defaultDark={cc.labelDark ?? data.colors.accentDark}
+              defaultLight={cc.labelLight ?? data.colors.accentLight}
+              onDarkChange={(v) => updateCardStyle({ tagTextDark: v })}
+              onLightChange={(v) => updateCardStyle({ tagTextLight: v })}
+            />
+          </div>
+        </div>
+
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
+          Stats Bar
+        </p>
+        <div className="mb-8" style={{ maxWidth: 320 }}>
+          <PlainColorPairControl
+            label="Text (optional override)"
+            darkValue={data.statsStyle?.textDark ?? data.colors.textDark}
+            lightValue={data.statsStyle?.textLight ?? data.colors.textLight}
+            defaultDark={data.colors.textDark}
+            defaultLight={data.colors.textLight}
+            onDarkChange={(v) => updateStatsStyle({ textDark: v })}
+            onLightChange={(v) => updateStatsStyle({ textLight: v })}
+          />
+          <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+            <ContrastBadge ratio={contrastRatio(data.statsStyle?.textDark ?? data.colors.textDark, data.colors.bgDark)} label="Dark vs Background" />
+            <ContrastBadge ratio={contrastRatio(data.statsStyle?.textLight ?? data.colors.textLight, data.colors.bgLight)} label="Light vs Background" />
           </div>
         </div>
 

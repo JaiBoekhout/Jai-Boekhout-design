@@ -96,18 +96,18 @@ export function ProjectCard({
         {labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5" style={{ marginBottom: 9 }}>
             {labels.map((label, i) => (
-              <Tag key={`${label}-${i}`}>{label}</Tag>
+              <Tag key={`${label}-${i}`} style={{ color: "var(--project-card-tag)", borderColor: "color-mix(in srgb, var(--project-card-tag) 45%, transparent)" }}>{label}</Tag>
             ))}
           </div>
         )}
         <Heading style={{
-          fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--link-color)", lineHeight: 1.2,
+          fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--project-card-heading)", lineHeight: 1.2,
           marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {project.name}
         </Heading>
         <div style={{
-          fontFamily: "var(--font-body)", fontSize: 12, color: "var(--c-text-70)", lineHeight: 1.55,
+          fontFamily: "var(--font-body)", fontSize: 12, color: "var(--project-card-body)", lineHeight: 1.55,
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
           {stripHtml(project.desc)}
@@ -116,7 +116,7 @@ export function ProjectCard({
           <div className="overflow-hidden" style={{ marginTop: 11, height: 16 }}>
             <div
               className="opacity-0 -translate-y-0.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--c-teal)", display: "flex", alignItems: "center", gap: 5 }}
+              style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "var(--project-card-link)", display: "flex", alignItems: "center", gap: 5 }}
             >
               View Project <span>→</span>
             </div>

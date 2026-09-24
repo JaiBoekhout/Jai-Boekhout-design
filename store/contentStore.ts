@@ -938,10 +938,22 @@ export interface CMSTagStyle {
 // unlike corner — unset falls back to that same shared token in buildDesignSystemCss below, so
 // every existing theme (including THEME_PRESETS entries that only ever set `corner`) keeps
 // looking exactly as it did before this existed, until a card background is set explicitly.
+// heading/body/link/tagText mirror bgDark/bgLight above — same reasoning, same fallback pattern,
+// just for the other four colors a project card actually renders (title, description, the "View
+// Project" hover hint, and its category tags), each otherwise pulled from a token shared with
+// unrelated parts of the site (link-color, the static --c-text-70, --c-teal, label-color).
 export interface CMSCardStyle {
   corner: ButtonCorner;
   bgDark?: string;
   bgLight?: string;
+  headingDark?: string;
+  headingLight?: string;
+  bodyDark?: string;
+  bodyLight?: string;
+  linkDark?: string;
+  linkLight?: string;
+  tagTextDark?: string;
+  tagTextLight?: string;
 }
 
 // Optional override for the Stats Bar's value/label/sub text (see components/StatsBar.tsx),
@@ -1413,6 +1425,14 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const cardCorner = ds.cardStyle?.corner ?? DEFAULT_DESIGN_SYSTEM.cardStyle!.corner;
   const cardBgDark = ds.cardStyle?.bgDark ?? c.cardDark;
   const cardBgLight = ds.cardStyle?.bgLight ?? c.cardLight;
+  const cardHeadingDark = ds.cardStyle?.headingDark || "var(--link-color)";
+  const cardHeadingLight = ds.cardStyle?.headingLight || "var(--link-color)";
+  const cardBodyDark = ds.cardStyle?.bodyDark || "var(--c-text-70)";
+  const cardBodyLight = ds.cardStyle?.bodyLight || "var(--c-text-70)";
+  const cardLinkDark = ds.cardStyle?.linkDark || "var(--c-teal)";
+  const cardLinkLight = ds.cardStyle?.linkLight || "var(--c-teal)";
+  const cardTagDark = ds.cardStyle?.tagTextDark || "var(--label-color)";
+  const cardTagLight = ds.cardStyle?.tagTextLight || "var(--label-color)";
   const statsTextDark = ds.statsStyle?.textDark ?? c.textDark;
   const statsTextLight = ds.statsStyle?.textLight ?? c.textLight;
   const structuralCss = `
@@ -1443,6 +1463,10 @@ ${selector} {
   --c-bg-card: ${c.cardDark};
   --card: ${c.cardDark};
   --project-card-bg: ${cardBgDark};
+  --project-card-heading: ${cardHeadingDark};
+  --project-card-body: ${cardBodyDark};
+  --project-card-link: ${cardLinkDark};
+  --project-card-tag: ${cardTagDark};
   --stats-text: ${statsTextDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
@@ -1475,6 +1499,10 @@ ${selector}[data-theme="light"] {
   --c-bg-card: ${c.cardLight};
   --card: ${c.cardLight};
   --project-card-bg: ${cardBgLight};
+  --project-card-heading: ${cardHeadingLight};
+  --project-card-body: ${cardBodyLight};
+  --project-card-link: ${cardLinkLight};
+  --project-card-tag: ${cardTagLight};
   --stats-text: ${statsTextLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};

@@ -12,6 +12,10 @@
   --c-bg:          #0F1519;
   --c-bg-card:     #1A2128;
   --project-card-bg: #1A2128;
+  --project-card-heading: var(--link-color);
+  --project-card-body: var(--c-text-70);
+  --project-card-link: var(--c-teal);
+  --project-card-tag: var(--label-color);
   --stats-text:    #EDE8DF;
   --c-bg-deep:     #141D24;
   --c-bg-deeper:   #0C1117;
@@ -105,6 +109,10 @@
   --c-bg:          #F5F1EB;
   --c-bg-card:     #EBE7E0;
   --project-card-bg: #EBE7E0;
+  --project-card-heading: var(--link-color);
+  --project-card-body: var(--c-text-70);
+  --project-card-link: var(--c-teal);
+  --project-card-tag: var(--label-color);
   --stats-text:    #1A2128;
   --c-bg-deep:     #E2DDD6;
   --c-bg-deeper:   #D8D3CC;
