@@ -70,9 +70,11 @@ export function ThemeDropdown() {
           // themes, so its own color can't depend on whichever theme happens to be active without
           // risking an unreadable combination (a theme whose card background and text end up the
           // same color, as Going Dutch!'s light mode did, made this icon disappear against its own
-          // trigger). A plain dark circle with a light icon always reads, in every theme, in both
-          // modes.
-          background: "#1A2128",
+          // trigger). A blue gradient circle with a white icon always reads, in every theme, in
+          // both modes — the whole widget (this button and the panel below) is deliberately its
+          // own fixed-appearance chrome, not content that changes with whichever theme it's used
+          // to switch to.
+          background: "linear-gradient(135deg, #4F8EF7, #1D4ED8)",
           border: "0.5px solid rgba(237,232,223,0.12)",
           display: "flex",
           alignItems: "center",
@@ -84,7 +86,7 @@ export function ThemeDropdown() {
         }}
         className="hover:opacity-80"
       >
-        <PaintRoller size={15} strokeWidth={2} style={{ color: "#EDE8DF" }} />
+        <PaintRoller size={15} strokeWidth={2} style={{ color: "#FFFFFF" }} />
       </button>
 
       {open && (
@@ -95,8 +97,10 @@ export function ThemeDropdown() {
             right: 0,
             minWidth: 168,
             zIndex: 60,
-            background: "var(--c-bg-card)",
-            border: "1px solid var(--c-border-soft)",
+            // Fixed dark panel, same reasoning as the button above — always looks the same
+            // regardless of the active theme/mode, rather than following --c-bg-card/--c-text.
+            background: "#1A2128",
+            border: "1px solid rgba(237,232,223,0.12)",
             borderRadius: PANEL_CORNER,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
             padding: 6,
@@ -117,7 +121,7 @@ export function ThemeDropdown() {
                 aria-selected={active}
                 onClick={() => setStyleTheme(opt.id)}
                 style={{
-                  background: active ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "none",
+                  background: active ? "rgba(79,142,247,0.18)" : "none",
                   border: "none",
                   borderRadius: OPTION_CORNER,
                   cursor: "pointer",
@@ -126,7 +130,7 @@ export function ThemeDropdown() {
                   fontFamily: "var(--font-mono)",
                   fontSize: 12,
                   letterSpacing: "0.04em",
-                  color: active ? "var(--c-teal)" : "var(--c-text)",
+                  color: active ? "#4F8EF7" : "#EDE8DF",
                 }}
               >
                 {opt.label}
@@ -139,9 +143,9 @@ export function ThemeDropdown() {
               designed for one mode, so there's nothing for a visitor to toggle to. */}
           {!modeLocked && (
             <>
-              <div style={{ height: 1, background: "var(--c-border-soft)", margin: "5px 4px" }} />
+              <div style={{ height: 1, background: "rgba(237,232,223,0.12)", margin: "5px 4px" }} />
               <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-muted)", letterSpacing: "0.04em" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#8C9AA3", letterSpacing: "0.04em" }}>
                   {isDark ? "Dark" : "Light"}
                 </span>
                 <button
@@ -153,8 +157,8 @@ export function ThemeDropdown() {
                   className="flex items-center"
                   style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
                 >
-                  <Moon size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginRight: 6, flexShrink: 0 }} />
-                  <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "var(--c-border-med)", flexShrink: 0 }}>
+                  <Moon size={11} strokeWidth={2.75} style={{ color: "#8C9AA3", marginRight: 6, flexShrink: 0 }} />
+                  <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "rgba(237,232,223,0.18)", flexShrink: 0 }}>
                     <span
                       style={{
                         position: "absolute",
@@ -163,12 +167,12 @@ export function ThemeDropdown() {
                         width: THUMB,
                         height: THUMB,
                         borderRadius: "50%",
-                        background: "var(--c-teal)",
+                        background: "#4F8EF7",
                         transition: "left 0.2s ease",
                       }}
                     />
                   </span>
-                  <Sun size={11} strokeWidth={2.75} style={{ color: "var(--c-text-muted)", marginLeft: 6, flexShrink: 0 }} />
+                  <Sun size={11} strokeWidth={2.75} style={{ color: "#8C9AA3", marginLeft: 6, flexShrink: 0 }} />
                 </button>
               </div>
             </>
