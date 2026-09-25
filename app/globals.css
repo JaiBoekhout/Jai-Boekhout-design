@@ -315,6 +315,16 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .home-card-question {
     color: #253780 !important;
   }
+  /* Same reasoning, for the Stats Bar's value/label/sub text — resting state hardcoded blue;
+     the hover state gets its own, higher-specificity rule so it keeps using a color readable
+     against the (also hardcoded-safe) navy hover background instead of inheriting the blue below
+     and disappearing the same way the resting text did. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .stats-tile-text {
+    color: #253780 !important;
+  }
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .stats-tile-clickable:hover .stats-tile-text {
+    color: #EBEBCA !important;
+  }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
