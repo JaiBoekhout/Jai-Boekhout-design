@@ -19,14 +19,109 @@ const TRACK_H = 22;
 const THUMB = 16;
 const PAD = 3;
 
+// Fixed brand palette for the whole theme-switcher widget — the button, its desktop popup, and
+// the mobile hamburger menu's inline copy of the same options (see MobileNavMenu.tsx) all share
+// these literal colors rather than any --c-*/theme-driven variable. This widget switches between
+// themes, so its own appearance can't depend on whichever theme happens to be active without risk
+// of an unreadable combination (Going Dutch!'s light mode made both the trigger icon and this
+// panel's text disappear against their own backgrounds at different points). A fixed blue panel
+// with white default copy and orange for whatever's currently selected always reads, everywhere.
+export const SWATCH_BG = "linear-gradient(160deg, #2F5FD6, #17225C)";
+export const SWATCH_TEXT = "#FFFFFF";
+export const SWATCH_ACTIVE = "#F36C21";
+export const SWATCH_DIVIDER = "rgba(255,255,255,0.15)";
+export const SWATCH_TRACK_OFF = "rgba(255,255,255,0.25)";
+
+// The options list + mode toggle, with no button/popup wrapper of its own — ThemeDropdown below
+// renders this inside its popup for the desktop nav bar; MobileNavMenu renders it directly inline
+// in the hamburger menu instead, since a second tap to expand a nested popup on top of an already-
+// open menu is an extra, awkward step mobile doesn't need.
+export function ThemeSwitcherOptions() {
+  const { theme, setThemeDirect } = useTheme();
+  const { styleTheme, availableThemes, setStyleTheme, modeLocked } = useStyleTheme();
+  const isDark = theme === "dark";
+  const styleOptions = availableThemes.map((t) => ({ id: t.id as string | null, label: t.name }));
+
+  return (
+    <>
+      {styleOptions.map((opt) => {
+        const active = styleTheme === opt.id;
+        return (
+          <button
+            key={opt.id ?? "original"}
+            type="button"
+            role="option"
+            aria-selected={active}
+            onClick={() => setStyleTheme(opt.id)}
+            style={{
+              background: active ? "rgba(255,255,255,0.12)" : "none",
+              border: "none",
+              borderRadius: OPTION_CORNER,
+              cursor: "pointer",
+              padding: "8px 10px",
+              textAlign: "left",
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              letterSpacing: "0.04em",
+              color: active ? SWATCH_ACTIVE : SWATCH_TEXT,
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+
+      {/* Mode — Dark/Light, independent of the style choice above. Hidden entirely while the
+          active theme is mode-locked (see the Theme Gallery's lock icon) — it was only ever
+          designed for one mode, so there's nothing to toggle to. */}
+      {!modeLocked && (
+        <>
+          <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "5px 4px" }} />
+          <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: SWATCH_TEXT, letterSpacing: "0.04em" }}>
+              {isDark ? "Dark" : "Light"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark}
+              onClick={() => setThemeDirect(isDark ? "light" : "dark")}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex items-center"
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
+            >
+              <Moon size={11} strokeWidth={2.75} style={{ color: SWATCH_TEXT, marginRight: 6, flexShrink: 0 }} />
+              <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: SWATCH_TRACK_OFF, flexShrink: 0 }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    top: PAD,
+                    left: isDark ? PAD : TRACK_W - PAD - THUMB,
+                    width: THUMB,
+                    height: THUMB,
+                    borderRadius: "50%",
+                    background: SWATCH_ACTIVE,
+                    transition: "left 0.2s ease",
+                  }}
+                />
+              </span>
+              <Sun size={11} strokeWidth={2.75} style={{ color: SWATCH_TEXT, marginLeft: 6, flexShrink: 0 }} />
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 // Style (Square/Rounded — which CSS block applies, see buildAllThemesCss) and mode (Dark/Light —
 // unrelated, every color already has its own dark+light pair) are two independent axes living
 // under one trigger button/panel for a single, uncluttered nav-bar entry point — but rendered as
 // two distinct controls inside, not flattened into one list of 3 interchangeable options. Picking
 // a style leaves mode exactly as it was; the mode switch leaves style exactly as it was.
 export function ThemeDropdown() {
-  const { theme, setThemeDirect } = useTheme();
-  const { styleTheme, availableThemes, setStyleTheme, modeLocked } = useStyleTheme();
+  const { theme } = useTheme();
+  const { styleTheme, availableThemes } = useStyleTheme();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -34,8 +129,7 @@ export function ThemeDropdown() {
   // No "Original" entry — the switcher only ever offers named, curated themes now. A visitor who
   // somehow still has styleTheme === null (an old localStorage value, or no CMS default set) just
   // sees the live/default look with nothing highlighted in this list, same as before this existed.
-  const styleOptions = availableThemes.map((t) => ({ id: t.id as string | null, label: t.name }));
-  const currentStyleLabel = styleOptions.find((o) => o.id === styleTheme)?.label ?? "Original";
+  const currentStyleLabel = availableThemes.find((o) => o.id === styleTheme)?.name ?? "Original";
 
   useEffect(() => {
     if (!open) return;
@@ -66,14 +160,7 @@ export function ThemeDropdown() {
           width: 34,
           height: 34,
           borderRadius: "50%",
-          // Fixed, not theme-driven (--c-bg-card / --c-text) — this button switches between
-          // themes, so its own color can't depend on whichever theme happens to be active without
-          // risking an unreadable combination (a theme whose card background and text end up the
-          // same color, as Going Dutch!'s light mode did, made this icon disappear against its own
-          // trigger). A blue gradient circle with a white icon always reads, in every theme, in
-          // both modes — the whole widget (this button and the panel below) is deliberately its
-          // own fixed-appearance chrome, not content that changes with whichever theme it's used
-          // to switch to.
+          // Fixed, not theme-driven — see the SWATCH_* comment above for why.
           background: "linear-gradient(135deg, #4F8EF7, #1D4ED8)",
           border: "0.5px solid rgba(237,232,223,0.12)",
           display: "flex",
@@ -97,10 +184,8 @@ export function ThemeDropdown() {
             right: 0,
             minWidth: 168,
             zIndex: 60,
-            // Fixed dark panel, same reasoning as the button above — always looks the same
-            // regardless of the active theme/mode, rather than following --c-bg-card/--c-text.
-            background: "#1A2128",
-            border: "1px solid rgba(237,232,223,0.12)",
+            background: SWATCH_BG,
+            border: "1px solid rgba(255,255,255,0.15)",
             borderRadius: PANEL_CORNER,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
             padding: 6,
@@ -109,74 +194,7 @@ export function ThemeDropdown() {
             gap: 1,
           }}
         >
-          {/* Style — which CSS block applies (Original, or any theme the CMS has marked
-              visitor-visible; see the Theme Gallery's eye-icon toggle) */}
-          {styleOptions.map((opt) => {
-            const active = styleTheme === opt.id;
-            return (
-              <button
-                key={opt.id ?? "original"}
-                type="button"
-                role="option"
-                aria-selected={active}
-                onClick={() => setStyleTheme(opt.id)}
-                style={{
-                  background: active ? "rgba(79,142,247,0.18)" : "none",
-                  border: "none",
-                  borderRadius: OPTION_CORNER,
-                  cursor: "pointer",
-                  padding: "8px 10px",
-                  textAlign: "left",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  letterSpacing: "0.04em",
-                  color: active ? "#4F8EF7" : "#EDE8DF",
-                }}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-
-          {/* Mode — Dark/Light, independent of the style choice above. Hidden entirely while the
-              active theme is mode-locked (see the Theme Gallery's lock icon) — it was only ever
-              designed for one mode, so there's nothing for a visitor to toggle to. */}
-          {!modeLocked && (
-            <>
-              <div style={{ height: 1, background: "rgba(237,232,223,0.12)", margin: "5px 4px" }} />
-              <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#8C9AA3", letterSpacing: "0.04em" }}>
-                  {isDark ? "Dark" : "Light"}
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isDark}
-                  onClick={() => setThemeDirect(isDark ? "light" : "dark")}
-                  aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-                  className="flex items-center"
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: 4, margin: -4 }}
-                >
-                  <Moon size={11} strokeWidth={2.75} style={{ color: "#8C9AA3", marginRight: 6, flexShrink: 0 }} />
-                  <span style={{ position: "relative", width: TRACK_W, height: TRACK_H, borderRadius: 100, background: "rgba(237,232,223,0.18)", flexShrink: 0 }}>
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: PAD,
-                        left: isDark ? PAD : TRACK_W - PAD - THUMB,
-                        width: THUMB,
-                        height: THUMB,
-                        borderRadius: "50%",
-                        background: "#4F8EF7",
-                        transition: "left 0.2s ease",
-                      }}
-                    />
-                  </span>
-                  <Sun size={11} strokeWidth={2.75} style={{ color: "#8C9AA3", marginLeft: 6, flexShrink: 0 }} />
-                </button>
-              </div>
-            </>
-          )}
+          <ThemeSwitcherOptions />
         </div>
       )}
     </div>

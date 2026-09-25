@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { ThemeDropdown } from "@/components/ThemeDropdown";
+import { ThemeSwitcherOptions, SWATCH_BG, SWATCH_TEXT, SWATCH_ACTIVE, SWATCH_DIVIDER } from "@/components/ThemeDropdown";
 import { useFontScale } from "@/store/fontScaleStore";
 import type { FontScale } from "@/store/fontScaleStore";
 
@@ -67,8 +67,12 @@ export function MobileNavMenu() {
             right: 0,
             minWidth: 230,
             zIndex: 60,
-            background: "var(--c-bg-card)",
-            border: "1px solid var(--c-border-soft)",
+            // Fixed blue, not theme-driven — same brand palette as the desktop ThemeDropdown
+            // popup (see ThemeDropdown.tsx's SWATCH_* comment), applied to the whole menu here
+            // rather than just a nested theme sub-panel, so there's one consistent look and no
+            // second tap needed to reach the theme options.
+            background: SWATCH_BG,
+            border: "1px solid rgba(255,255,255,0.15)",
             borderRadius: 14,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
             padding: 6,
@@ -77,19 +81,19 @@ export function MobileNavMenu() {
             gap: 2,
           }}
         >
-          {/* Theme */}
-          <div className="flex items-center justify-between" style={{ padding: "10px 12px" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em" }}>
+          {/* Theme — options + mode toggle shown directly, no nested popup to expand */}
+          <div style={{ padding: "10px 12px 2px" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: SWATCH_TEXT, letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>
               Theme
             </span>
-            <ThemeDropdown />
           </div>
+          <ThemeSwitcherOptions />
 
-          <div style={{ height: 1, background: "var(--c-border-soft)", margin: "2px 8px" }} />
+          <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "2px 8px" }} />
 
           {/* Accessibility (font size) */}
           <div style={{ padding: "10px 12px" }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text)", letterSpacing: "0.04em", display: "block", marginBottom: "10px" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: SWATCH_TEXT, letterSpacing: "0.04em", display: "block", marginBottom: "10px" }}>
               Accessibility
             </span>
             <div className="flex items-center gap-5">
@@ -108,7 +112,7 @@ export function MobileNavMenu() {
                       border: "none",
                       padding: "6px 0",
                       cursor: "pointer",
-                      color: active ? "var(--c-teal)" : "var(--c-text-muted)",
+                      color: active ? SWATCH_ACTIVE : SWATCH_TEXT,
                       fontFamily: "var(--font-body)",
                       fontWeight: active ? 600 : 400,
                     }}
