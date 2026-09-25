@@ -303,7 +303,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
 
               {/* Question */}
               <h2
-                className={cardText.questionMobile ? "hidden md:block" : undefined}
+                className={`home-card-question${cardText.questionMobile ? " hidden md:block" : ""}`}
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontSize: "clamp(16px, 1.5vw, 20px)",
@@ -318,7 +318,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               />
               {cardText.questionMobile && (
                 <h2
-                  className="block md:hidden"
+                  className="home-card-question block md:hidden"
                   style={{
                     fontFamily: "var(--font-heading)",
                     fontSize: "clamp(16px, 1.5vw, 20px)",

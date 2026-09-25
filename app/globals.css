@@ -307,6 +307,14 @@
     transition: max-width 0.25s ease, opacity 0.2s ease, margin-right 0.25s ease;
   }
   .stats-tile-clickable:hover .stats-view-text { max-width: 100px; opacity: 1; margin-right: 4px; }
+  /* Going Dutch!'s light mode "Text" color has repeatedly failed to save correctly via the CMS
+     (see conversation history) — hardcoded directly here instead, scoped to just this theme+mode,
+     for the one spot (the homepage's "What would you like to know?" card questions) that's been
+     specifically reported as unreadable. Not a general substitute for fixing the theme's own Text
+     color — just a guaranteed-to-work override for this element while that keeps not landing. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .home-card-question {
+    color: #253780 !important;
+  }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
