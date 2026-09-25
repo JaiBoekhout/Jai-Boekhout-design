@@ -66,8 +66,14 @@ export function ThemeDropdown() {
           width: 34,
           height: 34,
           borderRadius: "50%",
-          background: "var(--c-bg-card)",
-          border: "0.5px solid var(--c-border-soft)",
+          // Fixed, not theme-driven (--c-bg-card / --c-text) — this button switches between
+          // themes, so its own color can't depend on whichever theme happens to be active without
+          // risking an unreadable combination (a theme whose card background and text end up the
+          // same color, as Going Dutch!'s light mode did, made this icon disappear against its own
+          // trigger). A plain dark circle with a light icon always reads, in every theme, in both
+          // modes.
+          background: "#1A2128",
+          border: "0.5px solid rgba(237,232,223,0.12)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -78,7 +84,7 @@ export function ThemeDropdown() {
         }}
         className="hover:opacity-80"
       >
-        <PaintRoller size={15} strokeWidth={2} style={{ color: "var(--c-text)" }} />
+        <PaintRoller size={15} strokeWidth={2} style={{ color: "#EDE8DF" }} />
       </button>
 
       {open && (

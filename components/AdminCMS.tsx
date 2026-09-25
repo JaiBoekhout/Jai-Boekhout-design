@@ -20,6 +20,8 @@ import { logoutAction } from "@/app/actions/auth";
 
 type Tab = "home" | "work" | "evaluate" | "process" | "story" | "enquiry" | "media" | "design" | "history";
 
+const ACTIVE_THEME_STORAGE_KEY = "cms_active_theme_id";
+
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ size: number; color?: string }> }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
   { id: "work", label: "Work", icon: Briefcase },
@@ -145,7 +147,27 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   // activeTab === "design", so it unmounts on every other tab; local state there was silently
   // resetting to null on any tab switch, and edits made afterward landed on the live root design
   // system instead of the theme the admin thought they were still editing.
-  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
+  //
+  // Also persisted to localStorage (read on mount, written on every change) — lifting it up here
+  // alone only survives a tab switch within the same page load; a full reload (or just coming
+  // back to /cms later, mid-multi-field edit) still remounted this component from scratch and
+  // silently lost it the same way, which kept landing edits on Original despite the tab-switch
+  // fix. This is deliberately NOT theme content — it's which swatch this browser last had loaded,
+  // so it has no business in the CMS content store's save/version-history pipeline.
+  const [activeThemeId, setActiveThemeIdState] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ACTIVE_THEME_STORAGE_KEY);
+      if (stored) setActiveThemeIdState(stored);
+    } catch { /* ignore */ }
+  }, []);
+  function setActiveThemeId(id: string | null) {
+    setActiveThemeIdState(id);
+    try {
+      if (id) localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, id);
+      else localStorage.removeItem(ACTIVE_THEME_STORAGE_KEY);
+    } catch { /* ignore */ }
+  }
   const { content, updateContent, persistContent, isDirty, savedContent } = useContentStore();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [enquiriesLoading, setEnquiriesLoading] = useState(false);
