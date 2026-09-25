@@ -21,6 +21,9 @@
   --stats-bg:      var(--c-bg);
   --stats-hover-bg: var(--c-bg-card);
   --stats-text-hover: var(--stats-text);
+  --switcher-bg:   var(--c-bg-card);
+  --switcher-text: var(--c-text);
+  --switcher-active: var(--c-teal);
   --c-bg-deep:     #141D24;
   --c-bg-deeper:   #0C1117;
   --c-bg-glass:    rgba(13, 12, 10, 0.9);
@@ -122,6 +125,9 @@
   --stats-bg:      var(--c-bg);
   --stats-hover-bg: var(--c-bg-card);
   --stats-text-hover: var(--stats-text);
+  --switcher-bg:   var(--c-bg-card);
+  --switcher-text: var(--c-text);
+  --switcher-active: var(--c-teal);
   --c-bg-deep:     #E2DDD6;
   --c-bg-deeper:   #D8D3CC;
   --c-bg-glass:    rgba(245, 241, 235, 0.92);

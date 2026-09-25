@@ -67,12 +67,12 @@ export function MobileNavMenu() {
             right: 0,
             minWidth: 230,
             zIndex: 60,
-            // Fixed blue, not theme-driven — same brand palette as the desktop ThemeDropdown
-            // popup (see ThemeDropdown.tsx's SWATCH_* comment), applied to the whole menu here
-            // rather than just a nested theme sub-panel, so there's one consistent look and no
-            // second tap needed to reach the theme options.
+            // Theme-matching, same palette as the desktop ThemeDropdown popup (see
+            // ThemeDropdown.tsx's SWATCH_* comment), applied to the whole menu here rather than
+            // just a nested theme sub-panel, so there's one consistent look and no second tap
+            // needed to reach the theme options.
             background: SWATCH_BG,
-            border: "1px solid rgba(255,255,255,0.15)",
+            border: `1px solid ${SWATCH_DIVIDER}`,
             borderRadius: 14,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
             padding: 6,

@@ -881,6 +881,7 @@ export function DesignSystemSection({
     tagStyle: rawData.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     cardStyle: rawData.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
     statsStyle: rawData.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle ?? {},
+    switcherStyle: rawData.switcherStyle ?? DEFAULT_DESIGN_SYSTEM.switcherStyle ?? {},
     savedThemes: rawData.savedThemes ?? [],
     visiblePresetIds: rawData.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [],
     presetNameOverrides: rawData.presetNameOverrides ?? {},
@@ -925,6 +926,8 @@ export function DesignSystemSection({
       switchStyle: next.switchStyle,
       tagStyle: next.tagStyle,
       cardStyle: next.cardStyle,
+      statsStyle: next.statsStyle,
+      switcherStyle: next.switcherStyle,
     };
     if (THEME_PRESETS.some((t) => t.id === activeThemeId)) {
       onChangeProp({
@@ -964,6 +967,7 @@ export function DesignSystemSection({
       ...(theme.tagStyle ? { tagStyle: theme.tagStyle } : {}),
       ...(theme.cardStyle ? { cardStyle: theme.cardStyle } : {}),
       ...(theme.statsStyle ? { statsStyle: theme.statsStyle } : {}),
+      ...(theme.switcherStyle ? { switcherStyle: theme.switcherStyle } : {}),
     });
   }
 
@@ -1126,6 +1130,10 @@ export function DesignSystemSection({
 
   function updateStatsStyle(patch: Partial<NonNullable<typeof data.statsStyle>>) {
     onChange({ ...data, statsStyle: { ...(data.statsStyle ?? {}), ...patch } });
+  }
+
+  function updateSwitcherStyle(patch: Partial<NonNullable<typeof data.switcherStyle>>) {
+    onChange({ ...data, switcherStyle: { ...(data.switcherStyle ?? {}), ...patch } });
   }
 
   function updateTextAreaStyle(patch: Partial<typeof data.textAreaStyle>) {
@@ -1436,6 +1444,56 @@ export function DesignSystemSection({
                 ratio={contrastRatio(data.statsStyle?.textHoverLight ?? data.statsStyle?.textLight ?? data.colors.textLight, data.statsStyle?.hoverBgLight ?? data.colors.cardLight)}
                 label="Light vs Hover background"
               />
+            </div>
+          </div>
+        </div>
+
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
+          Theme Switcher
+        </p>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 10, lineHeight: 1.5, maxWidth: 480 }}>
+          The paint-roller button, its dropdown, and the mobile hamburger menu&rsquo;s theme options. Defaults to this theme&rsquo;s Card Background, Text, and Accent — override here only if that combination doesn&rsquo;t read well.
+        </p>
+        <div className="mb-8 flex flex-wrap gap-6 items-start">
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Background"
+              darkValue={data.switcherStyle?.bgDark ?? data.colors.cardDark}
+              lightValue={data.switcherStyle?.bgLight ?? data.colors.cardLight}
+              defaultDark={data.colors.cardDark}
+              defaultLight={data.colors.cardLight}
+              onDarkChange={(v) => updateSwitcherStyle({ bgDark: v })}
+              onLightChange={(v) => updateSwitcherStyle({ bgLight: v })}
+            />
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Text (default copy)"
+              darkValue={data.switcherStyle?.textDark ?? data.colors.textDark}
+              lightValue={data.switcherStyle?.textLight ?? data.colors.textLight}
+              defaultDark={data.colors.textDark}
+              defaultLight={data.colors.textLight}
+              onDarkChange={(v) => updateSwitcherStyle({ textDark: v })}
+              onLightChange={(v) => updateSwitcherStyle({ textLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge ratio={contrastRatio(data.switcherStyle?.textDark ?? data.colors.textDark, data.switcherStyle?.bgDark ?? data.colors.cardDark)} label="Dark vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.switcherStyle?.textLight ?? data.colors.textLight, data.switcherStyle?.bgLight ?? data.colors.cardLight)} label="Light vs Background" />
+            </div>
+          </div>
+          <div style={{ maxWidth: 320, flex: 1, minWidth: 220 }}>
+            <PlainColorPairControl
+              label="Selected copy"
+              darkValue={data.switcherStyle?.activeDark ?? data.colors.accentDark}
+              lightValue={data.switcherStyle?.activeLight ?? data.colors.accentLight}
+              defaultDark={data.colors.accentDark}
+              defaultLight={data.colors.accentLight}
+              onDarkChange={(v) => updateSwitcherStyle({ activeDark: v })}
+              onLightChange={(v) => updateSwitcherStyle({ activeLight: v })}
+            />
+            <div className="flex flex-wrap gap-1.5" style={{ marginTop: 8 }}>
+              <ContrastBadge ratio={contrastRatio(data.switcherStyle?.activeDark ?? data.colors.accentDark, data.switcherStyle?.bgDark ?? data.colors.cardDark)} label="Dark vs Background" />
+              <ContrastBadge ratio={contrastRatio(data.switcherStyle?.activeLight ?? data.colors.accentLight, data.switcherStyle?.bgLight ?? data.colors.cardLight)} label="Light vs Background" />
             </div>
           </div>
         </div>

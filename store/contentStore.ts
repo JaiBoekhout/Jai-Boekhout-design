@@ -984,6 +984,22 @@ export interface CMSStatsStyle {
   textHoverLight?: string;
 }
 
+// The theme-switcher widget (ThemeDropdown.tsx's button+popup, and MobileNavMenu.tsx's inline
+// copy of the same options) — previously fixed/hardcoded after repeatedly breaking when it
+// followed the shared Card Background/Text/Accent tokens directly (a theme whose Card and Text
+// ended up the same color, as Going Dutch!'s light mode did, made the switcher's own text
+// disappear against itself). Dedicated fields instead: default to matching the theme (Card
+// Background, Text, Accent) the same way the plain tokens did, but tunable per-theme without
+// touching those shared tokens if a particular combination doesn't read well.
+export interface CMSSwitcherStyle {
+  bgDark?: string;
+  bgLight?: string;
+  textDark?: string;
+  textLight?: string;
+  activeDark?: string;
+  activeLight?: string;
+}
+
 export interface CMSSavedTheme {
   id: string;
   name: string;
@@ -1002,6 +1018,7 @@ export interface CMSSavedTheme {
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
   statsStyle?: CMSStatsStyle;
+  switcherStyle?: CMSSwitcherStyle;
   // Visitor-visible in the style-theme switcher (see ThemeDropdown.tsx) — absent/false
   // keeps a theme in the Theme Gallery as an apply-able starting point without also surfacing it
   // to visitors before it's ready.
@@ -1032,6 +1049,7 @@ export interface CMSDesignSystem {
   tagStyle?: CMSTagStyle;
   cardStyle?: CMSCardStyle;
   statsStyle?: CMSStatsStyle;
+  switcherStyle?: CMSSwitcherStyle;
   // User-saved custom color snapshots, shown in the Color Palette's Theme Gallery alongside
   // the curated THEME_PRESETS below. Each optionally carries its own full style bundle (fonts,
   // buttons, tags, cards, component colors) via CMSSavedTheme's optional fields — a theme flagged
@@ -1214,6 +1232,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   tagStyle: { corner: "square" },
   cardStyle: { corner: "square" },
   statsStyle: {},
+  switcherStyle: {},
   savedThemes: [],
   visiblePresetIds: ["playful-rounded"],
   presetNameOverrides: {},
@@ -1461,6 +1480,12 @@ ${selector} .site-link:hover { text-decoration: ${underline === "none" ? "none" 
   const statsHoverBgLight = ds.statsStyle?.hoverBgLight || "var(--c-bg-card)";
   const statsTextHoverDark = ds.statsStyle?.textHoverDark || "var(--stats-text)";
   const statsTextHoverLight = ds.statsStyle?.textHoverLight || "var(--stats-text)";
+  const switcherBgDark = ds.switcherStyle?.bgDark || c.cardDark;
+  const switcherBgLight = ds.switcherStyle?.bgLight || c.cardLight;
+  const switcherTextDark = ds.switcherStyle?.textDark || c.textDark;
+  const switcherTextLight = ds.switcherStyle?.textLight || c.textLight;
+  const switcherActiveDark = ds.switcherStyle?.activeDark || c.accentDark;
+  const switcherActiveLight = ds.switcherStyle?.activeLight || c.accentLight;
   const structuralCss = `
 ${selector} {
   --menu-corner: ${BUTTON_CORNER_RADIUS[menu.corner]}px;
@@ -1498,6 +1523,9 @@ ${selector} {
   --stats-bg: ${statsBgDark};
   --stats-hover-bg: ${statsHoverBgDark};
   --stats-text-hover: ${statsTextHoverDark};
+  --switcher-bg: ${switcherBgDark};
+  --switcher-text: ${switcherTextDark};
+  --switcher-active: ${switcherActiveDark};
   --c-divider: ${c.dividerDark};
   --font-heading: ${fontHeading};
   --font-body: ${fontBody};
@@ -1538,6 +1566,9 @@ ${selector}[data-theme="light"] {
   --stats-bg: ${statsBgLight};
   --stats-hover-bg: ${statsHoverBgLight};
   --stats-text-hover: ${statsTextHoverLight};
+  --switcher-bg: ${switcherBgLight};
+  --switcher-text: ${switcherTextLight};
+  --switcher-active: ${switcherActiveLight};
   --c-divider: ${c.dividerLight};
   --menu-panel-bg: ${menu.panelBgLight}; --menu-panel-border: ${menu.panelBorderLight};
   --tabbar-bg: ${tabBar.bgLight}; --tabbar-border: ${tabBar.borderLight};
@@ -1570,6 +1601,7 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
     tagStyle: theme.tagStyle ?? DEFAULT_DESIGN_SYSTEM.tagStyle,
     cardStyle: theme.cardStyle ?? DEFAULT_DESIGN_SYSTEM.cardStyle,
     statsStyle: theme.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle,
+    switcherStyle: theme.switcherStyle ?? DEFAULT_DESIGN_SYSTEM.switcherStyle,
     savedThemes: [],
   };
 }

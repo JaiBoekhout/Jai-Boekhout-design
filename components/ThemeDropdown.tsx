@@ -19,19 +19,17 @@ const TRACK_H = 22;
 const THUMB = 16;
 const PAD = 3;
 
-// Fixed brand palette for the whole theme-switcher widget — the button, its desktop popup, and
+// Theme-matching palette for the whole theme-switcher widget — the button, its desktop popup, and
 // the mobile hamburger menu's inline copy of the same options (see MobileNavMenu.tsx) all share
-// these literal colors rather than any --c-*/theme-driven variable, and stay fixed regardless of
-// which theme or mode is active. This widget switches between themes, so its own appearance can't
-// depend on whichever theme happens to be active without risk of an unreadable combination (Going
-// Dutch!'s light mode made both the trigger icon and this panel's text disappear against their own
-// backgrounds at different points). A solid blue panel with white default copy and orange for
-// whatever's currently selected always reads, everywhere.
-export const SWATCH_BG = "#253780";
-export const SWATCH_TEXT = "#FFFFFF";
-export const SWATCH_ACTIVE = "#F36C21";
-export const SWATCH_DIVIDER = "rgba(255,255,255,0.15)";
-export const SWATCH_TRACK_OFF = "rgba(255,255,255,0.25)";
+// these CSS variables, which default to matching the active theme (Card Background, Text, Accent
+// — see CMSSwitcherStyle/--switcher-* in store/contentStore.ts) but can be tuned per-theme in the
+// CMS if a particular combination doesn't read well, without touching those shared tokens for
+// everything else that uses them.
+export const SWATCH_BG = "var(--switcher-bg)";
+export const SWATCH_TEXT = "var(--switcher-text)";
+export const SWATCH_ACTIVE = "var(--switcher-active)";
+export const SWATCH_DIVIDER = "color-mix(in srgb, var(--switcher-text) 15%, transparent)";
+export const SWATCH_TRACK_OFF = "color-mix(in srgb, var(--switcher-text) 25%, transparent)";
 
 // The options list + mode toggle, with no button/popup wrapper of its own — ThemeDropdown below
 // renders this inside its popup for the desktop nav bar; MobileNavMenu renders it directly inline
@@ -55,7 +53,7 @@ export function ThemeSwitcherOptions() {
             aria-selected={active}
             onClick={() => setStyleTheme(opt.id)}
             style={{
-              background: active ? "rgba(255,255,255,0.12)" : "none",
+              background: active ? "color-mix(in srgb, var(--switcher-active) 15%, transparent)" : "none",
               border: "none",
               borderRadius: OPTION_CORNER,
               cursor: "pointer",
@@ -161,9 +159,8 @@ export function ThemeDropdown() {
           width: 34,
           height: 34,
           borderRadius: "50%",
-          // Fixed, not theme-driven — see the SWATCH_* comment above for why.
           background: SWATCH_BG,
-          border: "0.5px solid rgba(237,232,223,0.12)",
+          border: "0.5px solid color-mix(in srgb, var(--switcher-text) 12%, transparent)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -174,7 +171,7 @@ export function ThemeDropdown() {
         }}
         className="hover:opacity-80"
       >
-        <PaintRoller size={15} strokeWidth={2} style={{ color: "#FFFFFF" }} />
+        <PaintRoller size={15} strokeWidth={2} style={{ color: SWATCH_TEXT }} />
       </button>
 
       {open && (
@@ -186,7 +183,7 @@ export function ThemeDropdown() {
             minWidth: 168,
             zIndex: 60,
             background: SWATCH_BG,
-            border: "1px solid rgba(255,255,255,0.15)",
+            border: "1px solid color-mix(in srgb, var(--switcher-text) 15%, transparent)",
             borderRadius: PANEL_CORNER,
             boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
             padding: 6,
