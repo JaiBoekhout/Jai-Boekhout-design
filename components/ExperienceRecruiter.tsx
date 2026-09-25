@@ -646,6 +646,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {cms.additional.map((a) => (
                 <span
                   key={a}
+                  className="additional-background-tag"
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",

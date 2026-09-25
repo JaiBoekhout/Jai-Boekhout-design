@@ -325,6 +325,11 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .stats-tile-clickable:hover .stats-tile-text {
     color: #EBEBCA !important;
   }
+  /* Same reasoning, for the Evaluate/Recruiter page's "Additional Background" tags, which use
+     --c-text directly. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .additional-background-tag {
+    color: #253780 !important;
+  }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
