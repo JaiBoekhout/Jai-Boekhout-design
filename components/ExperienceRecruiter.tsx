@@ -639,7 +639,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
             })}
           </div>
           <div>
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
+            <p className="additional-background-label" style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
               Additional Background
             </p>
             <div className="flex flex-wrap gap-2">
@@ -746,7 +746,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                           style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                         />
                       )}
-                      <p className="flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, margin: 0 }}>
+                      <p className="testimonial-name flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, margin: 0 }}>
                         <span>{t.name}</span>
                         {t.linkedInUrl && (
                           <a href={t.linkedInUrl} target="_blank" rel="noopener noreferrer" aria-label={`${t.name} on LinkedIn`} className="hover:opacity-70 transition-opacity" style={{ display: "inline-flex", color: "var(--c-teal)", flexShrink: 0 }}>
@@ -859,7 +859,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     className="w-full text-left flex items-center justify-between gap-4 py-5"
                     onClick={() => toggleFaq(idx)}
                   >
-                    <span style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
+                    <span className="faq-question" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
                       {faq.question}
                     </span>
                     <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
@@ -897,7 +897,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
                 <button
                   onClick={() => setShowAllFaqs(true)}
-                  className="hover:opacity-70 transition-opacity"
+                  className="faq-show-all hover:opacity-70 transition-opacity"
                   style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.06em", color: "var(--c-text)", background: "none", border: "0.5px solid var(--c-border-med)", borderRadius: buttonCorner, padding: "11px 24px", cursor: "pointer" }}
                 >
                   Show All

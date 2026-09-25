@@ -330,6 +330,30 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .additional-background-tag {
     color: #253780 !important;
   }
+  /* Same theme+mode, "Additional Background" label copy itself — hardcoded orange (not the blue
+     used everywhere else here) per an explicit request, distinct from the tags above it. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .additional-background-label {
+    color: #F36C21 !important;
+  }
+  /* Testimonials — name and quote copy, both --c-text/--c-quote-emphasis-driven. .testimonial-name
+     is new; .testimonial-card-body already existed on both the "fact" and "quote" variants, so
+     this one rule covers both without needing a second class. Specificity here (an attribute-
+     scoped selector) already beats the existing .rte-content.quote-color-fix !important rule in
+     globals.css that the "quote" variant also carries. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-name,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-card-body {
+    color: #253780 !important;
+  }
+  /* FAQ — question titles blue; the "Show All" button was reported as literally white text on a
+     white background (unreadable, not just low contrast), so its text gets the same treatment. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .faq-question,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .faq-show-all {
+    color: #253780 !important;
+  }
+  /* Process page — each step's expanded accordion title. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-title {
+    color: #253780 !important;
+  }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because

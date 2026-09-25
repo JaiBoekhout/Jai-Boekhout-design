@@ -265,6 +265,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     </span>
                     <div>
                       <h2
+                        className="process-step-title"
                         style={{
                           fontFamily: "var(--font-heading)",
                           fontSize: "20px",
