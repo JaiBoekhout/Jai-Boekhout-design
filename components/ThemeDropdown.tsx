@@ -21,12 +21,13 @@ const PAD = 3;
 
 // Fixed brand palette for the whole theme-switcher widget — the button, its desktop popup, and
 // the mobile hamburger menu's inline copy of the same options (see MobileNavMenu.tsx) all share
-// these literal colors rather than any --c-*/theme-driven variable. This widget switches between
-// themes, so its own appearance can't depend on whichever theme happens to be active without risk
-// of an unreadable combination (Going Dutch!'s light mode made both the trigger icon and this
-// panel's text disappear against their own backgrounds at different points). A fixed blue panel
-// with white default copy and orange for whatever's currently selected always reads, everywhere.
-export const SWATCH_BG = "linear-gradient(160deg, #2F5FD6, #17225C)";
+// these literal colors rather than any --c-*/theme-driven variable, and stay fixed regardless of
+// which theme or mode is active. This widget switches between themes, so its own appearance can't
+// depend on whichever theme happens to be active without risk of an unreadable combination (Going
+// Dutch!'s light mode made both the trigger icon and this panel's text disappear against their own
+// backgrounds at different points). A solid blue panel with white default copy and orange for
+// whatever's currently selected always reads, everywhere.
+export const SWATCH_BG = "#253780";
 export const SWATCH_TEXT = "#FFFFFF";
 export const SWATCH_ACTIVE = "#F36C21";
 export const SWATCH_DIVIDER = "rgba(255,255,255,0.15)";
@@ -161,7 +162,7 @@ export function ThemeDropdown() {
           height: 34,
           borderRadius: "50%",
           // Fixed, not theme-driven — see the SWATCH_* comment above for why.
-          background: "linear-gradient(135deg, #4F8EF7, #1D4ED8)",
+          background: SWATCH_BG,
           border: "0.5px solid rgba(237,232,223,0.12)",
           display: "flex",
           alignItems: "center",
