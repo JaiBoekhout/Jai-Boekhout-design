@@ -59,13 +59,13 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                 </span>
               )}
               <div
-                className={`rte-content ${interest.detailMobile ? "hidden md:block" : ""}`}
+                className={`rte-content outside-design-detail ${interest.detailMobile ? "hidden md:block" : ""}`}
                 style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
                 dangerouslySetInnerHTML={{ __html: interest.detail }}
               />
               {interest.detailMobile && (
                 <div
-                  className="rte-content block md:hidden"
+                  className="rte-content outside-design-detail block md:hidden"
                   style={{ fontSize: "13px", color: "var(--c-text-muted)" }}
                   dangerouslySetInnerHTML={{ __html: interest.detailMobile }}
                 />
@@ -85,13 +85,13 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
       >
         <div style={{ height: "1px", background: "color-mix(in srgb, var(--c-teal) 30%, transparent)", marginBottom: "20px" }} />
         <div
-          className={cms.closingQuoteMobile ? "rte-content rte-quote hidden md:block" : "rte-content rte-quote"}
+          className={cms.closingQuoteMobile ? "rte-content rte-quote story-quote hidden md:block" : "rte-content rte-quote story-quote"}
           style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
           dangerouslySetInnerHTML={{ __html: cms.closingQuote }}
         />
         {cms.closingQuoteMobile && (
           <div
-            className="rte-content rte-quote block md:hidden"
+            className="rte-content rte-quote story-quote block md:hidden"
             style={{ fontFamily: "var(--font-heading)", fontStyle: "italic", fontSize: "16px", color: "var(--c-text)" }}
             dangerouslySetInnerHTML={{ __html: cms.closingQuoteMobile }}
           />
@@ -278,6 +278,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                     {item.tag}
                   </span>
                   <h3
+                    className="story-timeline-title"
                     style={{
                       fontFamily: "var(--font-heading)",
                       fontSize: "20px",

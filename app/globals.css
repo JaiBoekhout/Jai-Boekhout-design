@@ -373,6 +373,21 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-name-open {
     color: #F36C21 !important;
   }
+  /* Story page — each timeline entry's title (e.g. "JABA Web Design Adelaide"). */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .story-timeline-title {
+    color: #253780 !important;
+  }
+  /* Story page's "Outside of Design" accordion — each entry's native <details> summary heading
+     (e.g. "Kitesurfing"), built directly into the CMS rich text per the comment in
+     ExperienceStory.tsx, not a separate label field. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .outside-design-detail summary.rte-collapsible-summary {
+    color: #253780 !important;
+  }
+  /* Story page's closing quote. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .story-quote,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .story-quote * {
+    color: #253780 !important;
+  }
   /* Top nav's "UX & Product Design" tagline (desktop and mobile variants both carry this class). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
