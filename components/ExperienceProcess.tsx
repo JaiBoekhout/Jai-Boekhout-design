@@ -202,7 +202,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     horizontal scroll; the number + circle initial above stay as the compact
                     mobile identifier, full label returns at md: and up. */}
                 <span
-                  className="hidden md:block"
+                  className={`hidden md:block${openSteps.has(step.id) ? " process-step-name-open" : ""}`}
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",

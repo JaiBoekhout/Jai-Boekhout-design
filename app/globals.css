@@ -368,6 +368,11 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-number-collapsed {
     color: #253780 !important;
   }
+  /* Process page's top stepper — the step title label (e.g. "Problem") under an open step's
+     circle, to match the already-orange step number/letter above it. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-name-open {
+    color: #F36C21 !important;
+  }
   /* Top nav's "UX & Product Design" tagline (desktop and mobile variants both carry this class). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
