@@ -170,7 +170,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 className="flex flex-col items-center gap-1 md:gap-2 transition-opacity hover:opacity-80 min-w-[36px] md:min-w-[80px]"
               >
                 <span
-                  className="text-[10px] md:text-xs"
+                  className={`text-[10px] md:text-xs${!openSteps.has(step.id) ? " process-step-number-collapsed" : ""}`}
                   style={{
                     fontFamily: "var(--font-mono)",
                     color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-dim)",
@@ -191,7 +191,10 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                     transition: "all 0.3s",
                   }}
                 >
-                  <span className="text-[10px] md:text-xs" style={{ color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-muted)" }}>
+                  <span
+                    className={`text-[10px] md:text-xs${openSteps.has(step.id) ? " process-step-letter-open" : ""}`}
+                    style={{ color: openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-text-muted)" }}
+                  >
                     {step.title.charAt(0)}
                   </span>
                 </div>

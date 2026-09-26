@@ -359,6 +359,15 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-title {
     color: #253780 !important;
   }
+  /* Process page's top stepper — the step-initial letter (P/R/I/S) inside an open step's circle,
+     to match the already-orange step number above it. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-letter-open {
+    color: #F36C21 !important;
+  }
+  /* Process page's top stepper — the step number above a collapsed (not-yet-opened) step. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .process-step-number-collapsed {
+    color: #253780 !important;
+  }
   /* Top nav's "UX & Product Design" tagline (desktop and mobile variants both carry this class). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
