@@ -388,6 +388,11 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .story-quote * {
     color: #253780 !important;
   }
+  /* Stats bar's "Qualifications" tile (number + label), dark mode only — fixed white regardless
+     of the CMS's --stats-text setting for this theme, per explicit request. */
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .stat-qualifications {
+    color: #FFFFFF !important;
+  }
   /* Top nav's "UX & Product Design" tagline (desktop and mobile variants both carry this class). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
