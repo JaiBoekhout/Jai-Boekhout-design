@@ -415,6 +415,10 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .at-a-glance-stats .stats-tile-text {
     color: #FFFFFF !important;
   }
+  /* Project cards (grid/list/"View More") — title, hardcoded orange, dark mode only. */
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .project-card-title {
+    color: #F36C21 !important;
+  }
   /* Project detail popup — the Role/Client/Platform/Scope grid's values, on the always-dark-navy
      .c-bg-card tile background. Fixed white regardless of the CMS's --c-text-80 setting, per
      explicit request that this one not be CMS-editable. */

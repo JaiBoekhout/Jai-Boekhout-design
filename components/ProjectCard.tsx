@@ -100,7 +100,7 @@ export function ProjectCard({
             ))}
           </div>
         )}
-        <Heading style={{
+        <Heading className="project-card-title" style={{
           fontFamily: "var(--font-heading)", fontSize: 17, fontWeight: 500, color: "var(--project-card-heading)", lineHeight: 1.2,
           marginBottom: 7, letterSpacing: "-0.01em", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}>
