@@ -415,6 +415,11 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .at-a-glance-stats .stats-tile-text {
     color: #FFFFFF !important;
   }
+  /* Every other stats bar (e.g. the Work page's own instance) — same white-by-default treatment,
+     dark mode only, so it's not just the "At a Glance" row that gets it. */
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .stats-tile-text {
+    color: #FFFFFF !important;
+  }
   /* Project cards (grid/list/"View More") — title, hardcoded orange, dark mode only. */
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .project-card-title {
     color: #F36C21 !important;
