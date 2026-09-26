@@ -61,6 +61,15 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
     return resolveLinkedCaseStudy(proj, content.work.caseStudies) ?? null;
   }
 
+  // Falls back to the linked case study's categories when a project stub has none of its own —
+  // same fallback the cover image already gets below. A project linked to a case study is often
+  // only ever assigned categories on the case study side (that's where its fuller content lives),
+  // so without this fallback it silently never matches any category filter and never gets
+  // category-derived label pills on its card, despite the case study clearly having them set.
+  function resolvedCategories(proj: CMSProject): string[] {
+    return proj.categories?.length ? proj.categories : findLinkedCaseStudy(proj)?.categories ?? [];
+  }
+
   // Category filter bar over the featured grid — a small curated taxonomy the admin maintains
   // directly (Work tab → Featured Grid → Filter Categories). Drives both the featured grid AND
   // the collapsible "more" list below (previously the "more" list had its own separate freeform-
@@ -70,14 +79,14 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const projectCategories = [...(content.work.projectCategories ?? [])].sort((a, b) => a.order - b.order);
   const categoryNameById = new Map(projectCategories.map((c) => [c.id, c.name]));
   const nonEmptyCategories = projectCategories.filter((c) =>
-    publishedFeatured.some((p) => p.categories?.includes(c.id)) || publishedMore.some((p) => p.categories?.includes(c.id))
+    publishedFeatured.some((p) => resolvedCategories(p).includes(c.id)) || publishedMore.some((p) => resolvedCategories(p).includes(c.id))
   );
   const filteredFeatured = featuredFilter === "All"
     ? publishedFeatured
-    : publishedFeatured.filter((p) => p.categories?.includes(featuredFilter));
+    : publishedFeatured.filter((p) => resolvedCategories(p).includes(featuredFilter));
   const rows = featuredFilter === "All"
     ? publishedMore
-    : publishedMore.filter((p) => p.categories?.includes(featuredFilter));
+    : publishedMore.filter((p) => resolvedCategories(p).includes(featuredFilter));
 
   // Pad to 9 slots only in the unfiltered view
   const slots: (CMSProject | null)[] = featuredFilter === "All"
@@ -163,7 +172,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
           // Resolve cover source once — same priority as the image block uses
           const cardCS = findLinkedCaseStudy(p);
           const fromCS = !!cardCS?.coverImageUrl;
-          const names = (p.categories ?? [])
+          const names = resolvedCategories(p)
             .map((id) => categoryNameById.get(id))
             .filter((n): n is string => !!n)
             .slice(0, 2);
