@@ -393,6 +393,29 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .stat-qualifications {
     color: #FFFFFF !important;
   }
+  /* Project detail popup — the Role/Client/Platform/Scope grid's values, on the always-dark-navy
+     .c-bg-card tile background. Fixed white regardless of the CMS's --c-text-80 setting, per
+     explicit request that this one not be CMS-editable. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .role-card-value {
+    color: #FFFFFF !important;
+  }
+  /* Project detail popup — Section 1's CMS rich text (e.g. "Evolve Car Rental app" as an <h2>). */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .project-detail-body h1,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .project-detail-body h2,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .project-detail-body h3 {
+    color: #253780 !important;
+  }
+  /* Project detail popup — Section 2's CMS rich text accordion summaries (e.g. "Research"),
+     same native <details> pattern as the Story page's "Outside of Design" accordion. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .process-section-body summary.rte-collapsible-summary {
+    color: #253780 !important;
+  }
+  /* Project detail popup — "Key Outcomes" heading, its numbered list copy, and the "Tags" heading. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .key-outcomes-heading,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .key-outcomes-copy,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .tags-heading {
+    color: #253780 !important;
+  }
   /* Top nav's "UX & Product Design" tagline (desktop and mobile variants both carry this class). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;

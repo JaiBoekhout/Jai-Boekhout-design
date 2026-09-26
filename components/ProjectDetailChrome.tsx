@@ -108,27 +108,43 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
       onAnimationComplete={onAnimationComplete}
     >
+      {/* Close button — a sibling of the scrolling content below, positioned against this
+          panel's own (fixed, non-scrolling) box rather than inside it, so it stays put at a
+          constant spot on screen as the visitor scrolls through a project, instead of scrolling
+          away with the hero banner it used to be absolutely-positioned inside of. Fixed light
+          colors (not theme vars) since it always sits on top of whatever's currently scrolled
+          underneath it — a photo hero, or a plain themed background — same treatment the old
+          hero-overlaid close button used, now just applying everywhere instead of only there. */}
+      <button
+        onClick={onClose}
+        aria-label="Close"
+        data-popup-close
+        className="hover:opacity-70 transition-opacity flex items-center justify-center"
+        style={{
+          position: "absolute", top: 14, right: 14, zIndex: 10,
+          width: 34, height: 34, borderRadius: "50%",
+          border: "0.5px solid rgba(245,241,234,0.3)", background: "rgba(15,21,25,0.55)",
+          color: "#F5F1EA", cursor: "pointer",
+        }}
+      >
+        <X size={14} />
+      </button>
+
       {/* overscrollBehavior: contain stops a scroll gesture that hands off from the tall-hero-image
           box (inside the body) from leaking past this popup into the page underneath, which is
           otherwise still independently scrollable behind this fixed-position overlay. */}
       <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-hidden" style={{ borderRadius: "inherit", overscrollBehavior: "contain" }}>
-        {/* Top actions — top of the page on mobile/tablet, above everything including the hero image */}
-        <div className="flex lg:hidden items-center justify-end gap-2 p-3">
+        {/* Top actions — top of the page on mobile/tablet, above everything including the hero image.
+            The close X itself now lives in the persistent button above; this bar just keeps the
+            "Back to Projects" affordance. Right padding clears that persistent circle (34px wide,
+            sitting 14px from the panel's edge) so the two never overlap. */}
+        <div className="flex lg:hidden items-center justify-end gap-2 py-3 pl-3" style={{ paddingRight: 62 }}>
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
             style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner, padding: "7px 12px", cursor: "pointer" }}
           >
             <ArrowLeft size={11} /> Back to Projects
-          </button>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            data-popup-close
-            className="hover:opacity-60 transition-opacity flex items-center justify-center"
-            style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid var(--c-border-med)", background: "var(--c-surface-4)", color: "var(--c-text)", cursor: "pointer", flexShrink: 0 }}
-          >
-            <X size={14} />
           </button>
         </div>
 

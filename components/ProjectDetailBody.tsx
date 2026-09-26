@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, type CSSProperties } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, projectUrlSlug } from "@/store/contentStore";
 import { CompanyCredit } from "@/components/CompanyCredit";
@@ -212,32 +212,6 @@ export function ProjectDetailBody({
     </div>
   );
 
-  // Overlaid version (on the photo banner) needs fixed light colors regardless of site theme;
-  // the no-hero fallback sits on the page's own themed background and keeps the original
-  // theme-aware subtle-circle treatment.
-  const closeButtonOverlay = (
-    <button
-      onClick={onClose}
-      aria-label="Close"
-      data-popup-close
-      className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
-      style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid rgba(245,241,234,0.3)", background: "rgba(15,21,25,0.45)", color: "#F5F1EA", cursor: "pointer", flexShrink: 0 }}
-    >
-      <X size={14} />
-    </button>
-  );
-  const closeButtonPlain = (
-    <button
-      onClick={onClose}
-      aria-label="Close"
-      data-popup-close
-      className="hidden lg:flex hover:opacity-60 transition-opacity items-center justify-center"
-      style={{ width: 34, height: 34, borderRadius: "50%", border: "0.5px solid var(--c-border-med)", background: "var(--c-surface-4)", color: "var(--c-text)", cursor: "pointer", flexShrink: 0 }}
-    >
-      <X size={14} />
-    </button>
-  );
-
   return (
     // overflow-y-auto is a real, load-bearing internal scroll pane in modal mode (its wrapping
     // ProjectDetailChrome panel is a bounded, fixed-position box at lg: — see lg:overflow-hidden
@@ -277,10 +251,10 @@ export function ProjectDetailBody({
             <div style={{ position: "absolute", inset: 0, background: buildHeroOverlayGradient(project, PROJECT_HERO_OVERLAY_DEFAULTS) }} />
           )}
 
-          {/* Header row, overlaid */}
+          {/* Header row, overlaid — the close X itself now lives in ProjectDetailChrome's
+              persistent, non-scrolling button, so it isn't rendered here anymore. */}
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
             {backAndBadge}
-            {closeButtonOverlay}
           </div>
 
           {/* Title block, overlaid bottom-left */}
@@ -321,7 +295,6 @@ export function ProjectDetailBody({
           <>
             <div className="flex items-center justify-between mb-6">
               {backAndBadge}
-              {closeButtonPlain}
             </div>
 
             <TitleTag className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
@@ -454,7 +427,7 @@ export function ProjectDetailBody({
                         <Label as="p" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 6 }}>
                           {card.label}
                         </Label>
-                        <p style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
+                        <p className="role-card-value" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--c-text-80)", lineHeight: 1.4 }}>
                           {card.value}
                         </p>
                       </div>
@@ -484,13 +457,13 @@ export function ProjectDetailBody({
               >
                 <SectionTag style={SECTION_HEADING_STYLE}>{project.section1Heading || "Project Detail"}</SectionTag>
                 <div
-                  className={`rte-content ${project.fullContentMobile ? "hidden md:block" : ""}`}
+                  className={`rte-content project-detail-body ${project.fullContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullContent || "" }}
                   style={{ marginBottom: 22 }}
                 />
                 {project.fullContentMobile && (
                   <div
-                    className="rte-content block md:hidden"
+                    className="rte-content project-detail-body block md:hidden"
                     dangerouslySetInnerHTML={{ __html: project.fullContentMobile }}
                     style={{ marginBottom: 22 }}
                   />
@@ -509,13 +482,13 @@ export function ProjectDetailBody({
               >
                 <SectionTag style={SECTION_HEADING_STYLE}>{project.section2Heading || "Process"}</SectionTag>
                 <div
-                  className={`rte-content ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`}
+                  className={`rte-content process-section-body ${project.fullCaseStudyContentMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContent || "" }}
                   style={{ marginBottom: 22, maxWidth: "none" }}
                 />
                 {project.fullCaseStudyContentMobile && (
                   <div
-                    className="rte-content block md:hidden"
+                    className="rte-content process-section-body block md:hidden"
                     dangerouslySetInnerHTML={{ __html: project.fullCaseStudyContentMobile }}
                     style={{ marginBottom: 22, maxWidth: "none" }}
                   />
@@ -595,7 +568,7 @@ export function ProjectDetailBody({
                 ref={(el) => { sectionRefs.current.outcomes = el; }}
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
-                <SectionTag style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+                <SectionTag className="key-outcomes-heading" style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
                   Key Outcomes
                 </SectionTag>
                 <div style={{ borderTop: "0.5px solid var(--c-divider)", marginBottom: 24 }}>
@@ -604,7 +577,7 @@ export function ProjectDetailBody({
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: TEAL, flexShrink: 0, width: 22 }}>
                         {String(k + 1).padStart(2, "0")}
                       </span>
-                      <span style={{ fontFamily: "var(--font-body)", fontSize: 13.5, lineHeight: 1.55, color: "var(--c-text)" }}>{o}</span>
+                      <span className="key-outcomes-copy" style={{ fontFamily: "var(--font-body)", fontSize: 13.5, lineHeight: 1.55, color: "var(--c-text)" }}>{o}</span>
                     </div>
                   ))}
                 </div>
@@ -612,7 +585,7 @@ export function ProjectDetailBody({
             )}
 
             {/* Tags */}
-            <SectionTag style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+            <SectionTag className="tags-heading" style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
               Tags
             </SectionTag>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
