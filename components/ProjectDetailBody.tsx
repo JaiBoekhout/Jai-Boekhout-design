@@ -590,7 +590,7 @@ export function ProjectDetailBody({
             </SectionTag>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
               {project.tags.map((t, ti) => (
-                <Tag key={`${t}-${ti}`}>{t}</Tag>
+                <Tag key={`${t}-${ti}`} className="project-tag">{t}</Tag>
               ))}
             </div>
 

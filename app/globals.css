@@ -344,6 +344,13 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .testimonial-tag {
     color: #FFFFFF !important;
   }
+  /* Project detail popup's own "Tags" section — same treatment as the testimonial tags above. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .project-tag {
+    color: #253780 !important;
+  }
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .project-tag {
+    color: #FFFFFF !important;
+  }
   /* Testimonials — name and quote copy, both --c-text/--c-quote-emphasis-driven. .testimonial-name
      is new; .testimonial-card-body already existed on both the "fact" and "quote" variants, so
      this one rule covers both without needing a second class. The "quote" variant's actual text
