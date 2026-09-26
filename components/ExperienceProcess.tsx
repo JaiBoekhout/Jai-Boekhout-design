@@ -182,7 +182,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 <div
                   className="w-6 h-6 md:w-9 md:h-9"
                   style={{
-                    borderRadius: "var(--tag-corner)",
+                    borderRadius: "50%",
                     border: `1px solid ${openSteps.has(step.id) ? "var(--c-teal)" : "var(--c-surface-10)"}`,
                     background: openSteps.has(step.id) ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
                     display: "flex",
