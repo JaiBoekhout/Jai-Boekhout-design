@@ -53,6 +53,7 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
               ← Jai Boekhout
             </Link>
             <span
+              className="nav-tagline"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
@@ -103,6 +104,7 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
             Jai Boekhout
           </span>
           <span
+            className="nav-tagline"
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "11px",

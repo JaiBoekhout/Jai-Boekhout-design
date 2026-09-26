@@ -106,6 +106,16 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
     if (activeFaqTab !== "all") return;
     const el = faqGridRef.current;
     if (el) setFaqAllHeight(el.scrollHeight);
+    // The immediate measurement above can catch a panel mid-collapse: AnimatePresence keeps a
+    // closing accordion's content in the DOM, at its pre-collapse height, for the full 0.3s exit
+    // animation — so a close's "final" measurement was actually taken before the panel had
+    // shrunk, and nothing ever re-measured afterward. faqAllHeight only ever grew as a result.
+    // Re-measuring once the collapse/expand transition has had time to finish corrects it.
+    const timer = setTimeout(() => {
+      const el2 = faqGridRef.current;
+      if (el2) setFaqAllHeight(el2.scrollHeight);
+    }, 320);
+    return () => clearTimeout(timer);
   }, [activeFaqTab, showAllFaqs, openFaqs, visibleFaqs.length]);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
@@ -690,7 +700,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   // actual substance — leads the entry instead.
                   <>
                     {t.headline && (
-                      <p style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
+                      <p className="testimonial-headline" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, marginBottom: "12px" }}>
                         {t.headline}
                       </p>
                     )}
