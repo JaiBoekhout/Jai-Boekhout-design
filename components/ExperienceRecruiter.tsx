@@ -102,20 +102,21 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   // is also the default landing tab, so a baseline exists before any tab switch can happen.
   const faqGridRef = useRef<HTMLDivElement>(null);
   const [faqAllHeight, setFaqAllHeight] = useState<number | undefined>(undefined);
-  useLayoutEffect(() => {
+  // Re-measures on demand — called both by the effect below (tab/list changes) and by each
+  // accordion panel's onAnimationComplete (toggling a single FAQ open/closed). A panel's own
+  // collapse/expand is a framer-motion height:"auto" animation of unpredictable real-world
+  // duration (its declared 0.3s is a floor, not a guarantee — a previous fixed setTimeout delay
+  // here still measured too early often enough to not fix the "never shrinks back" bug this
+  // replaces), so onAnimationComplete is the only way to know the DOM has actually settled
+  // rather than guessing how long to wait.
+  function remeasureFaqHeight() {
     if (activeFaqTab !== "all") return;
     const el = faqGridRef.current;
     if (el) setFaqAllHeight(el.scrollHeight);
-    // The immediate measurement above can catch a panel mid-collapse: AnimatePresence keeps a
-    // closing accordion's content in the DOM, at its pre-collapse height, for the full 0.3s exit
-    // animation — so a close's "final" measurement was actually taken before the panel had
-    // shrunk, and nothing ever re-measured afterward. faqAllHeight only ever grew as a result.
-    // Re-measuring once the collapse/expand transition has had time to finish corrects it.
-    const timer = setTimeout(() => {
-      const el2 = faqGridRef.current;
-      if (el2) setFaqAllHeight(el2.scrollHeight);
-    }, 320);
-    return () => clearTimeout(timer);
+  }
+  useLayoutEffect(() => {
+    remeasureFaqHeight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFaqTab, showAllFaqs, openFaqs, visibleFaqs.length]);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
@@ -883,6 +884,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
+                        onAnimationComplete={remeasureFaqHeight}
                         className="overflow-hidden"
                       >
                         <div
