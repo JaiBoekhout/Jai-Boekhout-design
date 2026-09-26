@@ -363,6 +363,12 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
   }
+  /* Homepage — the "Hi, I'm Jai." greeting (--foreground) and the footer's location/availability
+     note (--c-text-dim), both still white on this theme's light mode. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .home-headline,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .home-footer-note {
+    color: #253780 !important;
+  }
   /* Professional Experience's compact "list" project rows (a separate variant from the standard
      ProjectCard, which already has its own theme-aware --project-card-heading/body). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .project-list-row-title {

@@ -144,7 +144,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             variant drops hero-mobile-h1 since the admin is now hand-authoring this field's
             mobile look directly, not relying on the global scale. */}
         <motion.p
-          className={home.headlineMobile ? "hidden md:block hero-mobile-h1" : "hero-mobile-h1"}
+          className={`home-headline ${home.headlineMobile ? "hidden md:block hero-mobile-h1" : "hero-mobile-h1"}`}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -164,7 +164,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
         />
         {home.headlineMobile && (
           <motion.p
-            className="block md:hidden"
+            className="home-headline block md:hidden"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -432,6 +432,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
       {/* Footer */}
       <div className="flex justify-center mt-10">
         <span
+          className="home-footer-note"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "10px",
