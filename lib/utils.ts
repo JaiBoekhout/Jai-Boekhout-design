@@ -38,9 +38,22 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
 // any heading tag found in a hero field's HTML to a plain <span> at render time, keeping
 // whatever inline styling the editor attached (font-size, color, etc. all live on the tag's own
 // style attribute, not on its tag name) while removing the invalid nesting.
+//
+// display:block is forced on every demoted span so it still starts its own line — a plain <span>
+// is inline by default, so an author's two separate heading blocks (e.g. a big headline followed
+// by a smaller sub-line, each its own <h2>) would otherwise run together on one line the moment
+// they're demoted, with no visual sign anything's wrong until it's live. Merged into any style
+// attribute the tag already carries rather than appended as a second one.
 export function demoteNestedHeadings(html: string): string {
   return html
-    .replace(/<h[1-6](\s[^>]*)?>/gi, (_, attrs = "") => `<span${attrs}>`)
+    .replace(/<h[1-6](\s[^>]*)?>/gi, (_, attrs = "") => {
+      const styleMatch = /\bstyle\s*=\s*(["'])/i.exec(attrs);
+      if (styleMatch) {
+        const quote = styleMatch[1];
+        return `<span${attrs.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;`)}>`;
+      }
+      return `<span${attrs} style="display:block">`;
+    })
     .replace(/<\/h[1-6]>/gi, "</span>");
 }
 
