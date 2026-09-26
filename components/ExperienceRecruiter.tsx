@@ -101,6 +101,12 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   // actually on "All" (the only tab whose full item set is ever in the DOM to measure), which
   // is also the default landing tab, so a baseline exists before any tab switch can happen.
   const faqGridRef = useRef<HTMLDivElement>(null);
+  // Measurement target is a separate, unconstrained inner wrapper — not the outer faqGridRef
+  // div that minHeight is applied to. Measuring the same element you're constraining creates a
+  // feedback loop: once minHeight inflates the box, scrollHeight reads back that inflated height
+  // (there's no overflow, so the box just reports its own floor) instead of the content's true
+  // size, so the pinned height could only ever grow, never shrink back down after "Show Less".
+  const faqListRef = useRef<HTMLDivElement>(null);
   const [faqAllHeight, setFaqAllHeight] = useState<number | undefined>(undefined);
   // Re-measures on demand — called both by the effect below (tab/list changes) and by each
   // accordion panel's onAnimationComplete (toggling a single FAQ open/closed). A panel's own
@@ -111,7 +117,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   // rather than guessing how long to wait.
   function remeasureFaqHeight() {
     if (activeFaqTab !== "all") return;
-    const el = faqGridRef.current;
+    const el = faqListRef.current;
     if (el) setFaqAllHeight(el.scrollHeight);
   }
   useLayoutEffect(() => {
@@ -864,46 +870,48 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               style={{ borderTop: "0.5px solid var(--c-divider)", minHeight: faqLayoutMode === "tabs" ? faqAllHeight : undefined }}
               {...(faqLayoutMode === "tabs" ? { role: "tabpanel" as const, id: "faq-tabpanel", "aria-labelledby": `faq-tab-${activeFaqTab}` } : {})}
             >
-              {visibleFaqs.map((faq, idx) => (
-                <div key={faq.id} style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
-                  <button
-                    className="w-full text-left flex items-center justify-between gap-4 py-5"
-                    onClick={() => toggleFaq(idx)}
-                  >
-                    <span className="faq-question" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
-                      {faq.question}
-                    </span>
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
-                      {openFaqs.has(idx) ? "−" : "+"}
-                    </span>
-                  </button>
-                  <AnimatePresence>
-                    {openFaqs.has(idx) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        onAnimationComplete={remeasureFaqHeight}
-                        className="overflow-hidden"
-                      >
-                        <div
-                          className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
-                          style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
-                        />
-                        {faq.answerMobile && (
+              <div ref={faqListRef}>
+                {visibleFaqs.map((faq, idx) => (
+                  <div key={faq.id} style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
+                    <button
+                      className="w-full text-left flex items-center justify-between gap-4 py-5"
+                      onClick={() => toggleFaq(idx)}
+                    >
+                      <span className="faq-question" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
+                        {faq.question}
+                      </span>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
+                        {openFaqs.has(idx) ? "−" : "+"}
+                      </span>
+                    </button>
+                    <AnimatePresence>
+                      {openFaqs.has(idx) && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          onAnimationComplete={remeasureFaqHeight}
+                          className="overflow-hidden"
+                        >
                           <div
-                            className="rte-content block md:hidden"
+                            className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
                             style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                            dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
+                            dangerouslySetInnerHTML={{ __html: faq.answer }}
                           />
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+                          {faq.answerMobile && (
+                            <div
+                              className="rte-content block md:hidden"
+                              style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                              dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
+                            />
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
             </div>
             {tabFilteredFaqs.length > faqVisibleCount && (
               <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
