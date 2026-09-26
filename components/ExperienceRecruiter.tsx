@@ -499,7 +499,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                       type="button"
                                       onClick={() => onNavigate("work", projectUrlSlug(p))}
                                       className="group flex items-center gap-3 w-full text-left transition-opacity hover:opacity-75 pro-exp-outline"
-                                      style={{ background: "var(--c-bg-card)", borderRadius: "var(--card-corner)", padding: "6px", cursor: "pointer" }}
+                                      style={{ background: "var(--project-card-bg)", borderRadius: "var(--card-corner)", padding: "6px", cursor: "pointer" }}
                                     >
                                       {(p.coverImageUrl || p.heroImageUrl || p.imgs[0]) ? (
                                         // eslint-disable-next-line @next/next/no-img-element
@@ -511,7 +511,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                           both in the same box so the row's height never jumps between states. */}
                                       <span style={{ position: "relative", flex: 1, minWidth: 0, height: 16 }}>
                                         <span
-                                          className="transition-opacity duration-150 group-hover:opacity-0"
+                                          className="project-list-row-title transition-opacity duration-150 group-hover:opacity-0"
                                           style={{ position: "absolute", inset: 0, fontFamily: "var(--font-body)", fontSize: "13px", color: "var(--c-text)", fontWeight: 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                                         >
                                           {p.name}

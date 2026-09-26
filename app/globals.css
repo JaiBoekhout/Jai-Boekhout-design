@@ -359,6 +359,18 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .nav-tagline {
     color: #253780 !important;
   }
+  /* Professional Experience's compact "list" project rows (a separate variant from the standard
+     ProjectCard, which already has its own theme-aware --project-card-heading/body). */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .project-list-row-title {
+    color: #253780 !important;
+  }
+  /* The shared "Interested in working together?" CTA panel's heading — only the container's
+     default color; "remarkable" keeps its own orange, set as an inline style directly on that
+     word within the CMS rich-text content, which this rule (targeting only the ancestor <h3>)
+     never touches. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .cta-heading {
+    color: #253780 !important;
+  }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
      container has no max-width of its own and can otherwise stretch past 100+ chars/line on
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because

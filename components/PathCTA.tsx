@@ -393,7 +393,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
           {/* ── Left: heading + body + buttons ── */}
           <div>
             <h3
-              className={content.evaluate.ctaHeadingMobile ? "hidden md:block hero-mobile-h3" : "hero-mobile-h3"}
+              className={`cta-heading ${content.evaluate.ctaHeadingMobile ? "hidden md:block hero-mobile-h3" : "hero-mobile-h3"}`}
               style={{
                 fontFamily: "var(--font-heading)",
                 fontStyle: "italic",
@@ -407,7 +407,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
             />
             {content.evaluate.ctaHeadingMobile && (
               <h3
-                className="block md:hidden"
+                className="cta-heading block md:hidden"
                 style={{
                   fontFamily: "var(--font-heading)",
                   fontStyle: "italic",
