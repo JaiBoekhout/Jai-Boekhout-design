@@ -392,7 +392,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       {job.org}
                     </span>
                   </div>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
+                  <span className="self-end md:self-auto" style={{ fontFamily: "var(--font-mono)", fontSize: "17px", color: "var(--c-text-muted)", flexShrink: 0, width: 16, textAlign: "center", lineHeight: 1 }}>
                     {openJobs.has(i) ? "−" : "+"}
                   </span>
                 </button>
