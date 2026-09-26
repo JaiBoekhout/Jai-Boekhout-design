@@ -206,10 +206,16 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
 
   const showIcon = !open && !animating;
 
+  // layout="size" (not the bare `layout` shorthand, which tracks position too) — this only
+  // needs to smoothly animate the button's own width when showIcon toggles the Send icon on
+  // open/close. The plain `layout` prop also animates the button's Y position whenever it moves
+  // in the page's normal flow for any unrelated reason (e.g. content above it changing height,
+  // like the FAQ list expanding via "Show All") — reads as the button jumping into place late,
+  // out of sync with everything else that reflows instantly around it.
   const button = (
     <motion.button
       ref={btnRef}
-      layout
+      layout="size"
       onClick={open ? handleClose : handleOpen}
       className={`flex items-center gap-3${stackedButtons ? " w-full justify-center" : ""}`}
       style={{
