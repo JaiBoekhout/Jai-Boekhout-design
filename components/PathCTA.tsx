@@ -421,13 +421,13 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
               />
             )}
             <div
-              className={content.evaluate.ctaBodyMobile ? "rte-content hidden md:block" : "rte-content"}
+              className={content.evaluate.ctaBodyMobile ? "cta-body rte-content hidden md:block" : "cta-body rte-content"}
               style={{ fontSize: "16px", color: "var(--c-text-muted)", marginBottom: "28px" }}
               dangerouslySetInnerHTML={{ __html: content.evaluate.ctaBody }}
             />
             {content.evaluate.ctaBodyMobile && (
               <div
-                className="rte-content block md:hidden"
+                className="cta-body rte-content block md:hidden"
                 style={{ fontSize: "16px", color: "var(--c-text-muted)", marginBottom: "28px" }}
                 dangerouslySetInnerHTML={{ __html: content.evaluate.ctaBodyMobile }}
               />

@@ -374,11 +374,17 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .project-list-row-title {
     color: #253780 !important;
   }
-  /* The shared "Interested in working together?" CTA panel's heading — only the container's
-     default color; "remarkable" keeps its own orange, set as an inline style directly on that
-     word within the CMS rich-text content, which this rule (targeting only the ancestor <h3>)
-     never touches. */
+  /* The shared CTA panel's small "Interested in working together?" eyebrow — already carries
+     its own inline teal color from the CMS rich text, so this never visibly applies; harmless. */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .cta-heading {
+    color: #253780 !important;
+  }
+  /* The CTA panel's main "Let's create something remarkable together." copy (ctaBody) renders as
+     CMS rich-text <h3> tags, and .rte-content h3 (line ~410) hardcodes color: var(--c-text) on
+     the <h3> itself — beating the container's own inline color: var(--c-text-muted), since an
+     element's own matching rule always wins over an inherited value regardless of !important on
+     either side. "remarkable" stays orange via its own inline color set directly on that word. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .cta-body h3 {
     color: #253780 !important;
   }
   /* Cap reading-text width to a comfortable line length (~55-70 characters at 14px) — this
