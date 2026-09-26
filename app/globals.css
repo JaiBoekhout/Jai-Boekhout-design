@@ -409,6 +409,12 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .stat-qualifications {
     color: #FFFFFF !important;
   }
+  /* Evaluate page's "At a Glance" stats bar — every tile's number and label, dark mode only,
+     matched to the Qualifications tile's white treatment above (which stays as its own separate,
+     always-on rule, so it doesn't regress if this row's stat set or hover behavior changes). */
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .at-a-glance-stats .stats-tile-text {
+    color: #FFFFFF !important;
+  }
   /* Project detail popup — the Role/Client/Platform/Scope grid's values, on the always-dark-navy
      .c-bg-card tile background. Fixed white regardless of the CMS's --c-text-80 setting, per
      explicit request that this one not be CMS-editable. */

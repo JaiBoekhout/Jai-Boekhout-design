@@ -331,12 +331,14 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "16px" }}>
             {cms.statsHeading || "At a Glance"}
           </p>
-          <StatsBar
-            stats={cms.stats}
-            evaluate={cms}
-            isClickable={(id) => !!statScrollTargets[id]}
-            onActivate={(id) => statScrollTargets[id]?.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          />
+          <div className="at-a-glance-stats">
+            <StatsBar
+              stats={cms.stats}
+              evaluate={cms}
+              isClickable={(id) => !!statScrollTargets[id]}
+              onActivate={(id) => statScrollTargets[id]?.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            />
+          </div>
           {cms.resumeUrl && (
             <a
               href={cms.resumeUrl}
