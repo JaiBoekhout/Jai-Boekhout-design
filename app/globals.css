@@ -337,12 +337,16 @@
   }
   /* Testimonials — name and quote copy, both --c-text/--c-quote-emphasis-driven. .testimonial-name
      is new; .testimonial-card-body already existed on both the "fact" and "quote" variants, so
-     this one rule covers both without needing a second class. Specificity here (an attribute-
-     scoped selector) already beats the existing .rte-content.quote-color-fix !important rule in
-     globals.css that the "quote" variant also carries. */
+     this one rule covers both without needing a second class. The "quote" variant's actual text
+     sits in a nested element (a <p> from the CMS rich text) matched by the existing
+     .rte-content.quote-color-fix * rule below (color: var(--c-quote-emphasis) !important, itself
+     never theme-scoped) — targeting only .testimonial-card-body here left that nested text
+     unaffected, since this rule and that one match different elements. Repeating the selector
+     with a trailing `*` covers those descendants too, at the same higher specificity. */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-name,
   :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-headline,
-  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-card-body {
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-card-body,
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-card-body * {
     color: #253780 !important;
   }
   /* FAQ — question titles blue; the "Show All" button was reported as literally white text on a
