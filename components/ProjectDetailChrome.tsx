@@ -83,6 +83,23 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
     // flow height above it.
     return (
       <div style={{ minHeight: "100vh", background: "var(--c-bg-deep)" }}>
+        {/* A real position:fixed close button (this branch has no transformed ancestor, unlike
+            the modal's motion.div, so fixed here is genuinely viewport-relative) — the page's
+            own "Back to Work" link lives inside the scrolling hero banner below and scrolls out
+            of view, so this is the one way to close the page from anywhere in the scroll. */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="hover:opacity-70 transition-opacity flex items-center justify-center"
+          style={{
+            position: "fixed", top: 14, right: 14, zIndex: 60,
+            width: 34, height: 34, borderRadius: "50%",
+            border: "0.5px solid rgba(245,241,234,0.3)", background: "rgba(15,21,25,0.55)",
+            color: "#F5F1EA", cursor: "pointer",
+          }}
+        >
+          <X size={14} />
+        </button>
         <div className="flex flex-col lg:flex-row">{children}</div>
       </div>
     );
