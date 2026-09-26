@@ -783,6 +783,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                   {t.highlights.map((h, hi) => (
                     <span
                       key={`${h}-${hi}`}
+                      className="testimonial-tag"
                       style={{
                         fontFamily: "var(--font-body)",
                         fontSize: "11px",

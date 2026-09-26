@@ -335,6 +335,15 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .additional-background-label {
     color: #F36C21 !important;
   }
+  /* Testimonial trait tags (e.g. "Detail-oriented") — matched to the Additional Background tags
+     just above them: blue in light mode, white in dark mode, instead of the orange var(--c-teal)
+     they'd otherwise inherit. Only the text color changes; border/background stay --c-teal-driven. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .testimonial-tag {
+    color: #253780 !important;
+  }
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .testimonial-tag {
+    color: #FFFFFF !important;
+  }
   /* Testimonials — name and quote copy, both --c-text/--c-quote-emphasis-driven. .testimonial-name
      is new; .testimonial-card-body already existed on both the "fact" and "quote" variants, so
      this one rule covers both without needing a second class. The "quote" variant's actual text
