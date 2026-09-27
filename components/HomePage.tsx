@@ -399,12 +399,17 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                 </AnimatePresence>
               </div>
 
-              {/* CTA */}
+              {/* CTA — pinned to the card's bottom-left corner (position: absolute) so it lines
+                  up across all 4 cards regardless of how many lines the question/description
+                  above it wrap to, instead of sitting wherever that content happens to end. */}
               <motion.span
                 className="flex items-center gap-2"
                 animate={{ opacity: isHovered ? 0 : 1 }}
                 transition={{ duration: 0.15 }}
                 style={{
+                  position: "absolute",
+                  bottom: 24,
+                  left: 24,
                   fontFamily: "var(--font-mono)",
                   fontSize: "12px",
                   color: "var(--c-teal)",
