@@ -8,7 +8,7 @@ import { ImagePicker } from "@/components/ImagePicker";
 import { HeroImageOverlayEditor, PROJECT_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import { Switch } from "@/components/SiteKit";
 import type { CMSWork, CMSCaseStudy, CMSCompany, CMSProject, CMSStat, ViewMoreSort, ViewMoreCandidate, ProjectListLayout, CMSProjectCategory } from "@/store/contentStore";
-import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug } from "@/store/contentStore";
+import { resolveViewMore, resolveLinkedCaseStudy, projectUrlSlug, enrichProjectWithCaseStudy } from "@/store/contentStore";
 
 const MAX_HOME_STATS = 6;
 
@@ -817,6 +817,33 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
         if (p.linkedCaseStudyId === caseStudyId) return { ...p, linkedCaseStudyId: undefined };
         return p;
       }),
+    });
+  }
+
+  // Permanently folds a linked case study's content into its project — the same field-by-field
+  // merge enrichProjectWithCaseStudy already applies live at render time (name/client/desc/tags/
+  // categories/outcomes/images/hero overlay/full case-study body), but written back onto the
+  // project record itself and the now-redundant case study deleted, instead of the two staying
+  // as separate rows re-merged on every page load. Projects and case studies used to be tracked
+  // separately in this CMS; now that the public site treats them as one unified model, having a
+  // project stub permanently shadowing a fuller case study record is leftover duplication with
+  // no reason to keep — this collapses it to the single row that should have always existed.
+  function mergeCaseStudyIntoProject(projectId: string, caseStudyId: number) {
+    const project = data.projects.find((p) => p.id === projectId);
+    const cs = data.caseStudies.find((c) => c.id === caseStudyId);
+    if (!project || !cs) return;
+    if (!window.confirm(`Merge "${cs.title}" into "${project.name}" and permanently delete the case study record? This can't be undone from here (though it's still recoverable from Version History).`)) {
+      return;
+    }
+    const merged = enrichProjectWithCaseStudy(project, data.caseStudies);
+    onChange({
+      ...data,
+      projects: data.projects.map((p) =>
+        p.id === projectId
+          ? { ...merged, linkedCaseStudyId: undefined, updatedAt: new Date().toISOString() }
+          : p
+      ),
+      caseStudies: data.caseStudies.filter((c) => c.id !== caseStudyId),
     });
   }
 
@@ -1742,6 +1769,24 @@ export function WorkSection({ data, savedData, companies, evaluateStats, onChang
                           Renaming either title could silently break this auto-match — pick it explicitly above to make the link permanent.
                         </p>
                       )}
+                      {(() => {
+                        const linkedId = p.linkedCaseStudyId ?? autoMatch?.id;
+                        if (linkedId === undefined) return null;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => mergeCaseStudyIntoProject(p.id, linkedId)}
+                            style={{
+                              marginTop: 10, alignSelf: "flex-start",
+                              fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: "0.04em",
+                              color: "#F36C21", background: "rgba(243,108,33,0.08)", border: "1px solid rgba(243,108,33,0.3)",
+                              borderRadius: 8, padding: "8px 14px", cursor: "pointer",
+                            }}
+                          >
+                            Merge case study into this project &amp; delete the old record
+                          </button>
+                        );
+                      })()}
                     </div>
                   );
                 })()}

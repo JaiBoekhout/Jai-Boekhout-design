@@ -2283,6 +2283,7 @@ export function enrichProjectWithCaseStudy(project: CMSProject, caseStudies: CMS
     desc: cs.summary || project.desc,
     descMobile: cs.summaryMobile || project.descMobile || undefined,
     tags: cs.tags?.length ? cs.tags : project.tags,
+    categories: cs.categories?.length ? cs.categories : project.categories,
     outcomes: cs.outcomes?.length ? cs.outcomes : project.outcomes,
     // Case study wins over the project's own value everywhere here, matching name/client/desc
     // above — once a project is linked, WorkSection's admin "Projects" list only exposes the
