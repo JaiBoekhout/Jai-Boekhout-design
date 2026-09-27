@@ -151,6 +151,12 @@ export function CompanyCredit({
             <button type="button" data-close className="agency-info-callout-close" aria-label="Close" onClick={() => onToggle(null)}>
               <X size={13} />
             </button>
+            {company.logoUrl && (
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 4, padding: "5px 9px", marginBottom: 10 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 18, width: "auto", maxWidth: 110, objectFit: "contain", display: "block" }} />
+              </span>
+            )}
             <p>
               {(copyTemplate || DEFAULT_COMPANY_CREDIT_COPY)
                 .replaceAll("{company}", company.name)
