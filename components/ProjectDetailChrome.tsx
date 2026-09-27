@@ -9,6 +9,10 @@ import type { CMSProject } from "@/store/contentStore";
 import { useButtonCorner } from "@/components/SiteKit";
 
 const TEAL = "var(--c-teal)";
+// Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) — page
+// mode's Back/Close buttons are position:fixed against the viewport, same as that nav, so
+// without this offset they'd render on top of it instead of starting where the hero image does.
+const TOP_BAR_HEIGHT = 64;
 
 interface ProjectDetailChromeProps {
   project: CMSProject;
@@ -88,7 +92,7 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
           href="/work"
           className="hover:opacity-80 transition-opacity flex items-center gap-1.5"
           style={{
-            position: "fixed", top: 14, left: 14, zIndex: 60,
+            position: "fixed", top: TOP_BAR_HEIGHT + 14, left: 14, zIndex: 60,
             fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
             color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner,
             padding: "7px 12px", textDecoration: "none",
@@ -101,7 +105,7 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
           aria-label="Close"
           className="hover:opacity-70 transition-opacity flex items-center justify-center"
           style={{
-            position: "fixed", top: 14, right: 14, zIndex: 60,
+            position: "fixed", top: TOP_BAR_HEIGHT + 14, right: 14, zIndex: 60,
             width: 34, height: 34, borderRadius: "50%",
             border: "0.5px solid rgba(245,241,234,0.3)", background: "rgba(15,21,25,0.55)",
             color: "#F5F1EA", cursor: "pointer",
