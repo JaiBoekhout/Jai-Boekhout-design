@@ -100,16 +100,19 @@ export function ProjectDetailBody({
       ].filter((c) => c.value && c.value.trim().length > 0),
     [project.fullCaseStudyRole, project.client, project.fullCaseStudyPlatform, project.fullCaseStudyScope]
   );
+  const showSummary = !!project.desc;
   const showRole = !!(project.fullCaseStudyRole || project.fullCaseStudyPlatform || project.fullCaseStudyScope);
   const showSection1 = !!project.fullContent;
   const showSection2 = !!project.fullCaseStudyContent;
   const showSection3 = !!project.section3Content;
   const showOutcomes = project.outcomes.length > 0;
-  const showContentsNav = showRole || showSection1 || showSection2 || showSection3 || showOutcomes;
+  const showTags = project.tags.length > 0;
+  const showContentsNav = showSummary || showRole || showSection1 || showSection2 || showSection3 || showOutcomes || showTags;
 
   const navItems = useMemo(
     () =>
       [
+        showSummary && { id: "summary", label: "Summary" },
         showRole && { id: "role", label: "Role" },
         showSection1 && { id: "section1", label: project.section1Heading || "Project Detail" },
         showSection2 && { id: "section2", label: project.section2Heading || "Process" },
@@ -117,8 +120,9 @@ export function ProjectDetailBody({
         // still renders inline on the page, just without its own jump-to link.
         showSection3 && project.section3Heading && { id: "section3", label: project.section3Heading },
         showOutcomes && { id: "outcomes", label: "Key Outcomes" },
+        showTags && { id: "tags", label: "Tags" },
       ].filter(Boolean) as { id: string; label: string }[],
-    [showRole, showSection1, showSection2, showSection3, showOutcomes, project.section1Heading, project.section2Heading, project.section3Heading]
+    [showSummary, showRole, showSection1, showSection2, showSection3, showOutcomes, showTags, project.section1Heading, project.section2Heading, project.section3Heading]
   );
 
   const [activeId, setActiveId] = useState<string | undefined>(navItems[0]?.id);
@@ -145,7 +149,7 @@ export function ProjectDetailBody({
 
   useEffect(() => {
     if (!showContentsNav) return;
-    const ids = ["role", "section1", "section2", "section3", "outcomes"];
+    const ids = ["summary", "role", "section1", "section2", "section3", "outcomes", "tags"];
     const els = ids.map((id) => sectionRefs.current[id]).filter(Boolean) as HTMLElement[];
     if (els.length === 0) return;
     const observer = new IntersectionObserver(
@@ -370,8 +374,13 @@ export function ProjectDetailBody({
 
           <div style={{ minWidth: 0 }}>
             {/* Description */}
-            {project.desc && (
-              <>
+            {showSummary && (
+              <section
+                id="summary"
+                data-section-id="summary"
+                ref={(el) => { sectionRefs.current.summary = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
                 <SectionTag style={SECTION_HEADING_STYLE}>Summary</SectionTag>
                 <div
                   className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
@@ -385,7 +394,7 @@ export function ProjectDetailBody({
                     style={{ marginBottom: 22 }}
                   />
                 )}
-              </>
+              </section>
             )}
 
             {/* Live site — placed right after Summary, above everything else, so the one link
@@ -411,7 +420,13 @@ export function ProjectDetailBody({
                 <SectionTag style={SECTION_HEADING_STYLE}>Role</SectionTag>
                 <div
                   className="grid grid-cols-1 md:grid-cols-2"
-                  style={{ gap: "0.5px", background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
+                  // rowGap: 0 (not the 0.5px column-gap divider both directions used to share) —
+                  // a 0.5px row gap is a sub-pixel value, and whether it rounds to a visible
+                  // hairline or vanishes entirely depends on the exact pixel height each row
+                  // happens to land on, which shifts with content length/wrapping. That's why the
+                  // same markup showed a horizontal line on one project's Role grid but not
+                  // another's with shorter field values, purely by coincidence of row height.
+                  style={{ columnGap: "0.5px", rowGap: 0, background: "var(--c-divider)", border: "0.5px solid var(--c-border-soft)", marginBottom: 22 }}
                 >
                   {roleCards.map((card, i) => {
                     // With an odd number of populated cards (e.g. Platform left blank), a plain
@@ -585,14 +600,23 @@ export function ProjectDetailBody({
             )}
 
             {/* Tags */}
-            <SectionTag className="tags-heading" style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
-              Tags
-            </SectionTag>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
-              {project.tags.map((t, ti) => (
-                <Tag key={`${t}-${ti}`} className="project-tag">{t}</Tag>
-              ))}
-            </div>
+            {showTags && (
+              <section
+                id="tags"
+                data-section-id="tags"
+                ref={(el) => { sectionRefs.current.tags = el; }}
+                style={{ scrollMarginTop: navTopOffset + 12 }}
+              >
+                <SectionTag className="tags-heading" style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, letterSpacing: "0.14em", color: "var(--c-text-dim)", textTransform: "uppercase", marginTop: 40, marginBottom: 12, fontWeight: 700 }}>
+                  Tags
+                </SectionTag>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                  {project.tags.map((t, ti) => (
+                    <Tag key={`${t}-${ti}`} className="project-tag">{t}</Tag>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* External case study link only — the in-house "View Full Case Study" button is
                 gone now that its content lives inline on this same page. */}
