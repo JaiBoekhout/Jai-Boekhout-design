@@ -100,10 +100,10 @@ export function CompanyCredit({
             logo sits inside the badge itself, on a small white swatch — company logos vary in
             their own colouring/transparency, so a fixed light backing keeps any of them legible
             against the solid teal rather than assuming they all read fine directly on it. */}
-        <span style={{
+        <span className="agency-badge-text" style={{
           display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
           letterSpacing: "0.08em", textTransform: "uppercase", color: "#FFFFFF",
-          background: "rgba(6,9,12,0.75)", border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
+          background: "transparent", border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
           borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
         }}>
           {company.logoUrl && (

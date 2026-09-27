@@ -393,11 +393,16 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .story-timeline-title {
     color: #253780 !important;
   }
-  /* Agency-credit badge's "i" info trigger — hardcoded white so it stays legible against the
-     page's own light background, since the badge itself sits outside the badge's own dark
-     background and inherits var(--c-teal) (orange for this theme) otherwise. */
+  /* Agency-credit badge's "i" info trigger — hardcoded blue instead of inheriting var(--c-teal)
+     (orange for this theme); the circle's own border/background stay teal-driven (orange). */
   :root[data-style-theme="sunset-coral"][data-theme="light"] .agency-badge-icon {
-    color: #FFFFFF !important;
+    color: #253780 !important;
+  }
+  /* Agency-credit badge's "Created while working at X" copy — the badge's own dark fill was
+     removed (outline-only now), so the white text needs a hardcode here too or it disappears
+     against this theme's light page background. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .agency-badge-text {
+    color: #253780 !important;
   }
   /* Story page's "Outside of Design" accordion — each entry's native <details> summary heading
      (e.g. "Kitesurfing"), built directly into the CMS rich text per the comment in
