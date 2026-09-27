@@ -277,7 +277,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               onHoverEnd={() => setHoveredId(null)}
               animate={{ opacity: isFaded ? 0 : 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className={`text-left relative p-6 ${!isLast ? "border-b md:border-b-0 md:border-r" : ""}`}
+              className={`text-left relative flex flex-col p-6 ${!isLast ? "border-b md:border-b-0 md:border-r" : ""}`}
               style={{
                 borderColor: "var(--c-divider)",
                 background: isHovered || isSelected ? "rgba(var(--c-teal-rgb), 0.05)" : "transparent",
@@ -399,17 +399,20 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                 </AnimatePresence>
               </div>
 
-              {/* CTA — pinned to the card's bottom-left corner (position: absolute) so it lines
-                  up across all 4 cards regardless of how many lines the question/description
-                  above it wrap to, instead of sitting wherever that content happens to end. */}
+              {/* Flexible spacer — the card is a flex column (min-height 180px), so this grows
+                  to push the CTA down to the card's bottom edge, lining it up across all 4 cards
+                  the same way position:absolute did. min-height guarantees at least 30px of gap
+                  above the CTA even when a card's own content (e.g. a 2-line question + 2-line
+                  description) is tall enough to nearly fill the card, which absolute positioning
+                  couldn't do since it doesn't reserve any space in the normal flow. */}
+              <div style={{ flex: 1, minHeight: 30 }} />
+
+              {/* CTA */}
               <motion.span
                 className="flex items-center gap-2"
                 animate={{ opacity: isHovered ? 0 : 1 }}
                 transition={{ duration: 0.15 }}
                 style={{
-                  position: "absolute",
-                  bottom: 24,
-                  left: 24,
                   fontFamily: "var(--font-mono)",
                   fontSize: "12px",
                   color: "var(--c-teal)",
