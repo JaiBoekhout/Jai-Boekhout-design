@@ -169,20 +169,20 @@ export function ProjectDetailBody({
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // num/tag badge — shared between the overlaid banner header (hero present) and the plain
-  // fallback header (no hero). The "Back to Work"/"Back to Projects" control that used to sit
-  // next to this now lives in ProjectDetailChrome as a persistent, non-scrolling button (same
-  // reasoning as the close button there) — see the comment on that button for why.
-  const backAndBadge = (
-    <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3`}>
-      <div style={{
-        fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
-        color: TEAL, background: "rgba(6,9,12,0.75)",
-        border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: "var(--tag-corner)",
-        padding: "5px 13px",
-      }}>
-        {project.num} — {project.tags[0]?.toUpperCase()}
-      </div>
+  // num/tag badge — shared between the overlaid banner (hero present) and the plain fallback
+  // header (no hero), sitting directly above the title in both. Used to share a header row with
+  // the "Back to Work"/"Back to Projects" control up in the banner's top-left corner, but that
+  // control is now a persistent, non-scrolling button in ProjectDetailChrome pinned to that exact
+  // corner — leaving the badge there meant the two permanently overlapped.
+  const numTagBadge = (
+    <div style={{
+      display: "inline-block",
+      fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
+      color: TEAL, background: "rgba(6,9,12,0.75)",
+      border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: "var(--tag-corner)",
+      padding: "5px 13px", marginBottom: 10,
+    }}>
+      {project.num} — {project.tags[0]?.toUpperCase()}
     </div>
   );
 
@@ -225,15 +225,11 @@ export function ProjectDetailBody({
             <div style={{ position: "absolute", inset: 0, background: buildHeroOverlayGradient(project, PROJECT_HERO_OVERLAY_DEFAULTS) }} />
           )}
 
-          {/* Header row, overlaid — the close X itself now lives in ProjectDetailChrome's
-              persistent, non-scrolling button, so it isn't rendered here anymore. */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
-            {backAndBadge}
-          </div>
-
-          {/* Title block, overlaid bottom-left */}
+          {/* Title block, overlaid bottom-left — the Back/Close controls now live as their own
+              persistent buttons in ProjectDetailChrome, so nothing overlaid sits up top anymore. */}
           <div className="absolute left-0 right-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-7">
             <div style={{ maxWidth: 1160, margin: "0 auto" }}>
+              {numTagBadge}
               <div style={{ marginBottom: 4 }}>
                 <CompanyCredit
                   companyId={project.companyId}
@@ -267,9 +263,7 @@ export function ProjectDetailBody({
             zero images at all, since heroSrc otherwise falls back to the first gallery image). */}
         {!heroSrc && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              {backAndBadge}
-            </div>
+            {numTagBadge}
 
             <TitleTag className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 6, color: TEAL }}>
               {project.name}
