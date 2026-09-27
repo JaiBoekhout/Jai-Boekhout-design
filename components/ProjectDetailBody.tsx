@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef, type CSSProperties } from "react";
 import NextImage from "next/image";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, projectUrlSlug } from "@/store/contentStore";
 import { CompanyCredit } from "@/components/CompanyCredit";
@@ -171,40 +169,12 @@ export function ProjectDetailBody({
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // Back control + num/tag badge — shared between the overlaid banner header (hero present) and
-  // the plain fallback header (no hero). Page mode's back link shows at every breakpoint (no
-  // separate mobile bar in page mode — see ProjectDetailChrome's page branch); modal mode's back
-  // button stays desktop-only, since ProjectDetailChrome already renders a mobile/tablet
-  // back+close bar of its own for modal mode.
+  // num/tag badge — shared between the overlaid banner header (hero present) and the plain
+  // fallback header (no hero). The "Back to Work"/"Back to Projects" control that used to sit
+  // next to this now lives in ProjectDetailChrome as a persistent, non-scrolling button (same
+  // reasoning as the close button there) — see the comment on that button for why.
   const backAndBadge = (
     <div className={`${mode === "page" ? "flex" : "hidden lg:flex"} items-center gap-3`}>
-      {mode === "page" ? (
-        <Link
-          href="/work"
-          className="hover:opacity-80 transition-opacity"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
-            color: TEAL, background: "rgba(6,9,12,0.75)",
-            border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)", borderRadius: buttonCorner,
-            padding: "7px 13px", textDecoration: "none",
-          }}
-        >
-          <ArrowLeft size={12} /> Back to Work
-        </Link>
-      ) : (
-        <button
-          onClick={onClose}
-          className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-          style={{
-            fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
-            color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner,
-            padding: "7px 12px", cursor: "pointer",
-          }}
-        >
-          <ArrowLeft size={11} /> Back to Projects
-        </button>
-      )}
       <div style={{
         fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
         color: TEAL, background: "rgba(6,9,12,0.75)",

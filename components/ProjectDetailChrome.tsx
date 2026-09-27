@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { track } from "@vercel/analytics";
 import { ArrowLeft, X } from "lucide-react";
+import Link from "next/link";
 import type { CMSProject } from "@/store/contentStore";
 import { useButtonCorner } from "@/components/SiteKit";
 
@@ -78,15 +79,23 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
     // bar and the sticky hero column, pushing the hero's natural (pre-stick) offset past the
     // lg:top-16 threshold it needs to land on. It would then only actually stick — and the
     // scroll-hint pinned to its bottom edge would only become visible — once the visitor
-    // scrolled the page down by roughly that row's own height first. ProjectDetailBody renders
-    // the back link itself instead, absolutely positioned inside the hero panel so it adds no
-    // flow height above it.
+    // scrolled the page down by roughly that row's own height first. Real position:fixed here
+    // (this branch has no transformed ancestor, unlike the modal's motion.div, so fixed is
+    // genuinely viewport-relative) instead, same reasoning as the close button beside it.
     return (
       <div style={{ minHeight: "100vh", background: "var(--c-bg-deep)" }}>
-        {/* A real position:fixed close button (this branch has no transformed ancestor, unlike
-            the modal's motion.div, so fixed here is genuinely viewport-relative) — the page's
-            own "Back to Work" link lives inside the scrolling hero banner below and scrolls out
-            of view, so this is the one way to close the page from anywhere in the scroll. */}
+        <Link
+          href="/work"
+          className="hover:opacity-80 transition-opacity flex items-center gap-1.5"
+          style={{
+            position: "fixed", top: 14, left: 14, zIndex: 60,
+            fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
+            color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner,
+            padding: "7px 12px", textDecoration: "none",
+          }}
+        >
+          <ArrowLeft size={11} /> Back to Work
+        </Link>
         <button
           onClick={onClose}
           aria-label="Close"
@@ -125,13 +134,28 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
       onAnimationComplete={onAnimationComplete}
     >
-      {/* Close button — a sibling of the scrolling content below, positioned against this
-          panel's own (fixed, non-scrolling) box rather than inside it, so it stays put at a
+      {/* Back + Close — both siblings of the scrolling content below, positioned against this
+          panel's own (fixed, non-scrolling) box rather than inside it, so they stay put at a
           constant spot on screen as the visitor scrolls through a project, instead of scrolling
-          away with the hero banner it used to be absolutely-positioned inside of. Fixed light
-          colors (not theme vars) since it always sits on top of whatever's currently scrolled
-          underneath it — a photo hero, or a plain themed background — same treatment the old
-          hero-overlaid close button used, now just applying everywhere instead of only there. */}
+          away with the hero banner they used to be absolutely-positioned inside of (Back) or
+          only existing as a mobile-only bar for (this solid style, at every breakpoint now).
+          Back and Close both call onClose here — same action, kept as two separate controls
+          since a text "Back to Projects" affordance and an icon-only close are both worth having
+          on screen at once. */}
+      <button
+        onClick={onClose}
+        className="hover:opacity-80 transition-opacity flex items-center gap-1.5"
+        style={{
+          position: "absolute", top: 14, left: 14, zIndex: 10,
+          fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em",
+          color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner,
+          padding: "7px 12px", cursor: "pointer",
+        }}
+      >
+        <ArrowLeft size={11} /> Back to Projects
+      </button>
+      {/* Fixed light colors (not theme vars) since it always sits on top of whatever's currently
+          scrolled underneath it — a photo hero, or a plain themed background. */}
       <button
         onClick={onClose}
         aria-label="Close"
@@ -151,20 +175,6 @@ export function ProjectDetailChrome({ project, mode, onClose, onAnimationComplet
           box (inside the body) from leaking past this popup into the page underneath, which is
           otherwise still independently scrollable behind this fixed-position overlay. */}
       <div className="flex flex-col lg:flex-row h-full overflow-y-auto lg:overflow-hidden" style={{ borderRadius: "inherit", overscrollBehavior: "contain" }}>
-        {/* Top actions — top of the page on mobile/tablet, above everything including the hero image.
-            The close X itself now lives in the persistent button above; this bar just keeps the
-            "Back to Projects" affordance. Right padding clears that persistent circle (34px wide,
-            sitting 14px from the panel's edge) so the two never overlap. */}
-        <div className="flex lg:hidden items-center justify-end gap-2 py-3 pl-3" style={{ paddingRight: 62 }}>
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", color: "#0C1117", background: TEAL, border: "none", borderRadius: buttonCorner, padding: "7px 12px", cursor: "pointer" }}
-          >
-            <ArrowLeft size={11} /> Back to Projects
-          </button>
-        </div>
-
         {children}
       </div>
     </motion.div>
