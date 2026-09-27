@@ -98,6 +98,7 @@ export interface CMSCompany {
   id: string;
   name: string;
   logoUrl?: string;
+  websiteUrl?: string;
 }
 
 // The file this constant used to point at (logo-Jai-Boekhout-Design.png) no longer exists

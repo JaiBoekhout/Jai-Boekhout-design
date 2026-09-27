@@ -2199,6 +2199,11 @@ export function DesignSystemSection({
                 value={company.logoUrl}
                 onChange={(url) => { const c = [...companies]; c[i] = { ...c[i], logoUrl: url || undefined }; onCompaniesChange(c); }}
               />
+              <CMSUrlInput
+                label="Website URL (optional) — makes the agency-credit badge open this in a new tab"
+                value={company.websiteUrl || ""}
+                onChange={(v) => { const c = [...companies]; c[i] = { ...c[i], websiteUrl: v || undefined }; onCompaniesChange(c); }}
+              />
             </div>
           ))}
         </div>

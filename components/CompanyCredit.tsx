@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { X, Info } from "lucide-react";
 import type { CMSCompany } from "@/store/contentStore";
 import { DEFAULT_COMPANY_CREDIT_COPY } from "@/store/contentStore";
@@ -95,25 +95,46 @@ export function CompanyCredit({
           just the badge+trigger) at sm:+ so this div's own edges — not the wide content column
           it sits in — are what the callout's top-right anchor below is actually relative to. */}
       <div className="flex sm:inline-flex" style={{ alignItems: "center", gap: 9, position: "relative" }}>
-        {/* Solid badge — fixed teal/dark-ink colours (not themed vars) so this reads exactly the
-            same whether it sits on the page's own background or directly on a hero photo. The
-            logo sits inside the badge itself, on a small white swatch — company logos vary in
-            their own colouring/transparency, so a fixed light backing keeps any of them legible
-            against the solid teal rather than assuming they all read fine directly on it. */}
-        <span className="agency-badge-text" style={{
-          display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
-          letterSpacing: "0.08em", textTransform: "uppercase", color: "#FFFFFF",
-          background: "transparent", border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
-          borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
-        }}>
-          {company.logoUrl && (
-            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 3, padding: "3px 5px", flexShrink: 0 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 12, width: "auto", maxWidth: 60, objectFit: "contain", display: "block" }} />
+        {/* Outline badge — fixed teal border/text colours (not themed vars) so this reads
+            exactly the same whether it sits on the page's own background or directly on a hero
+            photo. The logo sits inside the badge itself, on a small white swatch — company logos
+            vary in their own colouring/transparency, so a fixed light backing keeps any of them
+            legible regardless. Only a real link (not just onClick) when the company has a
+            website set — a plain span otherwise, same look either way. */}
+        {(() => {
+          const badgeStyle: CSSProperties = {
+            display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 400,
+            letterSpacing: "0.08em", textTransform: "uppercase", color: "#FFFFFF",
+            background: "transparent", border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
+            borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
+          };
+          const badgeContent = (
+            <>
+              {company.logoUrl && (
+                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 3, padding: "3px 5px", flexShrink: 0 }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={company.logoUrl} alt={`${company.name} logo`} style={{ height: 12, width: "auto", maxWidth: 60, objectFit: "contain", display: "block" }} />
+                </span>
+              )}
+              Created while working at {company.name}
+            </>
+          );
+          return company.websiteUrl ? (
+            <a
+              href={company.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="agency-badge-text hover:opacity-80 transition-opacity"
+              style={{ ...badgeStyle, textDecoration: "none", cursor: "pointer" }}
+            >
+              {badgeContent}
+            </a>
+          ) : (
+            <span className="agency-badge-text" style={badgeStyle}>
+              {badgeContent}
             </span>
-          )}
-          Created while working at {company.name}
-        </span>
+          );
+        })()}
         <button
           ref={triggerRef}
           type="button"
