@@ -226,21 +226,12 @@ export function ProjectDetailBody({
           )}
 
           {/* Title block, overlaid bottom-left — the Back/Close controls now live as their own
-              persistent buttons in ProjectDetailChrome, so nothing overlaid sits up top anymore. */}
+              persistent buttons in ProjectDetailChrome, so nothing overlaid sits up top anymore.
+              The company-credit line used to sit here too — moved into the Role section below,
+              underneath its heading, instead of overlaid on the photo. */}
           <div className="absolute left-0 right-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-7">
             <div style={{ maxWidth: 1160, margin: "0 auto" }}>
               {numTagBadge}
-              <div style={{ marginBottom: 4 }}>
-                <CompanyCredit
-                  companyId={project.companyId}
-                  companies={content.companies}
-                  clientName={project.client}
-                  instanceId={`card-${project.id}`}
-                  openId={openAttributionId}
-                  onToggle={onToggleAttribution}
-                  copyTemplate={content.companyCreditCopy}
-                />
-              </div>
               <TitleTag className="hero-mobile-h3" style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(22px, 5.5vw, 34px)", fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 6, color: "#F5F1EA" }}>
                 {project.name}
               </TitleTag>
@@ -269,19 +260,8 @@ export function ProjectDetailBody({
               {project.name}
             </TitleTag>
 
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--c-text-40)", marginBottom: 18 }}>
               {project.client}
-            </div>
-            <div style={{ marginBottom: 18 }}>
-              <CompanyCredit
-                companyId={project.companyId}
-                companies={content.companies}
-                clientName={project.client}
-                instanceId={`card-${project.id}`}
-                openId={openAttributionId}
-                onToggle={onToggleAttribution}
-                copyTemplate={content.companyCreditCopy}
-              />
             </div>
           </>
         )}
@@ -382,6 +362,17 @@ export function ProjectDetailBody({
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
                 <SectionTag style={SECTION_HEADING_STYLE}>Role</SectionTag>
+                <div style={{ marginBottom: 16 }}>
+                  <CompanyCredit
+                    companyId={project.companyId}
+                    companies={content.companies}
+                    clientName={project.client}
+                    instanceId={`card-${project.id}`}
+                    openId={openAttributionId}
+                    onToggle={onToggleAttribution}
+                    copyTemplate={content.companyCreditCopy}
+                  />
+                </div>
                 <div
                   className="grid grid-cols-1 md:grid-cols-2"
                   // rowGap: 0 (not the 0.5px column-gap divider both directions used to share) —
