@@ -393,6 +393,12 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .story-timeline-title {
     color: #253780 !important;
   }
+  /* Agency-credit badge's "i" info trigger — hardcoded white so it stays legible against the
+     page's own light background, since the badge itself sits outside the badge's own dark
+     background and inherits var(--c-teal) (orange for this theme) otherwise. */
+  :root[data-style-theme="sunset-coral"][data-theme="light"] .agency-badge-icon {
+    color: #FFFFFF !important;
+  }
   /* Story page's "Outside of Design" accordion — each entry's native <details> summary heading
      (e.g. "Kitesurfing"), built directly into the CMS rich text per the comment in
      ExperienceStory.tsx, not a separate label field. */

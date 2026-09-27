@@ -102,8 +102,9 @@ export function CompanyCredit({
             against the solid teal rather than assuming they all read fine directly on it. */}
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700,
-          letterSpacing: "0.08em", textTransform: "uppercase", color: "#0C1117",
-          background: "var(--c-teal)", borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
+          letterSpacing: "0.08em", textTransform: "uppercase", color: "#FFFFFF",
+          background: "rgba(6,9,12,0.75)", border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
+          borderRadius: "var(--tag-corner)", padding: company.logoUrl ? "5px 11px 5px 6px" : "6px 11px",
         }}>
           {company.logoUrl && (
             <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#fff", borderRadius: 3, padding: "3px 5px", flexShrink: 0 }}>
@@ -116,7 +117,7 @@ export function CompanyCredit({
         <button
           ref={triggerRef}
           type="button"
-          className="agency-info-trigger"
+          className="agency-info-trigger agency-badge-icon"
           aria-label="More information about this project's attribution"
           aria-expanded={isOpen}
           aria-controls={calloutId}
