@@ -579,10 +579,11 @@
   .rte-content .rte-collapsible-body > *:last-child { margin-bottom: 0; }
 
   /* Agency attribution "i" info trigger + callout — sits inline after the "Created while
-     working at [Company]" credit line. Callout is a floating card anchored above and to the
-     right of the icon on normal screens (opening upward avoids it dropping down over
-     whatever content follows the credit line); below 640px it drops to a static full-width
-     card instead (a floating card that narrow would clip against the viewport edge). */
+     working at [Company]" credit line. The callout positions against its nearest positioned
+     ancestor — the Role section wrapper in ProjectDetailBody.tsx, not this row itself — so its
+     width matches that section's full content column instead of a fixed narrow card, and opens
+     downward as an overlay on top of whatever's below it (the Role/Client/Platform/Scope grid),
+     rather than pushing that content down or growing upward over the heading above it. */
   .agency-info-trigger {
     width: 18px;
     height: 18px;
@@ -611,10 +612,11 @@
   .agency-info-trigger:focus-visible { outline: 2px solid var(--c-teal); outline-offset: 2px; }
   .agency-info-callout {
     position: absolute;
-    bottom: calc(100% + 8px);
+    top: calc(100% + 8px);
+    left: 0;
     right: 0;
     z-index: 40;
-    width: 300px;
+    width: auto;
     max-width: calc(100vw - 32px);
     background: var(--c-bg-card);
     border: 1px solid var(--c-border);
@@ -647,9 +649,6 @@
     transition: opacity 0.15s ease;
   }
   .agency-info-callout-close:hover { opacity: 0.7; }
-  @media (max-width: 640px) {
-    .agency-info-callout { position: static; width: 100%; max-width: none; margin-top: 10px; }
-  }
 
   /* Nav logo — invert on dark bg so white background disappears and teal/gray remain */
   .nav-logo { filter: invert(1) hue-rotate(180deg); }

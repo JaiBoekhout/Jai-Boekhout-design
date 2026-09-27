@@ -86,15 +86,12 @@ export function CompanyCredit({
   if (!company) return null;
 
   return (
-    // The row (badge + trigger), not this outer div, is the callout's positioning anchor — see
-    // the className on the row below for why, and the comment on .agency-info-callout in
-    // globals.css for the matching mobile-width half of this.
+    // The callout's positioning anchor is an ancestor outside this component — the Role
+    // section's own wrapper in ProjectDetailBody.tsx — so its width matches that section's full
+    // content column instead of shrink-wrapping to just this badge+trigger row. See the comment
+    // on .agency-info-callout in globals.css for the full reasoning.
     <div style={{ marginTop: 6 }}>
-      {/* flex (full-width block) below 640px so the callout's position:static width:100% in
-          globals.css resolves against the full row width there; inline-flex (shrink-wrapped to
-          just the badge+trigger) at sm:+ so this div's own edges — not the wide content column
-          it sits in — are what the callout's top-right anchor below is actually relative to. */}
-      <div className="flex sm:inline-flex" style={{ alignItems: "center", gap: 9, position: "relative" }}>
+      <div className="flex sm:inline-flex" style={{ alignItems: "center", gap: 9 }}>
         {/* Outline badge — fixed teal border/text colours (not themed vars) so this reads
             exactly the same whether it sits on the page's own background or directly on a hero
             photo. The logo sits inside the badge itself, on a small white swatch — company logos

@@ -362,7 +362,10 @@ export function ProjectDetailBody({
                 style={{ scrollMarginTop: navTopOffset + 12 }}
               >
                 <SectionTag style={SECTION_HEADING_STYLE}>Role</SectionTag>
-                <div style={{ marginBottom: 16 }}>
+                {/* position:relative — the anchor CompanyCredit's callout positions itself
+                    against, so it opens at this section's full content width instead of
+                    shrink-wrapping to the badge+trigger row inside it. */}
+                <div style={{ marginBottom: 16, position: "relative" }}>
                   <CompanyCredit
                     companyId={project.companyId}
                     companies={content.companies}
@@ -482,14 +485,23 @@ export function ProjectDetailBody({
               // at ~3x that width, so the browser stretched/upscaled it — the actual cause of the
               // "grainy" look reported on Bouwfasef (1 highlight image), not a real quality loss.
               const n = highlightItems.length;
-              const highlightSizes = `(min-width: 1024px) ${Math.round(70 / n)}vw, ${Math.round(95 / n)}vw`;
+              // Stacked full-width on mobile (each image gets the full ~95vw, same as a single
+              // highlight already did) instead of squeezed into an equal share of one row — the
+              // sizes hint mirrors that: mobile always fetches a ~95vw-wide file regardless of n,
+              // matching how large the stacked image actually renders there.
+              const highlightSizes = `(min-width: 1024px) ${Math.round(70 / n)}vw, (min-width: 640px) ${Math.round(95 / n)}vw, 95vw`;
               return (
-                <div style={{ display: "flex", gap: 8, marginTop: 40, marginBottom: 22 }}>
+                <div className="flex flex-col sm:flex-row" style={{ gap: 8, marginTop: 40, marginBottom: 22 }}>
                   {highlightItems.map((item, k) => (
                     <button
                       key={k}
                       onClick={() => onOpenLightbox(item.src!)}
-                      style={{ flex: 1, aspectRatio: "4/3", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
+                      // flex:1 only at sm:+ (the row layout, sharing width evenly) — in the
+                      // mobile column layout flex:1's flex-basis:0 fights aspect-ratio's height
+                      // calculation, so each stacked image instead just sizes off its own width
+                      // (100% via the column's default stretch) and the fixed aspect-ratio.
+                      className="sm:flex-1"
+                      style={{ aspectRatio: "4/3", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", minWidth: 0, overflow: "hidden", padding: 0, cursor: "zoom-in", background: "none", display: "block", position: "relative" }}
                     >
                       <FadeInImage
                         src={item.src!}
