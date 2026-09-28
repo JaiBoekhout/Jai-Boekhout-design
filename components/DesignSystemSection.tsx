@@ -18,6 +18,7 @@ import type {
   CMSDesignSystem, CMSDesignColors, CMSBranding, CMSComponentColors, CMSCompany, CMSSocials, CMSNotFound,
   CMSButtonVariantStyle, ButtonVariantId, LinkUnderline, CMSTypeScale,
   MenuHoverEffect, TabBarFill, ButtonCorner, AccentFollow, CMSSavedTheme, CMSSavedFontPairing,
+  AdjustableTypeScaleKey,
 } from "@/store/contentStore";
 
 const SOCIAL_PLATFORMS: { key: keyof CMSSocials; label: string; Icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
@@ -654,6 +655,11 @@ const TYPE_SCALE_ROWS: { key: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "s
   { key: "xsmall", label: "xs", isHeading: false },
 ];
 
+// Which TYPE_SCALE_ROWS actually reach real site CSS (see typeScaleVars in buildDesignSystemCss,
+// store/contentStore.ts) and so are worth an adjustment stepper — h4/h5 have their own separate
+// treatments and xsmall isn't emitted as CSS at all, so a nudge control for them would be dead UI.
+const ADJUSTABLE_SIZE_KEYS = new Set<AdjustableTypeScaleKey>(["h1", "h2", "h3", "h6", "p", "small"]);
+
 // Only rendered when fontPairing === "custom". H4/H5 are shown in the preview for completeness
 // (matching the reference type-scale tool) but aren't editable here — they keep their own
 // distinct treatments elsewhere (a body-font subheading and a mono-font eyebrow label) and
@@ -680,7 +686,7 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
   const activeScale = device === "mobile"
     ? (typeScale.mobile ?? { baseFontSize: typeScale.baseFontSize, scaleRatio: typeScale.scaleRatio })
     : { baseFontSize: typeScale.baseFontSize, scaleRatio: typeScale.scaleRatio };
-  const sizes = computeTypeScaleSizes(activeScale.baseFontSize, activeScale.scaleRatio);
+  const sizes = computeTypeScaleSizes(activeScale.baseFontSize, activeScale.scaleRatio, typeScale.adjustments);
 
   function updateActiveScale(patch: Partial<{ baseFontSize: number; scaleRatio: number }>) {
     if (device === "desktop") {
@@ -698,6 +704,14 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
   }
   function updateLabels(patch: Partial<CMSTypeScale["labels"]>) {
     onChange({ labels: { ...typeScale.labels, ...patch } });
+  }
+  // A 0 delta is removed rather than stored as 0 — keeps the saved object free of no-op overrides
+  // for levels nobody's actually nudged, matching how `mobile` itself stays absent until touched.
+  function updateAdjustment(key: AdjustableTypeScaleKey, v: number) {
+    const next = { ...(typeScale.adjustments ?? {}) };
+    if (v === 0) delete next[key];
+    else next[key] = v;
+    onChange({ adjustments: next });
   }
 
   const sectionLabelStyle: React.CSSProperties = { fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 };
@@ -797,14 +811,40 @@ function TypeScaleEditor({ typeScale, onChange }: { typeScale: CMSTypeScale; onC
               </button>
             ))}
           </div>
+          <div className="flex items-center gap-3" style={{ padding: "0 0 4px" }}>
+            <span style={{ width: 26, flexShrink: 0 }} />
+            <span style={{ width: 52, flexShrink: 0 }} />
+            <span style={{ width: 36, flexShrink: 0, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#6B7E8A", letterSpacing: "0.04em" }} title="Nudges this level by a flat px amount on top of the computed scale, without moving the ratio every other level follows">
+              ±px
+            </span>
+            <span style={{ flex: 1 }} />
+          </div>
           {TYPE_SCALE_ROWS.map((row) => {
             const font = row.isHeading ? typeScale.headings.font : typeScale.body.font;
             const weight = row.isHeading ? typeScale.headings.weight : typeScale.body.weight;
             const size = sizes[row.key];
+            const adjustable = ADJUSTABLE_SIZE_KEYS.has(row.key as AdjustableTypeScaleKey);
+            const adjustment = adjustable ? (typeScale.adjustments?.[row.key as AdjustableTypeScaleKey] ?? 0) : 0;
             return (
               <div key={row.key} className="flex items-baseline gap-3" style={{ borderBottom: "1px solid rgba(237,232,223,0.05)", padding: "7px 0" }}>
                 <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", width: 26, flexShrink: 0 }}>{row.label}</span>
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", width: 52, flexShrink: 0 }}>{formatSize(size, unit)}</span>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: adjustment ? "#14ADB5" : "#6B7E8A", width: 52, flexShrink: 0 }}>{formatSize(size, unit)}</span>
+                {adjustable ? (
+                  <input
+                    type="number"
+                    step={1}
+                    value={adjustment}
+                    onChange={(e) => updateAdjustment(row.key as AdjustableTypeScaleKey, parseFloat(e.target.value) || 0)}
+                    title={`Nudge ${row.label} by this many px on top of the computed scale`}
+                    style={{
+                      alignSelf: "center", width: 36, flexShrink: 0, background: "#0C1117",
+                      border: `1px solid ${adjustment ? "rgba(20,173,181,0.4)" : "rgba(237,232,223,0.1)"}`,
+                      borderRadius: 5, padding: "3px 4px", fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#EDE8DF", outline: "none",
+                    }}
+                  />
+                ) : (
+                  <span style={{ width: 36, flexShrink: 0 }} />
+                )}
                 <span
                   style={{
                     fontFamily: font,

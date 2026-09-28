@@ -789,17 +789,32 @@ export interface CMSTypeScale {
   // buildDesignSystemCss() fully opt-in rather than silently derived from whatever desktop
   // values already happen to be set.
   mobile?: { baseFontSize: number; scaleRatio: number };
+  // Optional per-level px nudge on top of the computed base×ratio^N value — lets one level (e.g.
+  // H2 reading slightly too big next to H1 and H3) be fine-tuned without moving the shared ratio
+  // every other level still follows. Only covers the levels that actually reach real site CSS
+  // (see typeScaleVars in buildDesignSystemCss below) — h4/h5 have their own separate treatments
+  // and xsmall isn't emitted as CSS at all, so nudging them would have nothing to affect.
+  adjustments?: Partial<Record<"h1" | "h2" | "h3" | "h6" | "p" | "small", number>>;
 }
+
+export type AdjustableTypeScaleKey = "h1" | "h2" | "h3" | "h6" | "p" | "small";
 
 // p is the reference point (base × ratio^0); each level above steps up one more power of the
 // ratio (h6 = ratio^1 ... h1 = ratio^6), and "small"/"xsmall" step one and two powers below
-// (ratio^-1, ratio^-2) — matching type-scale.com's convention exactly.
-export function computeTypeScaleSizes(baseFontSize: number, scaleRatio: number): Record<"h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "small" | "xsmall", number> {
+// (ratio^-1, ratio^-2) — matching type-scale.com's convention exactly. `adjustments` then nudges
+// individual levels by a flat px amount on top of that computed value.
+export function computeTypeScaleSizes(
+  baseFontSize: number,
+  scaleRatio: number,
+  adjustments?: Partial<Record<AdjustableTypeScaleKey, number>>
+): Record<"h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "small" | "xsmall", number> {
   const step = (n: number) => Math.round(baseFontSize * Math.pow(scaleRatio, n) * 100) / 100;
+  const adjust = (key: AdjustableTypeScaleKey, base: number) => Math.round((base + (adjustments?.[key] ?? 0)) * 100) / 100;
   return {
-    h1: step(6), h2: step(5), h3: step(4), h4: step(3), h5: step(2), h6: step(1),
-    p: step(0),
-    small: step(-1),
+    h1: adjust("h1", step(6)), h2: adjust("h2", step(5)), h3: adjust("h3", step(4)),
+    h4: step(3), h5: step(2), h6: adjust("h6", step(1)),
+    p: adjust("p", step(0)),
+    small: adjust("small", step(-1)),
     xsmall: step(-2),
   };
 }
@@ -1421,7 +1436,7 @@ export function buildDesignSystemCss(ds: CMSDesignSystem, selector: string = ":r
   // declared in globals.css (those rules read these same vars with a hardcoded CSS fallback).
   const typeScaleVars = isCustom
     ? (() => {
-        const sizes = computeTypeScaleSizes(ts.baseFontSize, ts.scaleRatio);
+        const sizes = computeTypeScaleSizes(ts.baseFontSize, ts.scaleRatio, ts.adjustments);
         return `
   --h1-size: ${sizes.h1}px; --h2-size: ${sizes.h2}px; --h3-size: ${sizes.h3}px; --h6-size: ${sizes.h6}px;
   --body-size: ${sizes.p}px; --small-size: ${sizes.small}px;
@@ -1453,7 +1468,7 @@ export function buildDesignSystemCss(ds: CMSDesignSystem, selector: string = ":r
   const mobileTypeScaleCss =
     isCustom && ts.mobile
       ? (() => {
-          const m = computeTypeScaleSizes(ts.mobile!.baseFontSize, ts.mobile!.scaleRatio);
+          const m = computeTypeScaleSizes(ts.mobile!.baseFontSize, ts.mobile!.scaleRatio, ts.adjustments);
           return `
 @media (max-width: 767px) {
   ${selector} {
