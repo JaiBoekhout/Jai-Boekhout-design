@@ -53,7 +53,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
         padding: "9px 11px",
         gap: isExpanded ? 9 : 0,
         cursor: "pointer",
-        transition: "background 0.25s ease, border-color 0.25s ease, color 0.25s ease, gap 0.25s ease",
+        transition: "background 0.25s ease, border-color 0.25s ease, color 0.25s ease, gap 0.35s ease-out",
       }}
     >
       <Icon size={16} />
@@ -63,7 +63,13 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
           maxWidth: isExpanded ? 160 : 0,
           opacity: isExpanded ? 1 : 0,
           lineHeight: 1.15,
-          transition: "max-width 0.25s ease, opacity 0.2s ease",
+          // max-width and opacity used to run on different durations (0.25s vs 0.2s) — opacity
+          // reached full visibility before the container finished widening, so for that last
+          // ~50ms the already-solid text was still being uncovered by the shrinking clip window,
+          // reading as a stutter rather than a reveal. Now both run the same duration/easing, and
+          // opacity gets a short delay so the label doesn't fade in until the container has
+          // actually started opening up for it.
+          transition: "max-width 0.35s ease-out, opacity 0.35s ease-out 0.05s",
         }}
       >
         {eyebrow && (
