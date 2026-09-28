@@ -7,6 +7,7 @@ import {
   Search, CheckSquare, Square, ListChecks,
 } from "lucide-react";
 import { useContentStore, findMediaUsage, findOrphanedMedia, replaceMediaUsage } from "@/store/contentStore";
+import { useDebouncedMediaMetaSave } from "@/store/useDebouncedMediaMetaSave";
 import { MediaInfoPanel } from "@/components/MediaInfoPanel";
 import { MediaLibraryModal } from "@/components/MediaLibraryModal";
 import { sanitizeFilename, uniqueFilename } from "@/lib/media";
@@ -579,12 +580,7 @@ export function MediaSection() {
 
   // ── Metadata ────────────────────────────────────────────────────────────────
 
-  function getMeta(src: string) { return content.mediaMeta?.[src] ?? {}; }
-  async function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
-    const updated = { ...content.mediaMeta, [src]: { ...getMeta(src), ...patch } };
-    updateContent({ mediaMeta: updated });
-    await persistContent({ mediaMeta: updated });
-  }
+  const { getMeta, setMeta } = useDebouncedMediaMetaSave(content, updateContent, persistContent);
 
   const crumbs = breadcrumbs(currentFolder);
 

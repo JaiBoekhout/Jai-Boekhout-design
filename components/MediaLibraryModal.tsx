@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { MediaFile, MediaFolder } from "@/app/api/media/route";
 import { useContentStore, findMediaUsage, findOrphanedMedia } from "@/store/contentStore";
+import { useDebouncedMediaMetaSave } from "@/store/useDebouncedMediaMetaSave";
 import { MediaInfoPanel } from "@/components/MediaInfoPanel";
 import { ImageFolderTree } from "@/components/ImageFolderTree";
 import { collectImages, collectFolders, fileFolder, matchesSearch } from "@/lib/mediaTree";
@@ -79,12 +80,7 @@ export function MediaLibraryModal({ onSelect, onClose }: Props) {
         ? allImages.filter((img) => matchesSearch(img, searchQuery, content.mediaMeta ?? {}))
         : folderScope;
 
-  function getMeta(src: string) { return content.mediaMeta?.[src] ?? {}; }
-  async function setMeta(src: string, patch: Partial<{ displayName: string; alt: string; description: string }>) {
-    const updated = { ...content.mediaMeta, [src]: { ...getMeta(src), ...patch } };
-    updateContent({ mediaMeta: updated });
-    await persistContent({ mediaMeta: updated });
-  }
+  const { getMeta, setMeta } = useDebouncedMediaMetaSave(content, updateContent, persistContent);
 
   async function handleUpload(files: FileList) {
     if (!files.length) return;
