@@ -394,7 +394,7 @@ function PlainColorPairControl({
           </button>
         )}
       </div>
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2">
         <ColorInput label="Dark mode" value={darkValue} onChange={onDarkChange} />
         <ColorInput label="Light mode" value={lightValue} onChange={onLightChange} />
       </div>
@@ -487,7 +487,7 @@ function ComponentColorControl({
           ))}
         </div>
       )}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2">
         <ColorInput label="Dark mode" value={darkValue} onChange={(v) => onChange({ [darkKey]: v })} />
         <ColorInput label="Light mode" value={lightValue} onChange={(v) => onChange({ [lightKey]: v })} />
       </div>
@@ -1505,7 +1505,7 @@ export function DesignSystemSection({
             <div key={token.key} className="mb-5" style={{ alignSelf: "start" }}>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#EDE8DF", fontWeight: 500, marginBottom: 2 }}>{token.label}</p>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", marginBottom: 8 }}>{token.description}</p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex flex-col gap-2">
                 <ColorInput label="Dark mode" value={data.colors[token.key]} onChange={(v) => updateColor(token.key, v)} />
                 <ColorInput label="Light mode" value={data.colors[lightKey] ?? "#000000"} onChange={(v) => updateColor(lightKey, v)} />
               </div>
@@ -1537,7 +1537,7 @@ export function DesignSystemSection({
                             Remove
                           </button>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div className="flex flex-col gap-2">
                           <ColorInput label="Dark mode" value={c[darkK] ?? c.accentDark} onChange={(v) => updateColors({ [darkK]: v })} />
                           <ColorInput label="Light mode" value={c[lightK] ?? c.accentLight} onChange={(v) => updateColors({ [lightK]: v })} />
                         </div>
