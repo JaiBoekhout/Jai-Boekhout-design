@@ -107,7 +107,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
         if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
         highlightTimeout.current = setTimeout(() => setStaticHighlight(false), 1200);
       } else {
-        nudgeControls.start({ scale: [1, 1.045, 1, 1.045, 1], transition: { duration: 1.2, ease: "easeInOut" } });
+        nudgeControls.start({ scale: [1, 1.045, 1, 1.045, 1, 1.045, 1], transition: { duration: 1.5, ease: "easeInOut" } });
       }
     }
     window.addEventListener("nudge-bottom-nav", onNudge);
