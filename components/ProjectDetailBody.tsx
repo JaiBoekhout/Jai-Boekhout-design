@@ -89,14 +89,16 @@ export function ProjectDetailBody({
   // side nav itself only shows once there's enough of them to be worth navigating (Summary/
   // Gallery alone don't warrant it — see showContentsNav below).
   const roleCards = useMemo(
-    () =>
-      [
+    () => {
+      const company = project.companyId ? content.companies.find((c) => c.id === project.companyId) : undefined;
+      return [
         { key: "role", label: "Role", value: project.fullCaseStudyRole },
-        { key: "client", label: "Client", value: project.client },
+        { key: "client", label: company ? `${company.name} Client` : "Client", value: project.client },
         { key: "platform", label: "Platform", value: project.fullCaseStudyPlatform },
         { key: "scope", label: "Scope", value: project.fullCaseStudyScope },
-      ].filter((c) => c.value && c.value.trim().length > 0),
-    [project.fullCaseStudyRole, project.client, project.fullCaseStudyPlatform, project.fullCaseStudyScope]
+      ].filter((c) => c.value && c.value.trim().length > 0);
+    },
+    [project.fullCaseStudyRole, project.client, project.fullCaseStudyPlatform, project.fullCaseStudyScope, project.companyId, content.companies]
   );
   const showSummary = !!project.desc;
   const showRole = !!(project.fullCaseStudyRole || project.fullCaseStudyPlatform || project.fullCaseStudyScope);
