@@ -127,12 +127,12 @@ function lightKeyFor(darkKey: string): keyof CMSDesignColors {
 
 function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex items-center gap-2" style={{ flex: 1 }}>
+    <div className="flex items-center gap-2" style={{ width: "100%", maxWidth: 190 }}>
       <input
         type="color"
         value={/^#[0-9A-Fa-f]{6}$/.test(value) ? value : "#000000"}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: 34, height: 34, borderRadius: 8, border: "1px solid rgba(237,232,223,0.15)", padding: 2, background: "none", cursor: "pointer", flexShrink: 0 }}
+        style={{ width: 30, height: 30, borderRadius: 7, border: "1px solid rgba(237,232,223,0.15)", padding: 2, background: "none", cursor: "pointer", flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 3 }}>{label}</p>
