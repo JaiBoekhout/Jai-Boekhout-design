@@ -691,6 +691,20 @@
   @media (prefers-reduced-motion: reduce) {
     .header-icon-btn { transition: none; }
   }
+  /* --switcher-bg (the default-state icon colour above) falls back to the Card colour, which in
+     these three theme/mode combos sits too close in luminance to the page background to read as
+     an icon — "Going Dutch!" (sunset-coral) dark is navy-on-near-black, "Jai Branding"
+     (playful-rounded) dark and light are both a card tone barely distinct from their own
+     background. Reusing --switcher-text (the same token the hover/open state already uses) fixes
+     all three at once and keeps the icon looking identical at rest and on hover — only the navy
+     circle behind it still appears/disappears — rather than hardcoding a one-off hex per theme.
+     Higher-specificity than the plain hover/focus-visible/[aria-expanded] rule above, so this
+     wins without needing !important. */
+  :root[data-style-theme="sunset-coral"][data-theme="dark"] .header-icon-btn,
+  :root[data-style-theme="playful-rounded"][data-theme="dark"] .header-icon-btn,
+  :root[data-style-theme="playful-rounded"][data-theme="light"] .header-icon-btn {
+    color: var(--switcher-text);
+  }
 
   /* Nav logo — invert on dark bg so white background disappears and teal/gray remain */
   .nav-logo { filter: invert(1) hue-rotate(180deg); }
