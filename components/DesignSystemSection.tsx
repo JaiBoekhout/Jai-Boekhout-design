@@ -49,6 +49,11 @@ interface Props {
    *  navigation away and back, and the next edit landed on the live root design system instead. */
   activeThemeId: string | null;
   onActiveThemeIdChange: (id: string | null) => void;
+  /** Same lifted-state reasoning as activeThemeId — which Saved Font Set (if any) is currently
+   *  loaded into the Custom font-pairing editor, so edits made after a tab switch still fold back
+   *  into that saved set instead of landing as an orphaned change to the live design system. */
+  activeFontPairingId: string | null;
+  onActiveFontPairingIdChange: (id: string | null) => void;
 }
 
 interface TokenDef {
@@ -430,6 +435,11 @@ function SavedFontPairingCard({
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", marginTop: 8, letterSpacing: "0.02em" }}>
             {ts.headings.font.split(",")[0].replace(/'/g, "")} · {ts.body.font.split(",")[0].replace(/'/g, "")} · {ts.labels.font.split(",")[0].replace(/'/g, "")}
           </p>
+          {active && (
+            <p className="flex items-center gap-1" style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: "#14ADB5", letterSpacing: "0.06em", textTransform: "uppercase", margin: "6px 0 0" }}>
+              <Check size={8} strokeWidth={3} /> Editing
+            </p>
+          )}
         </button>
       )}
       {!editing && (
@@ -942,6 +952,7 @@ export function DesignSystemSection({
   data: rawData, branding, socials, notFound, companies, companyCreditCopy, onChange: onChangeProp,
   onBrandingChange, onSocialsChange, onNotFoundChange, onCompaniesChange, onCompanyCreditCopyChange,
   activeThemeId, onActiveThemeIdChange: setActiveThemeId,
+  activeFontPairingId, onActiveFontPairingIdChange: setActiveFontPairingId,
 }: Props) {
   const [checkPreview, setCheckPreview] = useState(true);
   const [radioPreview, setRadioPreview] = useState("a");
@@ -1045,6 +1056,10 @@ export function DesignSystemSection({
   // saved since this expanded to a full snapshot restores everything at once.
   function applyTheme(theme: CMSSavedTheme) {
     setActiveThemeId(theme.id);
+    // A newly-loaded theme's own typeScale can't be reliably re-attributed to one particular
+    // Saved Font Set (they diverge once either is edited independently) — clearing this avoids
+    // silently folding the next font edit into an unrelated saved set left over from before.
+    setActiveFontPairingId(null);
     onChangeProp({
       ...data,
       colors: { ...theme.colors },
@@ -1200,8 +1215,17 @@ export function DesignSystemSection({
     onChange({ ...data, buttonStyles: { ...data.buttonStyles, [variantId]: { ...data.buttonStyles[variantId], ...patch } } });
   }
 
+  // While a Saved Font Set is loaded (activeFontPairingId set), every type-scale edit is folded
+  // back into that same library entry alongside the live typeScale — otherwise tweaking fonts
+  // after loading a saved set only ever touched the live design system, and Save Changes had
+  // nothing new to write into the saved set itself (it stayed frozen at whatever it was when
+  // first saved).
   function updateTypeScale(patch: Partial<CMSTypeScale>) {
-    onChange({ ...data, typeScale: { ...data.typeScale, ...patch } });
+    const typeScale = { ...data.typeScale, ...patch };
+    const customFontPairings = activeFontPairingId
+      ? data.customFontPairings.map((fp) => (fp.id === activeFontPairingId ? { ...fp, typeScale } : fp))
+      : data.customFontPairings;
+    onChange({ ...data, typeScale, customFontPairings });
   }
 
   // Custom font sets are a global library (like the font-family dropdowns themselves), not a
@@ -1211,15 +1235,18 @@ export function DesignSystemSection({
   // when one's loaded, exactly like those cards); saving/renaming/deleting the library entries
   // themselves are onChangeProp writes, same as the Theme Gallery's own save-as/rename/delete.
   function applyFontPairing(fp: CMSSavedFontPairing) {
+    setActiveFontPairingId(fp.id);
     onChange({ ...data, fontPairing: "custom", typeScale: fp.typeScale });
   }
 
   function saveCurrentAsFontPairing(name: string) {
     const fp: CMSSavedFontPairing = { id: `font-${Date.now()}`, name, typeScale: data.typeScale };
+    setActiveFontPairingId(fp.id);
     onChangeProp({ ...data, customFontPairings: [...data.customFontPairings, fp] });
   }
 
   function deleteFontPairing(id: string) {
+    if (activeFontPairingId === id) setActiveFontPairingId(null);
     onChangeProp({ ...data, customFontPairings: data.customFontPairings.filter((fp) => fp.id !== id) });
   }
 
@@ -1696,7 +1723,7 @@ export function DesignSystemSection({
             return (
               <button
                 key={p.id}
-                onClick={() => onChange({ ...data, fontPairing: p.id })}
+                onClick={() => { setActiveFontPairingId(null); onChange({ ...data, fontPairing: p.id }); }}
                 className="text-left hover:opacity-90 transition-opacity"
                 style={{
                   padding: 16,
@@ -1718,7 +1745,7 @@ export function DesignSystemSection({
             );
           })}
           <button
-            onClick={() => onChange({ ...data, fontPairing: "custom" })}
+            onClick={() => { setActiveFontPairingId(null); onChange({ ...data, fontPairing: "custom" }); }}
             className="text-left hover:opacity-90 transition-opacity"
             style={{
               padding: 16,
@@ -1749,7 +1776,7 @@ export function DesignSystemSection({
                 <SavedFontPairingCard
                   key={fp.id}
                   pairing={fp}
-                  active={isCustomFont && JSON.stringify(data.typeScale) === JSON.stringify(fp.typeScale)}
+                  active={activeFontPairingId === fp.id}
                   onClick={() => applyFontPairing(fp)}
                   onDelete={() => deleteFontPairing(fp.id)}
                   onRename={(newName) => renameFontPairing(fp.id, newName)}

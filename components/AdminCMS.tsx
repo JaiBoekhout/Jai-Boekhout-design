@@ -21,6 +21,7 @@ import { logoutAction } from "@/app/actions/auth";
 type Tab = "home" | "work" | "evaluate" | "process" | "story" | "enquiry" | "media" | "design" | "history";
 
 const ACTIVE_THEME_STORAGE_KEY = "cms_active_theme_id";
+const ACTIVE_FONT_PAIRING_STORAGE_KEY = "cms_active_font_pairing_id";
 
 const TABS: { id: Tab; label: string; icon: React.ComponentType<{ size: number; color?: string }> }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
@@ -166,6 +167,24 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
     try {
       if (id) localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, id);
       else localStorage.removeItem(ACTIVE_THEME_STORAGE_KEY);
+    } catch { /* ignore */ }
+  }
+  // Same lifted-state reasoning as activeThemeId above, for which Saved Font Set (if any) is
+  // currently loaded into the Custom font-pairing editor — without this, editing a saved set's
+  // fonts/weights/scale after a tab switch landed on the live design system instead of folding
+  // back into that saved set, so "Save Changes" silently never touched it.
+  const [activeFontPairingId, setActiveFontPairingIdState] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(ACTIVE_FONT_PAIRING_STORAGE_KEY);
+      if (stored) setActiveFontPairingIdState(stored);
+    } catch { /* ignore */ }
+  }, []);
+  function setActiveFontPairingId(id: string | null) {
+    setActiveFontPairingIdState(id);
+    try {
+      if (id) localStorage.setItem(ACTIVE_FONT_PAIRING_STORAGE_KEY, id);
+      else localStorage.removeItem(ACTIVE_FONT_PAIRING_STORAGE_KEY);
     } catch { /* ignore */ }
   }
   const { content, updateContent, persistContent, isDirty, savedContent } = useContentStore();
@@ -944,6 +963,8 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                     onCompanyCreditCopyChange={(v) => updateContent({ companyCreditCopy: v })}
                     activeThemeId={activeThemeId}
                     onActiveThemeIdChange={setActiveThemeId}
+                    activeFontPairingId={activeFontPairingId}
+                    onActiveFontPairingIdChange={setActiveFontPairingId}
                   />
                 )}
               </div>
