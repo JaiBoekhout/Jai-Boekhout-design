@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useAnimation, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Home, Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
 import { PATH_URLS, PATH_DISPLAY_NAMES, type PathKey } from "@/lib/paths";
@@ -91,7 +91,31 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   const router = useRouter();
   const hidden = useHideOnScroll();
   const buttonCorner = useButtonCorner();
+  const reduceMotion = useReducedMotion();
   const [hoveredKey, setHoveredKey] = useState<PathKey | typeof HOME_HOVER_KEY | null>(null);
+  const nudgeControls = useAnimation();
+  const [staticHighlight, setStaticHighlight] = useState(false);
+  const highlightTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // HamburgerEasterEgg (app/(public)/(experience)/layout.tsx's header, a sibling of this
+  // component — not an ancestor/descendant) dispatches this on open, pointing the joke at the
+  // real nav. Reduced motion gets a brief static ring instead of the scale bounce, per the brief.
+  useEffect(() => {
+    function onNudge() {
+      if (reduceMotion) {
+        setStaticHighlight(true);
+        if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
+        highlightTimeout.current = setTimeout(() => setStaticHighlight(false), 1200);
+      } else {
+        nudgeControls.start({ scale: [1, 1.045, 1, 1.045, 1], transition: { duration: 1.2, ease: "easeInOut" } });
+      }
+    }
+    window.addEventListener("nudge-bottom-nav", onNudge);
+    return () => {
+      window.removeEventListener("nudge-bottom-nav", onNudge);
+      if (highlightTimeout.current) clearTimeout(highlightTimeout.current);
+    };
+  }, [reduceMotion, nudgeControls]);
 
   return (
     <motion.div
@@ -102,50 +126,60 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
       style={{ pointerEvents: hidden ? "none" : "auto" }}
       className="fixed bottom-8 left-1/2 z-50"
     >
-      <nav
-        aria-label="Switch path"
-        className="flex items-center gap-1.5 p-1.5"
-        style={{
-          background: "var(--c-bg-glass)",
-          border: "1px solid var(--c-border-med)",
-          borderRadius: buttonCorner,
-          backdropFilter: "blur(20px)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-        }}
-      >
-        {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
-            rendered standalone rather than folded into PATH_ORDER; it's also never "active"
-            since this bar only ever renders on an experience page, never on the homepage
-            itself. */}
-        <NavButton
-          icon={Home}
-          label="Home"
-          isActive={false}
-          isExpanded={hoveredKey === HOME_HOVER_KEY}
-          onClick={() => router.push("/")}
-          onHoverStart={() => setHoveredKey(HOME_HOVER_KEY)}
-          onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_HOVER_KEY ? null : cur))}
-        />
-        <div style={{ width: 1, alignSelf: "stretch", background: "var(--c-border-med)" }} />
+      <motion.div animate={nudgeControls} style={{ display: "inline-block", position: "relative" }}>
+        <nav
+          aria-label="Switch path"
+          className="flex items-center gap-1.5 p-1.5"
+          style={{
+            position: "relative",
+            background: "var(--c-bg-glass)",
+            border: "1px solid var(--c-border-med)",
+            borderRadius: buttonCorner,
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+          }}
+        >
+          {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
+              rendered standalone rather than folded into PATH_ORDER; it's also never "active"
+              since this bar only ever renders on an experience page, never on the homepage
+              itself. */}
+          <NavButton
+            icon={Home}
+            label="Home"
+            isActive={false}
+            isExpanded={hoveredKey === HOME_HOVER_KEY}
+            onClick={() => router.push("/")}
+            onHoverStart={() => setHoveredKey(HOME_HOVER_KEY)}
+            onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_HOVER_KEY ? null : cur))}
+          />
+          <div style={{ width: 1, alignSelf: "stretch", background: "var(--c-border-med)" }} />
 
-        {PATH_ORDER.map((key) => {
-          const isActive = selectedPath === key;
-          const isExpanded = isActive || hoveredKey === key;
-          return (
-            <NavButton
-              key={key}
-              icon={PATH_ICONS[key]}
-              label={PATH_DISPLAY_NAMES[key]}
-              isActive={isActive}
-              isExpanded={isExpanded}
-              eyebrow={isActive ? "Current Path" : undefined}
-              onClick={() => router.push(PATH_URLS[key])}
-              onHoverStart={() => setHoveredKey(key)}
-              onHoverEnd={() => setHoveredKey((cur) => (cur === key ? null : cur))}
+          {PATH_ORDER.map((key) => {
+            const isActive = selectedPath === key;
+            const isExpanded = isActive || hoveredKey === key;
+            return (
+              <NavButton
+                key={key}
+                icon={PATH_ICONS[key]}
+                label={PATH_DISPLAY_NAMES[key]}
+                isActive={isActive}
+                isExpanded={isExpanded}
+                eyebrow={isActive ? "Current Path" : undefined}
+                onClick={() => router.push(PATH_URLS[key])}
+                onHoverStart={() => setHoveredKey(key)}
+                onHoverEnd={() => setHoveredKey((cur) => (cur === key ? null : cur))}
+              />
+            );
+          })}
+
+          {staticHighlight && (
+            <span
+              aria-hidden="true"
+              style={{ position: "absolute", inset: -3, borderRadius: buttonCorner, boxShadow: "0 0 0 2px var(--c-teal)", pointerEvents: "none" }}
             />
-          );
-        })}
-      </nav>
+          )}
+        </nav>
+      </motion.div>
     </motion.div>
   );
 }

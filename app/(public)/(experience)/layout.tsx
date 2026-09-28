@@ -7,6 +7,7 @@ import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
+import { HamburgerEasterEgg } from "@/components/HamburgerEasterEgg";
 import { PathSwitcher } from "@/components/PathSwitcher";
 import { pathKeyFromPathname } from "@/lib/paths";
 
@@ -76,6 +77,7 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
           <div className="flex items-center justify-end gap-3">
             <ThemeDropdown />
             <FontSizeToggle />
+            <HamburgerEasterEgg />
           </div>
         </div>
 
