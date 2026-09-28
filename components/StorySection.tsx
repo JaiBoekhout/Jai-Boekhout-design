@@ -32,6 +32,24 @@ export function StorySection({ data, savedData, onChange }: Props) {
   const timelineDrag = useDragReorder(data.timeline, (v) => onChange({ ...data, timeline: v }));
   const interestsDrag = useDragReorder(data.interests, (v) => onChange({ ...data, interests: v }));
 
+  // One-time migration: Story used to be the only path page with a separate Sub-headline field
+  // (see the comment on CMSStory.subheadline). The moment this tab is opened on content that
+  // still has one, fold it straight into Hero Statement and clear the legacy fields — so the
+  // field the admin sees here is already the single merged one, and a plain Save Changes (even
+  // with no further edits) persists the cleanup. Runs once on mount; already-migrated content
+  // (subheadline empty/absent) leaves data untouched.
+  useEffect(() => {
+    if (!data.subheadline && !data.subheadlineMobile) return;
+    onChange({
+      ...data,
+      heroStatement: data.heroStatement + (data.subheadline ?? ""),
+      heroStatementMobile: (data.heroStatementMobile ?? "") + (data.subheadlineMobile ?? ""),
+      subheadline: "",
+      subheadlineMobile: "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (deleteConfirmIdx === null) return;
     const t = setTimeout(() => setDeleteConfirmIdx(null), 3000);
@@ -91,14 +109,6 @@ export function StorySection({ data, savedData, onChange }: Props) {
         mobileValue={data.heroStatementMobile}
         onMobileChange={(v) => onChange({ ...data, heroStatementMobile: v })}
         dirty={data.heroStatement !== savedData.heroStatement || data.heroStatementMobile !== savedData.heroStatementMobile}
-      />
-      <ResponsiveRichTextEditor
-        label="Sub-headline"
-        value={data.subheadline}
-        onChange={(v) => onChange({ ...data, subheadline: v })}
-        mobileValue={data.subheadlineMobile}
-        onMobileChange={(v) => onChange({ ...data, subheadlineMobile: v })}
-        dirty={data.subheadline !== savedData.subheadline || data.subheadlineMobile !== savedData.subheadlineMobile}
       />
       <HeroImageOverlayEditor
         data={data}

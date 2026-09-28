@@ -621,7 +621,14 @@ export interface CMSInterest {
 export interface CMSStory {
   heroStatement: string;
   heroStatementMobile?: string;
-  subheadline: string;
+  // Legacy — Story used to be the only path page with a separate sub-headline field (Work/
+  // Evaluate/Process all fold the heading and the smaller paragraph under it into one
+  // heroStatement rich-text field, per-run font-size). Optional now, kept only so
+  // StorySection.tsx can fold any already-saved value into heroStatement the next time that tab
+  // is opened; new content never sets these. ExperienceStory.tsx also appends them at render
+  // time as a belt-and-suspenders fallback so the text never silently disappears from the live
+  // site for admins who haven't re-opened/re-saved the Story tab yet.
+  subheadline?: string;
   subheadlineMobile?: string;
   // Full-bleed background photo behind the hero text — optional, same position/scale
   // convention as portraitImageUrl below. Unset renders the hero exactly as it always has (a
@@ -1773,8 +1780,7 @@ export const DEFAULT_CONTENT: CMSContent = {
     closingQuote: "<p style=\"text-align: center;\"><span style=\"font-size: 14px; color: rgb(237, 232, 223);\"><strong><em>\"Design is not just what it looks like and feels like. Design is how it works.\"</em></strong></span><br><span style=\"font-size: 14px; color: rgb(237, 232, 223);\"><strong><em>- Steve Jobs -</em></strong></span></p>",
   },
   story: {
-    heroStatement: "My journey through design, technology and problem solving.",
-    subheadline: "I didn't start as a designer. That might be why I'm a good one.",
+    heroStatement: "My journey through design, technology and problem solving. I didn't start as a designer. That might be why I'm a good one.",
     timeline: [
       {"year":"2011","title":"Bachelor in Communication & Multimedia Design","body":"<p>Studied Communication and Multimedia Design at Avans Hogeschool Breda with a major in Creative Technology and a minor in Meaningful Data Design. This is where the interest in UX, interaction design, and building things that actually work for people started taking shape.</p>","tag":"Origin"},
       {"year":"2015","title":"UX/UI Designer at Annosky","body":"<p>Joined the UX/UI team at Annosky in the Netherlands, working across multiple in-house applications. Conducted user research and usability testing with over 500 students, produced storyboards, user flows, and wireframes, and created animations and motion graphics. First real exposure to the full design process at pace.</p>","tag":"FIRST DESIGN ROLE"},
@@ -2695,8 +2701,6 @@ export function findMediaUsage(content: CMSContent, src: string): string[] {
     { label: "Process — Closing Quote (Mobile)", value: content.process.closingQuoteMobile },
     { label: "Story — Hero Statement", value: content.story.heroStatement },
     { label: "Story — Hero Statement (Mobile)", value: content.story.heroStatementMobile },
-    { label: "Story — Sub-headline", value: content.story.subheadline },
-    { label: "Story — Sub-headline (Mobile)", value: content.story.subheadlineMobile },
     { label: "Story — Portrait Caption", value: content.story.portraitCaption },
     { label: "Story — Portrait Caption (Mobile)", value: content.story.portraitCaptionMobile },
     ...content.story.timeline.map((t, i) => ({ label: `Story — Timeline "${t.title || `Entry ${i + 1}`}" Body`, value: t.body })),

@@ -10,6 +10,13 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
   const { content } = useContentStore();
   const cms = content.story;
   const hasHeroPhoto = !!cms.heroImageUrl;
+  // Story used to save the sub-headline as its own field, separate from every other path page
+  // (see the comment on CMSStory.subheadline) — appending it here is a belt-and-suspenders
+  // fallback for any content that hasn't been re-opened/re-saved through StorySection.tsx's own
+  // one-time migration yet, so the text never silently disappears from the live site in the
+  // meantime. A no-op once that migration has actually run (the legacy fields come back empty).
+  const heroStatement = cms.heroStatement + (cms.subheadline ?? "");
+  const heroStatementMobile = (cms.heroStatementMobile ?? "") + (cms.subheadlineMobile ?? "");
 
   // Rendered in two different spots depending on viewport (see the Profile Image / Sidebar
   // grid items below) — extracted once so both stay in sync.
@@ -144,7 +151,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
             Path 04 — Story
           </motion.p>
           <motion.h1
-            className={cms.heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
+            className={heroStatementMobile ? "hidden md:block hero-mobile-h2" : "hero-mobile-h2"}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.6 }}
@@ -160,12 +167,12 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               fontWeight: 400,
               maxWidth: hasHeroPhoto ? "800px" : "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatement) }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding, so
               wrapping both in <h1> produced two real H1 elements on the page at once. */}
-          {cms.heroStatementMobile && (
+          {heroStatementMobile && (
             <motion.p
               className="block md:hidden"
               initial={{ opacity: 0, y: 20 }}
@@ -180,41 +187,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                 maxWidth: "700px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatementMobile) }}
-            />
-          )}
-          <motion.p
-            className={cms.subheadlineMobile ? "hidden md:block" : ""}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25 }}
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "16px",
-              color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
-              lineHeight: 1.7,
-              fontWeight: 300,
-              maxWidth: "480px",
-              marginTop: "16px",
-            }}
-            dangerouslySetInnerHTML={{ __html: cms.subheadline }}
-          />
-          {cms.subheadlineMobile && (
-            <motion.p
-              className="block md:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "16px",
-                color: hasHeroPhoto ? "rgba(245,241,234,0.75)" : "var(--c-text-muted)",
-                lineHeight: 1.7,
-                fontWeight: 300,
-                maxWidth: "480px",
-                marginTop: "16px",
-              }}
-              dangerouslySetInnerHTML={{ __html: cms.subheadlineMobile }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(heroStatementMobile) }}
             />
           )}
         </div>
