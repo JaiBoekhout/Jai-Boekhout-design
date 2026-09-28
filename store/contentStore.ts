@@ -1057,6 +1057,11 @@ export interface CMSDesignSystem {
   // `visible` there also becomes selectable in the public style-theme switcher (ThemeDropdown),
   // rendered under a `[data-style-theme="<id>"]`-scoped CSS block (see buildDesignSystemCss below).
   savedThemes: CMSSavedTheme[];
+  // Reusable font sets saved from the Custom font-pairing editor (see CMSSavedFontPairing) —
+  // distinct from savedThemes: a saved theme is a full look (colors + fonts + buttons + cards...)
+  // you switch the whole editor to, while a saved font pairing is just a name for one Custom type
+  // scale, selectable as its own card in Font Pairing regardless of which theme is loaded.
+  customFontPairings: CMSSavedFontPairing[];
   // THEME_PRESETS entries are hardcoded (not persisted content), so their own visibility in the
   // public switcher can't live on the preset object itself the way CMSSavedTheme.visible does —
   // tracked here instead, by id, alongside the same field for savedThemes. Absent/undefined
@@ -1137,6 +1142,17 @@ export interface FontPairing {
   heading: string;
   body: string;
   mono: string;
+}
+
+// A visitor-invisible library of admin-saved "custom" font pairings (see CMSDesignSystem.
+// customFontPairings) — each just a name plus a full CMSTypeScale snapshot, so applying one sets
+// fontPairing to "custom" and restores every font/weight/line-height/letter-spacing/scale value
+// at once. Global rather than per-theme: saved once, selectable from any theme being edited,
+// same way FONT_PAIRINGS itself is theme-independent.
+export interface CMSSavedFontPairing {
+  id: string;
+  name: string;
+  typeScale: CMSTypeScale;
 }
 
 export const FONT_PAIRINGS: FontPairing[] = [
@@ -1235,6 +1251,7 @@ export const DEFAULT_DESIGN_SYSTEM: CMSDesignSystem = {
   statsStyle: {},
   switcherStyle: {},
   savedThemes: [],
+  customFontPairings: [],
   visiblePresetIds: ["playful-rounded"],
   presetNameOverrides: {},
   presetOverrides: {},
@@ -1604,6 +1621,7 @@ function themeToFullDesignSystem(theme: CMSSavedTheme): CMSDesignSystem {
     statsStyle: theme.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle,
     switcherStyle: theme.switcherStyle ?? DEFAULT_DESIGN_SYSTEM.switcherStyle,
     savedThemes: [],
+    customFontPairings: [],
   };
 }
 

@@ -17,7 +17,7 @@ import {
 import type {
   CMSDesignSystem, CMSDesignColors, CMSBranding, CMSComponentColors, CMSCompany, CMSSocials, CMSNotFound,
   CMSButtonVariantStyle, ButtonVariantId, LinkUnderline, CMSTypeScale,
-  MenuHoverEffect, TabBarFill, ButtonCorner, AccentFollow, CMSSavedTheme,
+  MenuHoverEffect, TabBarFill, ButtonCorner, AccentFollow, CMSSavedTheme, CMSSavedFontPairing,
 } from "@/store/contentStore";
 
 const SOCIAL_PLATFORMS: { key: keyof CMSSocials; label: string; Icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
@@ -360,6 +360,95 @@ function ThemeSwatch({
             </button>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// One admin-saved font set in the Font Pairing gallery (see CMSSavedFontPairing) — same "Aa"
+// specimen card as the built-in FONT_PAIRINGS/Custom cards above it, plus rename/delete like
+// ThemeSwatch's own corner buttons. Renaming uses a plain div (not nested inside the specimen
+// button) for the same reason ThemeSwatch does: an <input> can't live inside a <button>.
+function SavedFontPairingCard({
+  pairing, active, onClick, onDelete, onRename,
+}: {
+  pairing: CMSSavedFontPairing;
+  active: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+  onRename: (newName: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(pairing.name);
+  const ts = pairing.typeScale;
+
+  function commitRename() {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== pairing.name) onRename(trimmed);
+    setEditing(false);
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      {editing ? (
+        <div style={{ padding: 16, borderRadius: 12, background: "#141D24", border: "1.5px solid #14ADB5" }}>
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); commitRename(); }
+              if (e.key === "Escape") { setDraft(pairing.name); setEditing(false); }
+            }}
+            style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "none", borderRadius: 5, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", padding: "5px 7px", outline: "none" }}
+          />
+        </div>
+      ) : (
+        <button
+          onClick={onClick}
+          className="text-left hover:opacity-90 transition-opacity"
+          style={{
+            width: "100%",
+            padding: 16,
+            borderRadius: 12,
+            cursor: "pointer",
+            background: active ? "rgba(20,173,181,0.08)" : "#141D24",
+            border: `1.5px solid ${active ? "#14ADB5" : "rgba(237,232,223,0.08)"}`,
+          }}
+        >
+          <p style={{ fontFamily: ts.headings.font, fontSize: 22, color: "#EDE8DF", marginBottom: 6 }}>Aa</p>
+          <p
+            style={{
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: active ? "#14ADB5" : "#EDE8DF", fontWeight: 500, marginBottom: 4,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}
+          >
+            {pairing.name}
+          </p>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6B7E8A", marginTop: 8, letterSpacing: "0.02em" }}>
+            {ts.headings.font.split(",")[0].replace(/'/g, "")} · {ts.body.font.split(",")[0].replace(/'/g, "")} · {ts.labels.font.split(",")[0].replace(/'/g, "")}
+          </p>
+        </button>
+      )}
+      {!editing && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setDraft(pairing.name); setEditing(true); }}
+          title="Rename font set"
+          style={{ position: "absolute", top: -6, left: -6, width: 16, height: 16, borderRadius: "50%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.2)", color: "#EDE8DF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+        >
+          <Pencil size={8} />
+        </button>
+      )}
+      {!editing && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          title="Remove font set"
+          style={{ position: "absolute", top: -6, right: -6, width: 16, height: 16, borderRadius: "50%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.2)", color: "#EDE8DF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+        >
+          <X size={9} />
+        </button>
       )}
     </div>
   );
@@ -862,6 +951,8 @@ export function DesignSystemSection({
   const [linkHovered, setLinkHovered] = useState(false);
   const [namingTheme, setNamingTheme] = useState(false);
   const [themeName, setThemeName] = useState("");
+  const [namingFontPairing, setNamingFontPairing] = useState(false);
+  const [fontPairingName, setFontPairingName] = useState("");
   const companiesDrag = useDragReorder(companies, onCompaniesChange);
 
   // Defensive: content saved (or, in dev, still held in React state via Fast Refresh) before
@@ -883,6 +974,7 @@ export function DesignSystemSection({
     statsStyle: rawData.statsStyle ?? DEFAULT_DESIGN_SYSTEM.statsStyle ?? {},
     switcherStyle: rawData.switcherStyle ?? DEFAULT_DESIGN_SYSTEM.switcherStyle ?? {},
     savedThemes: rawData.savedThemes ?? [],
+    customFontPairings: rawData.customFontPairings ?? [],
     visiblePresetIds: rawData.visiblePresetIds ?? DEFAULT_DESIGN_SYSTEM.visiblePresetIds ?? [],
     presetNameOverrides: rawData.presetNameOverrides ?? {},
     presetOverrides: rawData.presetOverrides ?? {},
@@ -1110,6 +1202,29 @@ export function DesignSystemSection({
 
   function updateTypeScale(patch: Partial<CMSTypeScale>) {
     onChange({ ...data, typeScale: { ...data.typeScale, ...patch } });
+  }
+
+  // Custom font sets are a global library (like the font-family dropdowns themselves), not a
+  // per-theme snapshot — so unlike applyTheme/saveCurrentAsTheme, none of this touches
+  // activeThemeId. Loading one just sets fontPairing/typeScale like clicking a Modern/Editorial/
+  // Technical card does, so it goes through onChange (folds into the active theme's own overrides
+  // when one's loaded, exactly like those cards); saving/renaming/deleting the library entries
+  // themselves are onChangeProp writes, same as the Theme Gallery's own save-as/rename/delete.
+  function applyFontPairing(fp: CMSSavedFontPairing) {
+    onChange({ ...data, fontPairing: "custom", typeScale: fp.typeScale });
+  }
+
+  function saveCurrentAsFontPairing(name: string) {
+    const fp: CMSSavedFontPairing = { id: `font-${Date.now()}`, name, typeScale: data.typeScale };
+    onChangeProp({ ...data, customFontPairings: [...data.customFontPairings, fp] });
+  }
+
+  function deleteFontPairing(id: string) {
+    onChangeProp({ ...data, customFontPairings: data.customFontPairings.filter((fp) => fp.id !== id) });
+  }
+
+  function renameFontPairing(id: string, newName: string) {
+    onChangeProp({ ...data, customFontPairings: data.customFontPairings.map((fp) => (fp.id === id ? { ...fp, name: newName } : fp)) });
   }
 
   function updateMenuStyle(patch: Partial<typeof data.menuStyle>) {
@@ -1623,6 +1738,76 @@ export function DesignSystemSection({
             </p>
           </button>
         </div>
+
+        {data.customFontPairings.length > 0 && (
+          <>
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 18, marginBottom: 10 }}>
+              Saved Font Sets
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-2">
+              {data.customFontPairings.map((fp) => (
+                <SavedFontPairingCard
+                  key={fp.id}
+                  pairing={fp}
+                  active={isCustomFont && JSON.stringify(data.typeScale) === JSON.stringify(fp.typeScale)}
+                  onClick={() => applyFontPairing(fp)}
+                  onDelete={() => deleteFontPairing(fp.id)}
+                  onRename={(newName) => renameFontPairing(fp.id, newName)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {isCustomFont && (
+          namingFontPairing ? (
+            <div style={{ maxWidth: 280, display: "flex", flexDirection: "column", gap: 6, marginTop: data.customFontPairings.length > 0 ? 0 : 10, marginBottom: 16 }}>
+              <input
+                autoFocus
+                value={fontPairingName}
+                onChange={(e) => setFontPairingName(e.target.value)}
+                placeholder="Font set name"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && fontPairingName.trim()) {
+                    saveCurrentAsFontPairing(fontPairingName.trim());
+                    setFontPairingName("");
+                    setNamingFontPairing(false);
+                  } else if (e.key === "Escape") {
+                    setNamingFontPairing(false);
+                    setFontPairingName("");
+                  }
+                }}
+                style={{ background: "rgba(237,232,223,0.04)", border: "1px solid rgba(20,173,181,0.4)", borderRadius: 7, padding: "7px 10px", fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#EDE8DF", outline: "none" }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { if (fontPairingName.trim()) { saveCurrentAsFontPairing(fontPairingName.trim()); setFontPairingName(""); setNamingFontPairing(false); } }}
+                  style={{ background: "#14ADB5", border: "none", borderRadius: 7, color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: 10, padding: "6px 14px", cursor: "pointer" }}
+                >
+                  Save font set
+                </button>
+                <button
+                  onClick={() => { setNamingFontPairing(false); setFontPairingName(""); }}
+                  style={{ background: "none", border: "1px solid rgba(237,232,223,0.15)", borderRadius: 7, color: "#8C9AA3", fontFamily: "'DM Mono', monospace", fontSize: 10, padding: "6px 14px", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setNamingFontPairing(true)}
+              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+              style={{
+                background: "rgba(20,173,181,0.04)", border: "1px dashed rgba(20,173,181,0.3)", borderRadius: 8,
+                padding: "8px 14px", cursor: "pointer", color: "#14ADB5", fontFamily: "'DM Mono', monospace", fontSize: 10.5,
+                letterSpacing: "0.02em", marginTop: data.customFontPairings.length > 0 ? 0 : 10, marginBottom: 16,
+              }}
+            >
+              <Plus size={13} /> Save current as a font set
+            </button>
+          )
+        )}
 
         {isCustomFont && <TypeScaleEditor typeScale={data.typeScale} onChange={updateTypeScale} />}
       </div>
