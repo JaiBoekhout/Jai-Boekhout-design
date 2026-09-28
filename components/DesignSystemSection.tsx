@@ -818,7 +818,7 @@ function ButtonVariantEditor({
   };
 
   return (
-    <div style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 12, padding: 16, marginBottom: 12 }}>
+    <div style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: 12, padding: 16 }}>
       <div className="flex items-center justify-between mb-3">
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#EDE8DF", fontWeight: 500 }}>{BUTTON_VARIANT_LABELS[variantId]}</p>
         <span style={previewStyle}>
@@ -827,7 +827,7 @@ function ButtonVariantEditor({
           {style.icon === "right" && <Send size={13} />}
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         <SelectField label="Style" value={style.fill} onChange={(v) => onChange({ fill: v })} options={[
           { value: "fill", label: "Fill" }, { value: "outline", label: "Outline" }, { value: "text", label: "Text" },
         ]} />
@@ -1646,19 +1646,21 @@ export function DesignSystemSection({
             onChange={updateComponentColors}
           />
         </div>
-        {(["primary", "secondary", "tertiary"] as ButtonVariantId[]).map((variantId) => (
-          <ButtonVariantEditor
-            key={variantId}
-            variantId={variantId}
-            style={data.buttonStyles[variantId]}
-            fontHeading={pairing.heading}
-            fontBody={pairing.body}
-            fontMono={pairing.mono}
-            btnColor={effective("buttonDark")}
-            bgColor={c.bgDark}
-            onChange={(patch) => updateButtonStyle(variantId, patch)}
-          />
-        ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {(["primary", "secondary", "tertiary"] as ButtonVariantId[]).map((variantId) => (
+            <ButtonVariantEditor
+              key={variantId}
+              variantId={variantId}
+              style={data.buttonStyles[variantId]}
+              fontHeading={pairing.heading}
+              fontBody={pairing.body}
+              fontMono={pairing.mono}
+              btnColor={effective("buttonDark")}
+              bgColor={c.bgDark}
+              onChange={(patch) => updateButtonStyle(variantId, patch)}
+            />
+          ))}
+        </div>
       </Section>
 
       <Section id="ds-links" title="Links" note="Controls inline text links (e.g. the 'Accent link' style seen in card lists and rich text). Hover over the sample below to preview the hover state.">
