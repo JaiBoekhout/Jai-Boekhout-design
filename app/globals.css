@@ -655,6 +655,43 @@
   }
   .agency-info-callout-close:hover { opacity: 0.7; }
 
+  /* Shared "ghost" treatment for the header's icon-button trio (theme, font size, menu) —
+     transparent by default with the icon itself in the switcher's navy token, filling to a solid
+     navy circle (icon flips to the "on navy" switcher-text token) on hover, keyboard focus, or
+     while the button's own panel is open. [aria-expanded="true"] is what drives the "stays filled
+     while open" state — each caller already sets that attribute correctly for its own real
+     open/closed state (or omits it entirely when it has no panel, like the font-size cycle
+     button), so this is a pure CSS reflection of state the component already tracks, not a
+     second, separately-maintained "looks open" flag that could drift out of sync with it. */
+  .header-icon-btn {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--switcher-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .header-icon-btn:hover,
+  .header-icon-btn:focus-visible,
+  .header-icon-btn[aria-expanded="true"] {
+    background: var(--switcher-bg);
+    color: var(--switcher-text);
+  }
+  .header-icon-btn:focus-visible {
+    outline: 2px solid var(--switcher-bg);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .header-icon-btn { transition: none; }
+  }
+
   /* Nav logo — invert on dark bg so white background disappears and teal/gray remain */
   .nav-logo { filter: invert(1) hue-rotate(180deg); }
   [data-theme="light"] .nav-logo { filter: none; }

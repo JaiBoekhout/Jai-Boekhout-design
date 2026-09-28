@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Menu } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { SWATCH_BG, SWATCH_TEXT, SWATCH_DIVIDER } from "@/components/ThemeDropdown";
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 
-// Every glyph here — including the trigger's own hamburger and the popup's close icon — is a
-// hand-drawn inline SVG rather than an icon-library import: the whole point of the grid is to
-// show the precise shape differences between near-identical menu icons (three lines vs two,
-// dots vs squares, left-aligned vs centred), which off-the-shelf icons don't reliably match
-// glyph-for-glyph. Stroke conventions (24x24 viewBox, 2px round-capped strokes) mirror lucide-
-// react, the icon set used everywhere else on the site, so these blend in rather than clashing.
+// The popup's own reference-grid glyphs (including its own "Hamburger" entry) stay hand-drawn
+// inline SVG — the whole point of that grid is to show the precise shape differences between
+// near-identical menu icons (three lines vs two, dots vs squares, left-aligned vs centred), which
+// off-the-shelf icons don't reliably match glyph-for-glyph. Stroke conventions (24x24 viewBox,
+// 2px round-capped strokes) mirror lucide-react, the icon set used everywhere else on the site,
+// so these blend in rather than clashing — including with the trigger button itself, which now
+// uses lucide's own Menu icon directly (see HeaderIconButton usage below), matching ThemeDropdown/
+// FontSizeToggle's shared icon set now that all three are a unified header button group.
 function Glyph({ children, size = 22 }: { children: ReactNode; size?: number }) {
   return (
     <svg
@@ -237,19 +241,14 @@ export function HamburgerEasterEgg() {
 
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
-      <button
+      <HeaderIconButton
         ref={triggerRef}
-        type="button"
         aria-label="Menu icon easter egg"
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : handleOpen())}
-        style={triggerStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--c-teal)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--c-text-muted)"; }}
-      >
-        <HamburgerGlyph size={21} />
-      </button>
+        icon={<Menu size={20} strokeWidth={2} />}
+      />
 
       {reduceMotion ? (
         open && (
@@ -289,19 +288,6 @@ export function HamburgerEasterEgg() {
     </div>
   );
 }
-
-const triggerStyle: React.CSSProperties = {
-  background: "none",
-  border: "none",
-  cursor: "pointer",
-  padding: "11px",
-  margin: "-11px",
-  color: "var(--c-text-muted)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  transition: "color 0.15s",
-};
 
 const panelStyle: React.CSSProperties = {
   position: "absolute",

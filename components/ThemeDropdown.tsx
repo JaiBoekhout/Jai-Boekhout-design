@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { PaintRoller, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/store/themeStore";
 import { useStyleTheme } from "@/store/styleThemeStore";
+import { HeaderIconButton } from "@/components/HeaderIconButton";
 
 // Fixed, deliberately NOT var(--tag-corner)/var(--card-corner) — this is the switcher's own UI
 // chrome, not content being switched. Tying the panel's shape to the active theme's own corner
@@ -148,31 +149,14 @@ export function ThemeDropdown() {
 
   return (
     <div ref={rootRef} style={{ position: "relative", flexShrink: 0 }}>
-      <button
-        type="button"
+      <HeaderIconButton
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="true"
         aria-expanded={open}
-        aria-label={`Theme settings — currently ${currentStyleLabel}, ${isDark ? "Dark" : "Light"}`}
-        title="Theme settings"
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          background: SWATCH_BG,
-          border: "0.5px solid color-mix(in srgb, var(--switcher-text) 12%, transparent)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          flexShrink: 0,
-          padding: 0,
-          transition: "opacity 0.15s ease, transform 0.15s ease",
-        }}
-        className="hover:opacity-80"
-      >
-        <PaintRoller size={15} strokeWidth={2} style={{ color: SWATCH_TEXT }} />
-      </button>
+        aria-label="Change theme"
+        title={`Change theme — currently ${currentStyleLabel}, ${isDark ? "Dark" : "Light"}`}
+        icon={<PaintRoller size={20} strokeWidth={2} />}
+      />
 
       {open && (
         <div
