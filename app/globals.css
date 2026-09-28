@@ -404,6 +404,11 @@
   :root[data-style-theme="sunset-coral"][data-theme="light"] .agency-badge-text {
     color: #253780 !important;
   }
+  /* Same issue, "Jai Branding" (id: playful-rounded) theme's light mode — hardcoded black
+     instead of blue, per explicit request for this theme specifically. */
+  :root[data-style-theme="playful-rounded"][data-theme="light"] .agency-badge-text {
+    color: #000000 !important;
+  }
   /* Story page's "Outside of Design" accordion — each entry's native <details> summary heading
      (e.g. "Kitesurfing"), built directly into the CMS rich text per the comment in
      ExperienceStory.tsx, not a separate label field. */
