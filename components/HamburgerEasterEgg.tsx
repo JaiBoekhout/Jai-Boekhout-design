@@ -191,13 +191,19 @@ export function HamburgerEasterEgg() {
     }
   }, [open]);
 
+  // Tells PathSwitcher (a sibling, not an ancestor/descendant — see app/(public)/(experience)/
+  // layout.tsx) to play its brief nudge. A plain window event rather than lifted state or a new
+  // context, matching the existing cms_content_updated precedent (store/useContentStoreHook.ts)
+  // for this kind of decoupled, fire-and-forget cross-component signal. Fired both on open and
+  // again every time the pointer re-enters the popup — hovering the card re-plays the reminder
+  // even if the visitor's already looked away from the first one.
+  function nudge() {
+    window.dispatchEvent(new Event("nudge-bottom-nav"));
+  }
+
   function handleOpen() {
     setOpen(true);
-    // Tells PathSwitcher (a sibling, not an ancestor/descendant — see app/(public)/(experience)/
-    // layout.tsx) to play its brief nudge. A plain window event rather than lifted state or a
-    // new context, matching the existing cms_content_updated precedent (store/useContentStoreHook.ts)
-    // for this kind of decoupled, fire-and-forget cross-component signal.
-    window.dispatchEvent(new Event("nudge-bottom-nav"));
+    nudge();
   }
 
   const dialogContent = (
@@ -247,7 +253,15 @@ export function HamburgerEasterEgg() {
 
       {reduceMotion ? (
         open && (
-          <div ref={dialogRef} id={`hamburger-easter-egg-${headingId}`} role="dialog" aria-modal="true" aria-labelledby={headingId} style={panelStyle}>
+          <div
+            ref={dialogRef}
+            id={`hamburger-easter-egg-${headingId}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={headingId}
+            onMouseEnter={nudge}
+            style={panelStyle}
+          >
             {dialogContent}
           </div>
         )
@@ -260,6 +274,7 @@ export function HamburgerEasterEgg() {
               role="dialog"
               aria-modal="true"
               aria-labelledby={headingId}
+              onMouseEnter={nudge}
               initial={{ opacity: 0, scale: 0.96, y: -6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -6 }}
