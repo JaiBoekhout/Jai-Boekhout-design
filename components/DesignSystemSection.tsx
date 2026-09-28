@@ -382,12 +382,12 @@ function PlainColorPairControl({
   const isDefault = darkValue === defaultDark && lightValue === defaultLight;
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-3 mb-2">
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#EDE8DF", fontWeight: 500 }}>{label}</p>
         {!isDefault && (
           <button
             onClick={() => { onDarkChange(defaultDark); onLightChange(defaultLight); }}
-            className="flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+            className="flex items-center gap-1.5 hover:opacity-70 transition-opacity flex-shrink-0"
             style={{ background: "none", border: "none", cursor: "pointer", color: "#8C9AA3", fontFamily: "'DM Mono', monospace", fontSize: 10 }}
           >
             <RotateCcw size={10} /> Reset to Default
