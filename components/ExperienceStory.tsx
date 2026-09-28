@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useContentStore } from "@/store/contentStore";
-import { demoteNestedHeadings } from "@/lib/utils";
+import { demoteNestedHeadings, dropTrailingEmptyParagraph } from "@/lib/utils";
 import { PathCTA } from "@/components/PathCTA";
 import { HeroOverlayLayer, STORY_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 
@@ -15,8 +15,8 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
   // fallback for any content that hasn't been re-opened/re-saved through StorySection.tsx's own
   // one-time migration yet, so the text never silently disappears from the live site in the
   // meantime. A no-op once that migration has actually run (the legacy fields come back empty).
-  const heroStatement = cms.heroStatement + (cms.subheadline ?? "");
-  const heroStatementMobile = (cms.heroStatementMobile ?? "") + (cms.subheadlineMobile ?? "");
+  const heroStatement = dropTrailingEmptyParagraph(cms.heroStatement) + (cms.subheadline ?? "");
+  const heroStatementMobile = dropTrailingEmptyParagraph(cms.heroStatementMobile ?? "") + (cms.subheadlineMobile ?? "");
 
   // Rendered in two different spots depending on viewport (see the Profile Image / Sidebar
   // grid items below) — extracted once so both stay in sync.

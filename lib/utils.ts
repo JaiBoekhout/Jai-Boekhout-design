@@ -44,17 +44,42 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
 // by a smaller sub-line, each its own <h2>) would otherwise run together on one line the moment
 // they're demoted, with no visual sign anything's wrong until it's live. Merged into any style
 // attribute the tag already carries rather than appended as a second one.
+//
+// line-height:0 is forced alongside it for a second, less obvious reason: a demoted span rarely
+// sets its own font-size (that lives on the inline <span> the rich-text editor puts INSIDE it,
+// per-run), so this block inherits font-size/line-height from whatever wraps the whole field —
+// e.g. the hero <h1> in ExperienceStory.tsx/ExperienceWork.tsx/etc., which on a page with a hero
+// photo sets a large clamp()'d font-size of its own. Per CSS's inline-formatting-context rules,
+// every block generates an invisible "strut" sized by its OWN (here: inherited) font-size and
+// line-height on each line it produces — even one that renders no text of its own. When that
+// inherited size is larger than the block's real (inner-span) content, as with a smaller
+// sub-heading nested under a much bigger hero line, the strut — not the content's own explicit
+// line-height — ends up deciding how tall each wrapped line is, so an author-set "line-height: 1"
+// on the visible text was silently being overridden by oversized invisible spacing they had no
+// way to see or control. Collapsing the wrapper's own strut to zero leaves line-box height
+// entirely up to the real inline content's own line-height, exactly as authored.
 export function demoteNestedHeadings(html: string): string {
   return html
     .replace(/<h[1-6](\s[^>]*)?>/gi, (_, attrs = "") => {
       const styleMatch = /\bstyle\s*=\s*(["'])/i.exec(attrs);
       if (styleMatch) {
         const quote = styleMatch[1];
-        return `<span${attrs.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;`)}>`;
+        return `<span${attrs.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;line-height:0;`)}>`;
       }
-      return `<span${attrs} style="display:block">`;
+      return `<span${attrs} style="display:block;line-height:0">`;
     })
     .replace(/<\/h[1-6]>/gi, "</span>");
+}
+
+// Rich-text fields almost always end with a trailing empty <p></p> (the editor's own cursor
+// rest-line). Harmless alone, but when two such fields get concatenated into one (e.g. Story's
+// hero-statement + legacy sub-headline merge — see CMSStory.subheadline), the first field's
+// trailing empty paragraph ends up sitting as a spacer between the two pieces of real content —
+// and per the strut mechanics explained on demoteNestedHeadings above, an empty <p> still reserves
+// a full inherited line-height's worth of vertical space, reading as an oversized gap. Only strips
+// ONE trailing empty paragraph, so real intentional spacing elsewhere in the field is untouched.
+export function dropTrailingEmptyParagraph(html: string): string {
+  return html.replace(/<p>(?:<br\s*\/?>)?<\/p>\s*$/i, "");
 }
 
 // A plain .slice(0, n) cuts mid-word whenever the text happens to run past the limit right in

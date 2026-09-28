@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Plus, ArrowUp, ArrowDown, Trash2 } from "lucide-react";
 import { CMSInput, CMSSectionHeading, CMSCard, useDragReorder, DragHandle } from "@/components/CMSFields";
 import { ResponsiveRichTextEditor } from "@/components/ResponsiveRichTextEditor";
+import { dropTrailingEmptyParagraph } from "@/lib/utils";
 import { ImagePicker } from "@/components/ImagePicker";
 import { HeroImageOverlayEditor, STORY_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 import type { CMSStory } from "@/store/contentStore";
@@ -42,8 +43,8 @@ export function StorySection({ data, savedData, onChange }: Props) {
     if (!data.subheadline && !data.subheadlineMobile) return;
     onChange({
       ...data,
-      heroStatement: data.heroStatement + (data.subheadline ?? ""),
-      heroStatementMobile: (data.heroStatementMobile ?? "") + (data.subheadlineMobile ?? ""),
+      heroStatement: dropTrailingEmptyParagraph(data.heroStatement) + (data.subheadline ?? ""),
+      heroStatementMobile: dropTrailingEmptyParagraph(data.heroStatementMobile ?? "") + (data.subheadlineMobile ?? ""),
       subheadline: "",
       subheadlineMobile: "",
     });
