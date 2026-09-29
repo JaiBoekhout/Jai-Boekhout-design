@@ -53,7 +53,7 @@ export default function NotFound() {
           style={{
             fontFamily: "var(--font-heading)",
             fontSize: "clamp(32px, 5vw, 52px)",
-            color: "var(--c-text)",
+            color: "var(--c-teal)",
             fontWeight: 400,
             lineHeight: 1.1,
             marginBottom: "16px",
