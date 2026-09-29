@@ -583,6 +583,42 @@
   .rte-content .rte-collapsible-body > *:first-child { margin-top: 0; }
   .rte-content .rte-collapsible-body > *:last-child { margin-bottom: 0; }
 
+  /* SVG Graphic — an author-pasted/uploaded SVG (RichTextEditor.tsx), recoloured to currentColor
+     at insert time so it just needs a `color` here to follow the theme's accent colour, including
+     automatically tracking a future change to that colour since nothing about it is baked into
+     the saved SVG itself. Unscoped (not .rte-content-prefixed like everything else in this file)
+     because the exact same classes drive the CMS insert dialog's and NodeView's own live preview,
+     both of which render outside .rte-content entirely. */
+  .rte-svg-graphic { display: inline-block; color: var(--c-teal); vertical-align: middle; }
+  .rte-svg-graphic svg { display: block; width: 100%; height: auto; }
+
+  @keyframes rte-svg-spin { to { transform: rotate(360deg); } }
+  @keyframes rte-svg-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.92); } }
+  @keyframes rte-svg-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes rte-svg-draw { to { stroke-dashoffset: 0; } }
+
+  .rte-svg-anim-spin svg { animation: rte-svg-spin 2.2s linear infinite; transform-origin: center; }
+  .rte-svg-anim-pulse svg { animation: rte-svg-pulse 1.8s ease-in-out infinite; }
+  .rte-svg-anim-float svg { animation: rte-svg-float 3s ease-in-out infinite; }
+  /* The exact per-shape stroke-dasharray/dashoffset is baked in as an inline style at insert time
+     (bakeDrawDashOffsets, RichTextEditor.tsx) — these are only the fallback for a shape that
+     doesn't have one yet (the insert dialog's own live preview, before "Insert" is clicked).
+     Inline styles win over this rule's own dasharray/dashoffset values once baked. */
+  .rte-svg-anim-draw path, .rte-svg-anim-draw circle, .rte-svg-anim-draw ellipse,
+  .rte-svg-anim-draw line, .rte-svg-anim-draw polyline, .rte-svg-anim-draw polygon, .rte-svg-anim-draw rect {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: rte-svg-draw 2.2s ease forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rte-svg-anim-spin svg, .rte-svg-anim-pulse svg, .rte-svg-anim-float svg { animation: none; }
+    .rte-svg-anim-draw path, .rte-svg-anim-draw circle, .rte-svg-anim-draw ellipse,
+    .rte-svg-anim-draw line, .rte-svg-anim-draw polyline, .rte-svg-anim-draw polygon, .rte-svg-anim-draw rect {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+  }
+
   /* Agency attribution "i" info trigger + callout — sits inline after the "Created while
      working at [Company]" credit line. The callout positions against its nearest positioned
      ancestor — the Role section wrapper in ProjectDetailBody.tsx, not this row itself — so its

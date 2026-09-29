@@ -22,7 +22,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Minus, Undo, Redo,
   Video as YoutubeIcon, FileText, X, ChevronDown, Table as TableIcon,
   Rows3, Columns3, Trash2, Plus, ArrowRight, PanelBottom, Type as SecondaryFontIcon,
-  Smartphone,
+  Smartphone, Shapes, Sparkles,
 } from "lucide-react";
 import { MediaLibraryModal } from "@/components/MediaLibraryModal";
 import { Switch } from "@/components/SiteKit";
@@ -69,12 +69,20 @@ const DEFAULT_MAX_WIDTH = 800;
 // javascript: URLs etc, run once here on save rather than at every render site. DOMPurify's
 // default allowlist already covers everything StarterKit produces (headings, lists, tables,
 // spans with style/class/data-* for the color/size/collapsible/caption extensions below); the
-// only two additions are the embedded-video <iframe> and Tiptap's own YouTube attributes.
+// only additions are the embedded-video <iframe>, Tiptap's own YouTube attributes, and the SVG
+// structural tags/attributes an svgGraphic node's own content needs (already run through
+// DOMPurify's dedicated SVG profile once already at insert time — see parseSvgMarkup — this is
+// this whole document's own final pass, not a substitute for that one).
 function sanitizeHtml(html: string): string {
   if (typeof window === "undefined") return html;
   return DOMPurify.sanitize(html, {
-    ADD_TAGS: ["iframe"],
-    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "target"],
+    ADD_TAGS: ["iframe", "svg", "path", "circle", "ellipse", "line", "polyline", "polygon", "rect", "g", "defs", "linearGradient", "radialGradient", "stop", "clipPath", "mask", "use"],
+    ADD_ATTR: [
+      "allow", "allowfullscreen", "frameborder", "target",
+      "viewBox", "d", "cx", "cy", "r", "rx", "ry", "x1", "y1", "x2", "y2", "points",
+      "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-dasharray", "stroke-dashoffset",
+      "transform", "offset", "stop-color", "stop-opacity", "gradient-units", "gradientUnits", "gradient-transform", "gradientTransform", "clip-path", "xlink:href",
+    ],
   });
 }
 // Resolves against the Design System's configurable secondary font (Font Pairing tab), not a
@@ -759,6 +767,323 @@ function CollapsiblePanelView({ node, updateAttributes, deleteNode }: ReactNodeV
   );
 }
 
+// ── SVG Graphic — an author-pasted/uploaded SVG, recoloured so it follows the theme's accent
+// colour and given an optional preset animation. Renders as plain <span><svg>...</svg></span> on
+// the public site (no JS needed there, same "renders as native markup" approach as the
+// collapsible panel above) — recolouring, and for "Draw" the exact per-shape stroke length, are
+// both baked in once at insert time rather than computed at render time. ───────────────────────
+
+const SVG_ANIMATIONS = [
+  { key: "none", label: "None" },
+  { key: "spin", label: "Spin" },
+  { key: "pulse", label: "Pulse" },
+  { key: "float", label: "Float" },
+  { key: "draw", label: "Draw" },
+] as const;
+type SvgAnimationKey = (typeof SVG_ANIMATIONS)[number]["key"];
+
+const SVG_STROKEABLE_SELECTOR = "path, circle, ellipse, line, polyline, polygon, rect";
+
+// Any hardcoded fill/stroke (attribute or inline style) becomes currentColor, so wrapping the
+// graphic in something with `color: var(--c-teal)` (see .rte-svg-graphic, globals.css) is all it
+// takes to follow the theme's accent colour — including automatically tracking a future change to
+// that colour, since nothing about it is baked into the saved SVG. "none" and url() references
+// (gradients/patterns) are left alone — a deliberately unfilled shape shouldn't gain a fill, and a
+// gradient reference isn't a flat colour to begin with.
+function recolorSvgToCurrentColor(root: Element) {
+  const walk = (el: Element) => {
+    const svgEl = el as unknown as SVGElement;
+    for (const prop of ["fill", "stroke"] as const) {
+      const attr = el.getAttribute(prop);
+      if (attr && attr !== "none" && !attr.startsWith("url(")) el.setAttribute(prop, "currentColor");
+      const styleVal = svgEl.style?.getPropertyValue(prop);
+      if (styleVal && styleVal !== "none" && !styleVal.startsWith("url(")) svgEl.style.setProperty(prop, "currentColor");
+    }
+    for (const child of Array.from(el.children)) walk(child);
+  };
+  walk(root);
+}
+
+// Measures each strokeable shape's real path length (getTotalLength() needs the element actually
+// laid out, hence the caller mounting it off-screen first) and bakes it in as an inline
+// stroke-dasharray/dashoffset — so the "Draw" animation traces the graphic's real outline instead
+// of a rough fixed-length guess that under- or over-shoots on anything but the simplest icon.
+function bakeDrawDashOffsets(svg: SVGSVGElement) {
+  for (const el of Array.from(svg.querySelectorAll(SVG_STROKEABLE_SELECTOR))) {
+    const shape = el as unknown as { getTotalLength?: () => number; style: CSSStyleDeclaration };
+    if (typeof shape.getTotalLength !== "function") continue;
+    try {
+      const length = Math.ceil(shape.getTotalLength());
+      if (length > 0) {
+        shape.style.strokeDasharray = String(length);
+        shape.style.strokeDashoffset = String(length);
+      }
+    } catch {
+      // A shape that throws rather than returning a length is left undashed rather than failing
+      // the whole insert.
+    }
+  }
+}
+
+// Parses + sanitizes pasted/uploaded SVG text and recolours it — the cheap half of preparing a
+// graphic, safe to re-run on every keystroke for the insert dialog's live preview. DOMPurify's
+// SVG profile (not the default HTML one) strips anything that isn't structural SVG markup —
+// script tags, event handler attributes, javascript: URLs — while still parsing via HTML rules
+// (DOMPurify doesn't actually support an XML parser mode; USE_PROFILES.svg is its documented way
+// to sanitize SVG specifically), which also means a stray XML prolog or DOCTYPE from a
+// hand-exported .svg file is harmlessly ignored rather than causing a parse error.
+function parseSvgMarkup(raw: string): { ok: true; svg: SVGSVGElement } | { ok: false; error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { ok: false, error: "Paste some SVG markup or choose a file first." };
+  const clean = DOMPurify.sanitize(trimmed, { USE_PROFILES: { svg: true, svgFilters: true } });
+  const doc = new DOMParser().parseFromString(clean, "text/html");
+  const svg = doc.querySelector<SVGSVGElement>("svg");
+  if (!svg) return { ok: false, error: "That doesn't look like valid SVG — check it starts with <svg ...> and try again." };
+
+  // width/height attributes would otherwise fight the wrapper's own sizing (.rte-svg-graphic svg
+  // below) — the viewBox alone is what lets it scale cleanly to whatever width the author sets.
+  if (!svg.getAttribute("viewBox")) {
+    const w = svg.getAttribute("width"), h = svg.getAttribute("height");
+    if (w && h) svg.setAttribute("viewBox", `0 0 ${parseFloat(w)} ${parseFloat(h)}`);
+  }
+  svg.removeAttribute("width");
+  svg.removeAttribute("height");
+  recolorSvgToCurrentColor(svg);
+  return { ok: true, svg };
+}
+
+// The expensive half — only run once, right before actually inserting (or when switching an
+// existing graphic's animation to "draw" after the fact — see SvgGraphicView).
+function finalizeSvgGraphic(svg: SVGSVGElement, animation: SvgAnimationKey): string {
+  if (animation === "draw") {
+    const mount = document.createElement("div");
+    mount.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:200px;height:200px;";
+    document.body.appendChild(mount);
+    mount.appendChild(svg);
+    bakeDrawDashOffsets(svg);
+    document.body.removeChild(mount);
+  }
+  return svg.outerHTML;
+}
+
+const SvgGraphic = Node.create({
+  name: "svgGraphic",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      svgHtml: {
+        default: "",
+        parseHTML: (el: HTMLElement) => el.innerHTML,
+        renderHTML: () => ({}),
+      },
+      animation: {
+        default: "none" as SvgAnimationKey,
+        parseHTML: (el: HTMLElement) => (el.getAttribute("data-animation") as SvgAnimationKey) || "none",
+        renderHTML: (attrs: { animation: SvgAnimationKey }) => ({ "data-animation": attrs.animation }),
+      },
+      width: {
+        default: 80,
+        parseHTML: (el: HTMLElement) => parseInt(el.getAttribute("data-width") || "80", 10),
+        renderHTML: (attrs: { width: number }) => ({ "data-width": String(attrs.width) }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "span.rte-svg-graphic" }];
+  },
+  // Returns a real DOM element (a valid DOMOutputSpec, alongside the usual declarative array
+  // form) rather than trying to express arbitrary, author-supplied SVG markup as one — there's no
+  // way to splice a raw HTML string into the declarative array spec ProseMirror otherwise expects.
+  renderHTML({ node, HTMLAttributes }) {
+    const wrapper = document.createElement("span");
+    const merged = mergeAttributes(HTMLAttributes, {
+      class: `rte-svg-graphic rte-svg-anim-${node.attrs.animation}`,
+      style: `width:${node.attrs.width}px`,
+    });
+    for (const [key, val] of Object.entries(merged)) {
+      if (val != null) wrapper.setAttribute(key, String(val));
+    }
+    wrapper.innerHTML = node.attrs.svgHtml;
+    return wrapper;
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(SvgGraphicView);
+  },
+});
+
+function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactNodeViewProps) {
+  const { svgHtml, animation, width } = node.attrs as { svgHtml: string; animation: SvgAnimationKey; width: number };
+  const [animMenuOpen, setAnimMenuOpen] = useState(false);
+
+  function changeAnimation(next: SvgAnimationKey) {
+    setAnimMenuOpen(false);
+    if (next === animation) return;
+    if (next !== "draw") { updateAttributes({ animation: next }); return; }
+    // Switching an already-inserted graphic to "Draw" needs the same real bake the insert dialog
+    // does — done here rather than left to the generic CSS fallback (see .rte-svg-anim-draw in
+    // globals.css), which is only accurate for a simple icon at roughly the fallback's own length.
+    const mount = document.createElement("div");
+    mount.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:200px;height:200px;";
+    document.body.appendChild(mount);
+    mount.innerHTML = svgHtml;
+    const svgEl = mount.querySelector<SVGSVGElement>("svg");
+    if (svgEl) bakeDrawDashOffsets(svgEl);
+    const rebaked = mount.innerHTML;
+    document.body.removeChild(mount);
+    updateAttributes({ animation: next, svgHtml: rebaked });
+  }
+
+  return (
+    <NodeViewWrapper
+      as="div"
+      style={{ position: "relative", display: "inline-block", margin: "8px 4px", padding: 6, borderRadius: 8, border: selected ? `1.5px solid ${ACCENT}` : "1.5px solid transparent" }}
+    >
+      <span
+        className={`rte-svg-graphic rte-svg-anim-${animation}`}
+        style={{ width, display: "inline-block" }}
+        dangerouslySetInnerHTML={{ __html: svgHtml }}
+      />
+      <div
+        contentEditable={false}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={{
+          position: "absolute", top: -12, right: -8, display: "flex", gap: 2, zIndex: 5,
+          background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 7, padding: 3,
+          opacity: selected ? 1 : 0, pointerEvents: selected ? "auto" : "none", transition: "opacity 0.15s ease",
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <button type="button" onClick={() => setAnimMenuOpen((v) => !v)} title="Animation" style={{ ...btnBase, color: ACCENT, background: animMenuOpen ? "rgba(20,173,181,0.15)" : "none" }}>
+            <Sparkles size={12} />
+          </button>
+          {animMenuOpen && (
+            <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 8, padding: 4, display: "flex", flexDirection: "column", gap: 1, zIndex: 10, minWidth: 90 }}>
+              {SVG_ANIMATIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => changeAnimation(opt.key)}
+                  style={{
+                    background: animation === opt.key ? "rgba(20,173,181,0.15)" : "none", border: "none", borderRadius: 5,
+                    padding: "5px 8px", textAlign: "left", cursor: "pointer",
+                    color: animation === opt.key ? ACCENT : "#EDE8DF", fontFamily: "'DM Mono', monospace", fontSize: 10,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <button type="button" onClick={() => updateAttributes({ width: Math.max(24, width - 16) })} title="Smaller" style={{ ...btnBase, color: "#EDE8DF" }}><Minus size={12} /></button>
+        <button type="button" onClick={() => updateAttributes({ width: Math.min(480, width + 16) })} title="Larger" style={{ ...btnBase, color: "#EDE8DF" }}><Plus size={12} /></button>
+        <button
+          type="button"
+          onClick={deleteNode}
+          title="Remove graphic"
+          style={{ ...btnBase, color: "#EDE8DF" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#C0392B"; e.currentTarget.style.background = "rgba(192,57,43,0.12)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#EDE8DF"; e.currentTarget.style.background = "none"; }}
+        >
+          <X size={12} />
+        </button>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string, animation: SvgAnimationKey) => void; onClose: () => void }) {
+  const [raw, setRaw] = useState("");
+  const [animation, setAnimation] = useState<SvgAnimationKey>("none");
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cheap parse+recolor only — safe on every keystroke. The exact "Draw" dash length is baked in
+  // only once, on actual insert (see handleInsert) — see finalizeSvgGraphic's own comment.
+  const previewHtml = useMemo(() => {
+    if (!raw.trim()) return null;
+    const parsed = parseSvgMarkup(raw);
+    return parsed.ok ? parsed.svg.outerHTML : null;
+  }, [raw]);
+
+  function handleFile(file: File) {
+    if (!file.name.toLowerCase().endsWith(".svg") && file.type !== "image/svg+xml") {
+      setError("Choose an .svg file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => { setRaw(String(reader.result ?? "")); setError(null); };
+    reader.onerror = () => setError("Couldn't read that file.");
+    reader.readAsText(file);
+  }
+
+  function handleInsert() {
+    const parsed = parseSvgMarkup(raw);
+    if (!parsed.ok) { setError(parsed.error); return; }
+    onConfirm(finalizeSvgGraphic(parsed.svg, animation), animation);
+  }
+
+  return (
+    <div className="flex flex-col gap-2 p-3 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", minWidth: "340px", maxWidth: "380px" }}>
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>INSERT SVG GRAPHIC</p>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", lineHeight: 1.5, margin: 0 }}>
+        Paste SVG code or upload a file. Colours are swapped to automatically follow the theme&rsquo;s accent colour.
+      </p>
+      <textarea
+        autoFocus
+        value={raw}
+        onChange={(e) => { setRaw(e.target.value); setError(null); }}
+        placeholder="<svg ...>...</svg>"
+        rows={4}
+        style={{ background: "#141D24", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "6px", padding: "7px 10px", color: "#EDE8DF", fontFamily: "'DM Mono', monospace", fontSize: "11px", outline: "none", resize: "vertical" }}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".svg,image/svg+xml"
+        style={{ display: "none" }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+      />
+      <button type="button" onClick={() => fileInputRef.current?.click()} style={{ ...btnBase, alignSelf: "flex-start", color: "#EDE8DF", padding: "5px 10px", border: "1px solid rgba(237,232,223,0.12)" }}>
+        Upload .svg file
+      </button>
+
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em", marginTop: 4 }}>ANIMATION</p>
+      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+        {SVG_ANIMATIONS.map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setAnimation(opt.key)}
+            style={{
+              padding: "5px 10px", borderRadius: 6, fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: "0.02em", cursor: "pointer",
+              background: animation === opt.key ? "rgba(20,173,181,0.15)" : "transparent",
+              border: `1px solid ${animation === opt.key ? ACCENT : "rgba(237,232,223,0.12)"}`,
+              color: animation === opt.key ? ACCENT : "#EDE8DF",
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {previewHtml && (
+        <div className="flex justify-center" style={{ padding: "14px 0", background: "#141D24", borderRadius: 8 }}>
+          <span className={`rte-svg-graphic rte-svg-anim-${animation}`} style={{ width: 64, display: "inline-block" }} dangerouslySetInnerHTML={{ __html: previewHtml }} />
+        </div>
+      )}
+      {error && <p style={{ color: "#E85A5A", fontFamily: "'DM Sans', sans-serif", fontSize: 11, margin: 0 }}>{error}</p>}
+
+      <div className="flex gap-2 justify-end" style={{ marginTop: 4 }}>
+        <button onClick={onClose} style={{ ...btnBase, color: "#EDE8DF", padding: "5px 10px" }}>Cancel</button>
+        <button onClick={handleInsert} style={{ background: ACCENT, border: "none", borderRadius: "6px", color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: "11px", padding: "6px 14px", cursor: "pointer" }}>Insert</button>
+      </div>
+    </div>
+  );
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 const COLOR_SWATCHES = [
   // Neutrals / theme text
@@ -873,7 +1198,7 @@ function ColorPicker({ currentColor, onSet, onClear }: { currentColor: string; o
   );
 }
 
-type Dialog = "link" | "video" | "pdf" | "button" | "color" | null;
+type Dialog = "link" | "video" | "pdf" | "button" | "color" | "svg" | null;
 
 // Every rich text editor now shares this one width, rather than each field capping itself to
 // wherever its own text actually renders on the live site (a per-field maxWidth prop used to do
@@ -919,6 +1244,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5] } }),
       CaptionBlock,
       CollapsiblePanel,
+      SvgGraphic,
       TextStyle,
       FontSize,
       FontFamily,
@@ -1246,6 +1572,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           <ToolbarBtn onClick={() => { setDialog(null); setShowLibrary(true); }} active={showLibrary} title="Insert image from library"><ImageIcon size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => setDialog(dialog === "video" ? null : "video")} active={dialog === "video"} title="Embed video"><YoutubeIcon size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => setDialog(dialog === "pdf" ? null : "pdf")} active={dialog === "pdf"} title="Insert PDF link"><FileText size={12} /></ToolbarBtn>
+          <ToolbarBtn onClick={() => setDialog(dialog === "svg" ? null : "svg")} active={dialog === "svg"} title="Insert SVG graphic"><Shapes size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} active={editor.isActive("table")} title="Insert table"><TableIcon size={12} /></ToolbarBtn>
           <ToolbarBtn
             onClick={() => editor.chain().focus().insertContent({
@@ -1358,6 +1685,15 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
               <PDFDialog
                 onConfirm={(url, lbl) => {
                   editor.chain().focus().insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="rte-pdf">${lbl}</a> `).run();
+                  setDialog(null);
+                }}
+                onClose={() => setDialog(null)}
+              />
+            )}
+            {dialog === "svg" && (
+              <SvgGraphicDialog
+                onConfirm={(svgHtml, animation) => {
+                  editor.chain().focus().insertContent({ type: "svgGraphic", attrs: { svgHtml, animation, width: 80 } }).run();
                   setDialog(null);
                 }}
                 onClose={() => setDialog(null)}
