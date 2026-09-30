@@ -825,14 +825,20 @@ function bakeDrawDashOffsets(svg: SVGSVGElement) {
   }
 }
 
-// Parses + sanitizes pasted/uploaded SVG text and recolours it — the cheap half of preparing a
-// graphic, safe to re-run on every keystroke for the insert dialog's live preview. DOMPurify's
-// SVG profile (not the default HTML one) strips anything that isn't structural SVG markup —
-// script tags, event handler attributes, javascript: URLs — while still parsing via HTML rules
-// (DOMPurify doesn't actually support an XML parser mode; USE_PROFILES.svg is its documented way
-// to sanitize SVG specifically), which also means a stray XML prolog or DOCTYPE from a
+// Parses + sanitizes pasted/uploaded SVG text and, if asked, recolours it — the cheap half of
+// preparing a graphic, safe to re-run on every keystroke for the insert dialog's live preview.
+// DOMPurify's SVG profile (not the default HTML one) strips anything that isn't structural SVG
+// markup — script tags, event handler attributes, javascript: URLs — while still parsing via HTML
+// rules (DOMPurify doesn't actually support an XML parser mode; USE_PROFILES.svg is its documented
+// way to sanitize SVG specifically), which also means a stray XML prolog or DOCTYPE from a
 // hand-exported .svg file is harmlessly ignored rather than causing a parse error.
-function parseSvgMarkup(raw: string): { ok: true; svg: SVGSVGElement } | { ok: false; error: string } {
+//
+// Recolouring is opt-out, not automatic: it's a blunt per-attribute rewrite (any non-"none"
+// fill/stroke becomes currentColor) that suits a simple flat icon but actively breaks a richer,
+// deliberately multi-tone illustration — e.g. one with fixed traffic-light dots or a white
+// highlight meant to stay white regardless of theme. Those authors want their own palette (often
+// already theme-aware via their own `:root { --their-var: ... }` block) left exactly as pasted.
+function parseSvgMarkup(raw: string, recolor: boolean): { ok: true; svg: SVGSVGElement } | { ok: false; error: string } {
   const trimmed = raw.trim();
   if (!trimmed) return { ok: false, error: "Paste some SVG markup or choose a file first." };
   const clean = DOMPurify.sanitize(trimmed, { USE_PROFILES: { svg: true, svgFilters: true } });
@@ -848,7 +854,7 @@ function parseSvgMarkup(raw: string): { ok: true; svg: SVGSVGElement } | { ok: f
   }
   svg.removeAttribute("width");
   svg.removeAttribute("height");
-  recolorSvgToCurrentColor(svg);
+  if (recolor) recolorSvgToCurrentColor(svg);
   return { ok: true, svg };
 }
 
@@ -949,7 +955,11 @@ function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactN
         contentEditable={false}
         onMouseDown={(e) => e.stopPropagation()}
         style={{
-          position: "absolute", top: -12, right: -8, display: "flex", gap: 2, zIndex: 5,
+          // Anchored to the top-LEFT corner deliberately — the graphic's own left/top edges stay
+          // fixed as width changes (only the right edge moves), but the old top-right anchor
+          // moved every time "Larger"/"Smaller" was clicked, so the very buttons you were
+          // clicking kept relocating out from under the cursor.
+          position: "absolute", top: -12, left: -8, display: "flex", gap: 2, zIndex: 5,
           background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 7, padding: 3,
           opacity: selected ? 1 : 0, pointerEvents: selected ? "auto" : "none", transition: "opacity 0.15s ease",
         }}
@@ -959,7 +969,7 @@ function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactN
             <Sparkles size={12} />
           </button>
           {animMenuOpen && (
-            <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 8, padding: 4, display: "flex", flexDirection: "column", gap: 1, zIndex: 10, minWidth: 90 }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 8, padding: 4, display: "flex", flexDirection: "column", gap: 1, zIndex: 10, minWidth: 90 }}>
               {SVG_ANIMATIONS.map((opt) => (
                 <button
                   key={opt.key}
@@ -997,16 +1007,21 @@ function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactN
 function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string, animation: SvgAnimationKey) => void; onClose: () => void }) {
   const [raw, setRaw] = useState("");
   const [animation, setAnimation] = useState<SvgAnimationKey>("none");
+  // On by default (suits the common case: a simple flat icon that should pick up the theme's
+  // accent colour). A richer illustration with its own deliberate multi-colour palette — fixed
+  // traffic-light dots, a white highlight meant to stay white — should turn this off instead;
+  // recolouring would flatten every one of those distinct colours to the same currentColor.
+  const [recolor, setRecolor] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cheap parse+recolor only — safe on every keystroke. The exact "Draw" dash length is baked in
-  // only once, on actual insert (see handleInsert) — see finalizeSvgGraphic's own comment.
+  // Cheap parse (+ recolor, if on) only — safe on every keystroke. The exact "Draw" dash length is
+  // baked in only once, on actual insert (see handleInsert) — see finalizeSvgGraphic's own comment.
   const previewHtml = useMemo(() => {
     if (!raw.trim()) return null;
-    const parsed = parseSvgMarkup(raw);
+    const parsed = parseSvgMarkup(raw, recolor);
     return parsed.ok ? parsed.svg.outerHTML : null;
-  }, [raw]);
+  }, [raw, recolor]);
 
   function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith(".svg") && file.type !== "image/svg+xml") {
@@ -1020,7 +1035,7 @@ function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string,
   }
 
   function handleInsert() {
-    const parsed = parseSvgMarkup(raw);
+    const parsed = parseSvgMarkup(raw, recolor);
     if (!parsed.ok) { setError(parsed.error); return; }
     onConfirm(finalizeSvgGraphic(parsed.svg, animation), animation);
   }
@@ -1029,7 +1044,7 @@ function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string,
     <div className="flex flex-col gap-2 p-3 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", minWidth: "340px", maxWidth: "380px" }}>
       <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>INSERT SVG GRAPHIC</p>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", lineHeight: 1.5, margin: 0 }}>
-        Paste SVG code or upload a file. Colours are swapped to automatically follow the theme&rsquo;s accent colour.
+        Paste SVG code or upload a file.
       </p>
       <textarea
         autoFocus
@@ -1049,6 +1064,15 @@ function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string,
       <button type="button" onClick={() => fileInputRef.current?.click()} style={{ ...btnBase, alignSelf: "flex-start", color: "#EDE8DF", padding: "5px 10px", border: "1px solid rgba(237,232,223,0.12)" }}>
         Upload .svg file
       </button>
+
+      <div style={{ padding: "2px 0" }}>
+        <Switch checked={recolor} onChange={setRecolor} label="Recolour to theme accent" />
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, color: "#6B7E8A", lineHeight: 1.5, margin: "4px 0 0" }}>
+          {recolor
+            ? "Every fill/stroke becomes the theme's accent colour — best for a simple flat icon."
+            : "Kept exactly as pasted — best for a graphic with its own deliberate colours (e.g. fixed status dots, a white highlight)."}
+        </p>
+      </div>
 
       <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em", marginTop: 4 }}>ANIMATION</p>
       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
