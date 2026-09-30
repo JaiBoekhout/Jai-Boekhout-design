@@ -22,7 +22,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Minus, Undo, Redo,
   Video as YoutubeIcon, FileText, X, ChevronDown, Table as TableIcon,
   Rows3, Columns3, Trash2, Plus, ArrowRight, PanelBottom, Type as SecondaryFontIcon,
-  Smartphone, Shapes, Sparkles,
+  Smartphone, Shapes, Sparkles, Code2,
 } from "lucide-react";
 import { MediaLibraryModal } from "@/components/MediaLibraryModal";
 import { Switch } from "@/components/SiteKit";
@@ -922,6 +922,7 @@ const SvgGraphic = Node.create({
 function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactNodeViewProps) {
   const { svgHtml, animation, width } = node.attrs as { svgHtml: string; animation: SvgAnimationKey; width: number };
   const [animMenuOpen, setAnimMenuOpen] = useState(false);
+  const [editingCode, setEditingCode] = useState(false);
 
   function changeAnimation(next: SvgAnimationKey) {
     setAnimMenuOpen(false);
@@ -987,6 +988,7 @@ function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactN
             </div>
           )}
         </div>
+        <button type="button" onClick={() => setEditingCode(true)} title="Edit code" style={{ ...btnBase, color: "#EDE8DF" }}><Code2 size={12} /></button>
         <button type="button" onClick={() => updateAttributes({ width: Math.max(24, width - 16) })} title="Smaller" style={{ ...btnBase, color: "#EDE8DF" }}><Minus size={12} /></button>
         <button type="button" onClick={() => updateAttributes({ width: Math.min(480, width + 16) })} title="Larger" style={{ ...btnBase, color: "#EDE8DF" }}><Plus size={12} /></button>
         <button
@@ -1000,18 +1002,55 @@ function SvgGraphicView({ node, updateAttributes, deleteNode, selected }: ReactN
           <X size={12} />
         </button>
       </div>
+
+      {editingCode && (
+        <div
+          contentEditable={false}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(6,9,12,0.7)", padding: 20 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setEditingCode(false); }}
+        >
+          <SvgGraphicDialog
+            title="EDIT SVG GRAPHIC"
+            confirmLabel="Update"
+            initialRaw={svgHtml}
+            initialAnimation={animation}
+            onConfirm={(newSvgHtml, newAnimation) => {
+              updateAttributes({ svgHtml: newSvgHtml, animation: newAnimation });
+              setEditingCode(false);
+            }}
+            onClose={() => setEditingCode(false)}
+          />
+        </div>
+      )}
     </NodeViewWrapper>
   );
 }
 
-function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string, animation: SvgAnimationKey) => void; onClose: () => void }) {
-  const [raw, setRaw] = useState("");
-  const [animation, setAnimation] = useState<SvgAnimationKey>("none");
+function SvgGraphicDialog({
+  onConfirm, onClose, initialRaw, initialAnimation, title, confirmLabel,
+}: {
+  onConfirm: (svgHtml: string, animation: SvgAnimationKey) => void;
+  onClose: () => void;
+  // Editing an already-inserted graphic (see SvgGraphicView's own "Edit code" button) reuses this
+  // exact dialog rather than a second copy, pre-filled with what's already there — the CMS content
+  // is small enough that duplicating this ~150-line form for a near-identical "edit" variant would
+  // be pure drift risk (the two copies quietly diverging over time) for no real benefit.
+  initialRaw?: string;
+  initialAnimation?: SvgAnimationKey;
+  title?: string;
+  confirmLabel?: string;
+}) {
+  const [raw, setRaw] = useState(initialRaw ?? "");
+  const [animation, setAnimation] = useState<SvgAnimationKey>(initialAnimation ?? "none");
   // On by default (suits the common case: a simple flat icon that should pick up the theme's
   // accent colour). A richer illustration with its own deliberate multi-colour palette — fixed
   // traffic-light dots, a white highlight meant to stay white — should turn this off instead;
   // recolouring would flatten every one of those distinct colours to the same currentColor.
-  const [recolor, setRecolor] = useState(true);
+  // Editing an existing graphic defaults this off instead — its saved markup is already whatever
+  // colour state it was left in, and silently re-recolouring on top of that would very likely
+  // flatten deliberate white/fixed bits a second time rather than leaving them alone.
+  const [recolor, setRecolor] = useState(initialRaw ? false : true);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1042,7 +1081,7 @@ function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string,
 
   return (
     <div className="flex flex-col gap-2 p-3 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", minWidth: "340px", maxWidth: "380px" }}>
-      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>INSERT SVG GRAPHIC</p>
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>{title ?? "INSERT SVG GRAPHIC"}</p>
       <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8C9AA3", lineHeight: 1.5, margin: 0 }}>
         Paste SVG code or upload a file.
       </p>
@@ -1102,7 +1141,7 @@ function SvgGraphicDialog({ onConfirm, onClose }: { onConfirm: (svgHtml: string,
 
       <div className="flex gap-2 justify-end" style={{ marginTop: 4 }}>
         <button onClick={onClose} style={{ ...btnBase, color: "#EDE8DF", padding: "5px 10px" }}>Cancel</button>
-        <button onClick={handleInsert} style={{ background: ACCENT, border: "none", borderRadius: "6px", color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: "11px", padding: "6px 14px", cursor: "pointer" }}>Insert</button>
+        <button onClick={handleInsert} style={{ background: ACCENT, border: "none", borderRadius: "6px", color: "#0C1117", fontFamily: "'DM Mono', monospace", fontSize: "11px", padding: "6px 14px", cursor: "pointer" }}>{confirmLabel ?? "Insert"}</button>
       </div>
     </div>
   );
