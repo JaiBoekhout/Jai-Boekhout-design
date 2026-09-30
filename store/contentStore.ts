@@ -63,6 +63,10 @@ export interface CMSBranding {
   faviconPngUrl?: string;
   faviconSvgUrl?: string;
   appleTouchIconUrl?: string;
+  // Custom image shown when the site's root URL is shared on LinkedIn/Slack/iMessage/etc —
+  // optional, falls back to the generated brand-token card in app/opengraph-image.tsx when unset.
+  ogImageUrl?: string;
+  ogImagePosition?: string;
 }
 
 // Each value is a full profile URL, or undefined/empty if that platform isn't linked. Drives

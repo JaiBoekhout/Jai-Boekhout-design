@@ -2362,6 +2362,19 @@ export function DesignSystemSection({
             onChange={(url) => onBrandingChange({ ...branding, appleTouchIconUrl: url || undefined })}
           />
         </div>
+        <div style={{ marginTop: 24 }}>
+          <ImagePicker
+            label="Social Share Image"
+            previewRatio="1200/630"
+            value={branding.ogImageUrl}
+            position={branding.ogImagePosition}
+            onChange={(url) => onBrandingChange({ ...branding, ogImageUrl: url || undefined, ogImagePosition: url ? branding.ogImagePosition : undefined })}
+            onPositionChange={(pos) => onBrandingChange({ ...branding, ogImagePosition: pos })}
+          />
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", marginTop: 4, lineHeight: 1.5 }}>
+            Shown when the site's link is shared on LinkedIn, Slack, iMessage, etc. Leave unset to keep the generated card. Some platforms (LinkedIn especially) cache a link's preview — use their own inspector/debugger tool to refresh it after changing this.
+          </p>
+        </div>
       </div>
 
       <div id="ds-socials" style={{ scrollMarginTop: 20 }}>
