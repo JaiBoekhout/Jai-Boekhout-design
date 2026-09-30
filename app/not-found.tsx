@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useContentStore } from "@/store/contentStore";
@@ -13,9 +14,32 @@ import { Button } from "@/components/SiteKit";
 // Copy/image are CMS-editable (Design System → 404 Page) rather than hardcoded, so this stays
 // on-brand without a code change — colors/fonts already come from the same Design System tokens
 // every other page uses, applied globally by the inline script in app/layout.tsx.
+//
+// The special root not-found boundary gets statically pre-rendered into one /404 HTML file at
+// build time — confirmed live (production was serving x-vercel-cache: HIT / x-matched-path: /404,
+// hours stale) — same as any other page, and `export const dynamic = "force-dynamic"` does NOT
+// change that classification for this specific synthetic route (tried it; the build's route
+// summary still listed /_not-found as static). `next dev` never statically prerenders anything,
+// which is why this never showed up locally — only in an actual production build/deploy. Without
+// a workaround, every CMS edit to the 404 page's copy/image/graphic stays invisible on the live
+// site until the next deployment, no matter how many times it's saved.
+//
+// Since the framework won't let this route re-render per-request, this instead forces the
+// content this component already reads (via useContentStore()) to refetch itself immediately
+// after the frozen static shell hydrates — reusing the exact event persistContent() itself
+// dispatches after a real save (see store/useContentStoreHook.ts), so no change to that shared
+// hook is needed. First paint briefly shows whatever was live at the last deployment; within one
+// network round trip it swaps to the actual current content.
+function useForceFreshContent() {
+  useEffect(() => {
+    window.dispatchEvent(new Event("cms_content_updated"));
+  }, []);
+}
+
 export default function NotFound() {
   const { content } = useContentStore();
   const nf = content.notFound;
+  useForceFreshContent();
 
   return (
     <ThemeProvider>
