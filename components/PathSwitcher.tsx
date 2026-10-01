@@ -192,7 +192,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             initial={false}
             animate={{ x: tip.x }}
             transition={{ duration: slide, ease: EASE }}
-            style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 12, pointerEvents: "none" }}
+            style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 6, pointerEvents: "none" }}
           >
             <motion.div
               initial={false}
