@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useAnimation, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Home, Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
@@ -16,14 +16,17 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
   story: BookOpen,
 };
 
-// Reserved min-width for whichever button is currently active, covering icon + gap + the longest
-// label ("Evaluate") + padding, with headroom — fixed rather than auto-sized so the bar's total
-// width doesn't shift when a shorter/longer label (e.g. "Story" vs "Evaluate") becomes the active
-// one. Applied to the whole button (centered via justifyContent) rather than just to the label
-// span, so a short label like "Work" centers as a group with its icon instead of the icon staying
-// pinned to the left edge with the label floating off to one side of the leftover space. Hover-
-// only previews on an inactive button still size to their own content, since those are transient.
-const ACTIVE_BUTTON_MIN_WIDTH = 108;
+const EASE = [0.4, 0, 0.2, 1] as const;
+const DURATION = 0.4;
+
+// Reserved min-width for whichever button is currently active — covers icon + gap + the longest
+// label ("Evaluate") + padding, with headroom. Fixed rather than content-sized for two reasons:
+// the bar's width doesn't shift when a shorter/longer label becomes active, and (because the
+// active width is therefore always identical) switching paths grows one button by exactly as
+// much as it shrinks the other, leaving the bar's total width unchanged mid-transition.
+const ACTIVE_BUTTON_MIN_WIDTH = 116;
+
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface PathSwitcherProps {
   selectedPath: string;
@@ -37,22 +40,31 @@ interface NavButtonProps {
   onClick: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
+  buttonRef?: (el: HTMLButtonElement | null) => void;
 }
 
 // Shared rendering for every button in the bar (the 4 paths, plus the standalone Home button
 // below) — icon-only at rest, label expands on hover or while active, same treatment for both
 // so Home doesn't read as a visually distinct bolt-on.
 //
-// motion.button + layout (also on the <nav> wrapper below) rather than a plain <button>: any
-// button's width changing reflows every button after it in the row (normal flex behavior), and
-// without `layout` that reflow just snaps instantly — only the button whose own width/gap was
-// explicitly animated moved smoothly, while its neighbors visibly jumped to their new position
-// in one frame. `layout` makes Framer Motion animate that repositioning too, for every button,
-// not just the one being directly expanded/collapsed.
-function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverStart, onHoverEnd }: NavButtonProps) {
+// Two things here are deliberate and load-bearing:
+//
+// 1. The label's width is set as a plain style (auto / 0), NOT animated via Framer. `layout`
+//    below smooths the resulting size change visually using a transform, which means the real
+//    CSS layout is already final on the very first frame — so PathSwitcher can measure a
+//    button's true final offsetLeft/offsetWidth immediately rather than reading a half-animated
+//    box. Animating the width directly instead would make every measurement stale.
+//
+// 2. `layout` scales this button during that smoothing, and a scale applies to descendants too.
+//    The icon and the label text get layout="position" so Framer counter-scales them and they
+//    translate instead of squashing. (This is also exactly why the active-state pill is NOT
+//    rendered in here — see PathSwitcher: a fixed-px border-radius inside a horizontally
+//    scaling box renders as an ellipse, which is what made the pill look egg-shaped mid-slide.)
+function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverStart, onHoverEnd, buttonRef }: NavButtonProps) {
   const buttonCorner = useButtonCorner();
   return (
     <motion.button
+      ref={buttonRef}
       layout
       type="button"
       onClick={onClick}
@@ -60,52 +72,32 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverSt
       onMouseLeave={onHoverEnd}
       aria-current={isActive ? "page" : undefined}
       aria-label={label}
-      className="relative flex items-center justify-center transition-colors"
-      transition={{ layout: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
+      className="relative flex items-center justify-center"
+      transition={{ layout: { duration: DURATION, ease: EASE } }}
       style={{
         borderRadius: buttonCorner,
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
         padding: "9px 11px",
         gap: isExpanded ? 9 : 0,
         minWidth: isActive ? ACTIVE_BUTTON_MIN_WIDTH : undefined,
+        background: "transparent",
         cursor: "pointer",
-        transition: "color 0.25s ease, gap 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "color 0.25s ease",
       }}
     >
-      {/* Shared layoutId — rather than each button fading its own background in/out, this one
-          element is what actually exists, and Framer Motion animates its position/size as it
-          moves from the previously-active button to this one, producing a sliding highlight
-          instead of a cross-fade. Icon/label below need position:relative to paint above it —
-          an absolutely-positioned sibling always paints over non-positioned flex children
-          regardless of DOM order, so without that they'd be covered by this on the active tab. */}
-      {isActive && (
-        <motion.span
-          layoutId="nav-active-pill"
-          aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            borderRadius: buttonCorner,
-            border: "1px solid var(--c-teal)",
-            background: "color-mix(in srgb, var(--c-teal) 12%, transparent)",
-          }}
-          // Matches the button's own `layout` transition below exactly (same duration/curve,
-          // not a spring) — this pill is inset:0 within that button, so if the two animate on
-          // different curves/timings they briefly disagree about the button's actual current
-          // size. Since border-radius is fixed in px, that momentary mismatch stretched the
-          // pill non-uniformly (an "egg" shape) until both settled back in sync.
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-        />
-      )}
-      <span className="relative flex" style={{ lineHeight: 0 }}>
+      <motion.span layout="position" className="flex" style={{ lineHeight: 0 }}>
         <Icon size={16} />
-      </span>
+      </motion.span>
       <motion.span
-        className="relative flex items-center overflow-hidden whitespace-nowrap"
-        initial={false}
-        animate={{ width: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
-        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        layout
+        className="flex items-center overflow-hidden whitespace-nowrap"
+        animate={{ opacity: isExpanded ? 1 : 0 }}
+        transition={{ opacity: { duration: 0.25, ease: EASE }, layout: { duration: DURATION, ease: EASE } }}
+        style={{ width: isExpanded ? "auto" : 0 }}
       >
-        <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{label}</span>
+        <motion.span layout="position" style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>
+          {label}
+        </motion.span>
       </motion.span>
     </motion.button>
   );
@@ -117,6 +109,13 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverSt
 // + a "Switch Path" button that only ever routed home to re-choose from the path cards there;
 // this collapses that extra hop into a single click, same as any other icon nav bar.
 const HOME_HOVER_KEY = "home";
+
+interface PillBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   const router = useRouter();
@@ -138,6 +137,49 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   }, [selectedPath, pendingKey]);
   const effectivePath = pendingKey ?? selectedPath;
 
+  // ── Active-state pill ───────────────────────────────────────────────────────
+  // Rendered here as one overlay owned by the bar, rather than as a child of whichever button
+  // is active. That placement is the whole point: a button shrinking from its active width back
+  // to icon-only is a ~3x horizontal scale, and anything inside it scales too — a fixed-px
+  // border-radius under a horizontal-only scale draws as an ellipse, so the pill visibly
+  // deformed into an egg every time it moved. Out here it animates its own real x/y/width/height
+  // instead, so the browser renders a genuinely correct rounded box on every frame.
+  //
+  // Measuring (rather than hardcoding the row's geometry) keeps this honest if padding, gaps,
+  // icon size or the font scale ever change. offsetLeft/offsetWidth report the settled layout
+  // and ignore the in-flight `layout` transforms, so one measurement per state change is exact.
+  const navRef = useRef<HTMLElement | null>(null);
+  const btnRefs = useRef(new Map<string, HTMLButtonElement>());
+  const [pill, setPill] = useState<PillBox | null>(null);
+
+  const measurePill = useCallback(() => {
+    const el = btnRefs.current.get(effectivePath);
+    if (!el) {
+      setPill(null);
+      return;
+    }
+    const next: PillBox = { x: el.offsetLeft, y: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
+    setPill((prev) =>
+      prev && prev.x === next.x && prev.y === next.y && prev.width === next.width && prev.height === next.height
+        ? prev
+        : next
+    );
+  }, [effectivePath]);
+
+  useIsoLayoutEffect(() => {
+    measurePill();
+  }, [measurePill, hoveredKey, buttonCorner]);
+
+  // Catch-all for size changes that aren't driven by this component's own state — font-scale
+  // changes, a Design System edit landing, late webfont swap.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => measurePill());
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, [measurePill]);
+
   // HamburgerEasterEgg (app/(public)/(experience)/layout.tsx's header, a sibling of this
   // component — not an ancestor/descendant) dispatches this on open, pointing the joke at the
   // real nav. Reduced motion gets a brief static ring instead of the scale bounce, per the brief.
@@ -158,6 +200,13 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
     };
   }, [reduceMotion, nudgeControls]);
 
+  function registerButton(key: string) {
+    return (el: HTMLButtonElement | null) => {
+      if (el) btnRefs.current.set(key, el);
+      else btnRefs.current.delete(key);
+    };
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, x: "-50%" }}
@@ -169,8 +218,9 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
     >
       <motion.div animate={nudgeControls} style={{ display: "inline-block", position: "relative" }}>
         <motion.nav
+          ref={navRef}
           layout
-          transition={{ layout: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
+          transition={{ layout: { duration: DURATION, ease: EASE } }}
           aria-label="Switch path"
           className="flex items-center gap-1.5 p-1.5"
           style={{
@@ -182,6 +232,25 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
           }}
         >
+          {/* Sits first in the DOM so the buttons (position: relative) paint over it. */}
+          {pill && (
+            <motion.span
+              aria-hidden="true"
+              initial={false}
+              animate={{ x: pill.x, y: pill.y, width: pill.width, height: pill.height }}
+              transition={{ duration: DURATION, ease: EASE }}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                borderRadius: buttonCorner,
+                border: "1px solid var(--c-teal)",
+                background: "color-mix(in srgb, var(--c-teal) 12%, transparent)",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
           {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
               rendered standalone rather than folded into PATH_ORDER; it's also never "active"
               since this bar only ever renders on an experience page, never on the homepage
@@ -203,6 +272,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             return (
               <NavButton
                 key={key}
+                buttonRef={registerButton(key)}
                 icon={PATH_ICONS[key]}
                 label={PATH_DISPLAY_NAMES[key]}
                 isActive={isActive}
