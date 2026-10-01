@@ -16,12 +16,14 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
   story: BookOpen,
 };
 
-// Reserved width for whichever path is currently active, sized for the longest content that
-// slot ever shows ("Evaluate", or the "CURRENT PATH" eyebrow above it) plus headroom — fixed
-// rather than auto-sized so the bar's total width doesn't shift when a shorter/longer label
-// (e.g. "Story" vs "Evaluate") becomes the active one. Hover-only previews on an inactive
-// button still size to their own content, since those are transient, not the resting state.
-const ACTIVE_LABEL_WIDTH = 80;
+// Reserved width for whichever single button is currently expanded (active, or hovered — see
+// isExpanded below, which now allows only one at a time), sized for the longest content any
+// slot ever shows ("Evaluate", or the "CURRENT PATH" eyebrow above it) plus headroom. Every
+// expansion uses this same fixed width rather than sizing to its own content, so the bar's
+// total width never shifts — not between different active paths, and not when hovering a
+// different button than the active one (which used to show two labels at once and widen the
+// bar, since the active label didn't collapse just because something else was being hovered).
+const EXPANDED_LABEL_WIDTH = 80;
 
 interface PathSwitcherProps {
   selectedPath: string;
@@ -86,12 +88,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       <motion.span
         className="relative flex flex-col items-start overflow-hidden whitespace-nowrap"
         initial={false}
-        animate={{ width: isActive ? ACTIVE_LABEL_WIDTH : isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
-        // Animating to a real measured width (rather than an arbitrary max-width like 160px)
-        // means the motion always covers exactly the distance the label actually needs — a
-        // max-width transition reaches a short label's true width almost instantly, then keeps
-        // "running" toward the arbitrary cap with nothing left to show, which reads as a snap
-        // followed by a dead pause rather than one continuous glide.
+        animate={{ width: isExpanded ? EXPANDED_LABEL_WIDTH : 0, opacity: isExpanded ? 1 : 0 }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         style={{ lineHeight: 1.15 }}
       >
@@ -195,7 +192,11 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
 
           {PATH_ORDER.map((key) => {
             const isActive = effectivePath === key;
-            const isExpanded = isActive || hoveredKey === key;
+            // Whenever anything is hovered, only that one button expands — the active one's
+            // label steps aside instead of staying expanded alongside it (its pill/color stays,
+            // just not the label), so at most one label is ever on screen and the bar's total
+            // width never depends on which pair of buttons happens to be active vs. hovered.
+            const isExpanded = hoveredKey ? hoveredKey === key : isActive;
             return (
               <NavButton
                 key={key}
