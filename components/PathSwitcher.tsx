@@ -28,7 +28,14 @@ const SLIDE = 0.34;
 // changes size can't be scaled, and a fixed-px border-radius only deforms under scale — which is
 // what used to squash the pill into an egg while it moved. Labels moved out to a hover card
 // (below) precisely so they can't push this geometry around.
-const BUTTON_SIZE = 38;
+//
+// Kept as constants rather than Tailwind spacing classes because the pill is positioned against
+// the bar's own padding — expressing that as `top: BAR_PADDING` keeps the two from drifting
+// apart the next time this is resized.
+const BUTTON_SIZE = 48;
+const ICON_SIZE = 20;
+const BAR_PADDING = 8;
+const BAR_GAP = 8;
 
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -77,7 +84,7 @@ function NavButton({
         transition: "color 0.2s ease",
       }}
     >
-      <Icon size={16} />
+      <Icon size={ICON_SIZE} />
     </button>
   );
 }
@@ -185,7 +192,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             initial={false}
             animate={{ x: tip.x }}
             transition={{ duration: slide, ease: EASE }}
-            style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 10, pointerEvents: "none" }}
+            style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 12, pointerEvents: "none" }}
           >
             <motion.div
               initial={false}
@@ -193,16 +200,17 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               transition={{ duration: reduceMotion ? 0 : 0.18, ease: EASE }}
               style={{
                 x: "-50%",
-                padding: "5px 11px",
+                padding: "6px 14px",
                 borderRadius: buttonCorner,
                 background: "var(--c-bg-glass)",
                 border: "1px solid var(--c-border-med)",
                 backdropFilter: "blur(20px)",
                 boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
                 fontFamily: "var(--font-body)",
-                fontSize: 11.5,
+                fontSize: 14,
+                fontWeight: 500,
                 lineHeight: 1.3,
-                color: "var(--c-text)",
+                color: "var(--c-teal)",
                 whiteSpace: "nowrap",
               }}
             >
@@ -214,9 +222,11 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
         <nav
           ref={navRef}
           aria-label="Switch path"
-          className="flex items-center gap-1.5 p-1.5"
+          className="flex items-center"
           style={{
             position: "relative",
+            padding: BAR_PADDING,
+            gap: BAR_GAP,
             background: "var(--c-bg-glass)",
             border: "1px solid var(--c-border-med)",
             borderRadius: buttonCorner,
@@ -237,7 +247,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               style={{
                 position: "absolute",
                 left: 0,
-                top: 6,
+                top: BAR_PADDING,
                 width: BUTTON_SIZE,
                 height: BUTTON_SIZE,
                 borderRadius: buttonCorner,
