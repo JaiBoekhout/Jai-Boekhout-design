@@ -7,7 +7,6 @@ import { ArrowRight } from "lucide-react";
 import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
-import { HamburgerEasterEgg } from "@/components/HamburgerEasterEgg";
 import { useContentStore } from "@/store/contentStore";
 import type { CMSHomeCard } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
@@ -96,7 +95,6 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
         <div className="flex items-center gap-3">
           <ThemeDropdown />
           <FontSizeToggle />
-          <HamburgerEasterEgg />
         </div>
       </div>
 

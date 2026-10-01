@@ -219,7 +219,9 @@ export function HamburgerEasterEgg() {
         Craving a hamburger?
       </h2>
       <p style={bodyTextStyle}>
-        I get it. But this site runs on a floating bottom nav. Since you&rsquo;re here, here&rsquo;s the full menu:
+        I get it. But this site runs on a{" "}
+        <span style={{ fontWeight: 700, color: "var(--c-teal)" }}>floating bottom nav.</span>{" "}
+        Since you&rsquo;re here, here&rsquo;s the full menu:
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 14px", margin: "16px 0" }}>
         {MENU_ICONS.map(({ Icon, name, use }) => (
