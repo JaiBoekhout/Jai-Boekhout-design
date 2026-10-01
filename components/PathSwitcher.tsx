@@ -44,33 +44,49 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       onMouseLeave={onHoverEnd}
       aria-current={isActive ? "page" : undefined}
       aria-label={label}
-      className="flex items-center transition-colors"
+      className="relative flex items-center transition-colors"
       style={{
         borderRadius: buttonCorner,
-        border: isActive ? "1px solid var(--c-teal)" : "1px solid transparent",
-        background: isActive ? "color-mix(in srgb, var(--c-teal) 12%, transparent)" : "transparent",
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
         padding: "9px 11px",
         gap: isExpanded ? 9 : 0,
         cursor: "pointer",
-        transition: "background 0.25s ease, border-color 0.25s ease, color 0.25s ease, gap 0.35s ease-out",
+        transition: "color 0.25s ease, gap 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
-      <Icon size={16} />
-      <span
-        className="flex flex-col items-start overflow-hidden whitespace-nowrap"
-        style={{
-          maxWidth: isExpanded ? 160 : 0,
-          opacity: isExpanded ? 1 : 0,
-          lineHeight: 1.15,
-          // max-width and opacity used to run on different durations (0.25s vs 0.2s) — opacity
-          // reached full visibility before the container finished widening, so for that last
-          // ~50ms the already-solid text was still being uncovered by the shrinking clip window,
-          // reading as a stutter rather than a reveal. Now both run the same duration/easing, and
-          // opacity gets a short delay so the label doesn't fade in until the container has
-          // actually started opening up for it.
-          transition: "max-width 0.35s ease-out, opacity 0.35s ease-out 0.05s",
-        }}
+      {/* Shared layoutId — rather than each button fading its own background in/out, this one
+          element is what actually exists, and Framer Motion animates its position/size as it
+          moves from the previously-active button to this one, producing a sliding highlight
+          instead of a cross-fade. Icon/label below need position:relative to paint above it —
+          an absolutely-positioned sibling always paints over non-positioned flex children
+          regardless of DOM order, so without that they'd be covered by this on the active tab. */}
+      {isActive && (
+        <motion.span
+          layoutId="nav-active-pill"
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            borderRadius: buttonCorner,
+            border: "1px solid var(--c-teal)",
+            background: "color-mix(in srgb, var(--c-teal) 12%, transparent)",
+          }}
+          transition={{ type: "spring", stiffness: 500, damping: 34 }}
+        />
+      )}
+      <span className="relative flex" style={{ lineHeight: 0 }}>
+        <Icon size={16} />
+      </span>
+      <motion.span
+        className="relative flex flex-col items-start overflow-hidden whitespace-nowrap"
+        initial={false}
+        animate={{ width: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
+        // Animating to a real measured width (rather than an arbitrary max-width like 160px)
+        // means the motion always covers exactly the distance the label actually needs — a
+        // max-width transition reaches a short label's true width almost instantly, then keeps
+        // "running" toward the arbitrary cap with nothing left to show, which reads as a snap
+        // followed by a dead pause rather than one continuous glide.
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        style={{ lineHeight: 1.15 }}
       >
         {eyebrow && (
           <span
@@ -81,7 +97,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
           </span>
         )}
         <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{label}</span>
-      </span>
+      </motion.span>
     </button>
   );
 }
