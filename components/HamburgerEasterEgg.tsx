@@ -122,14 +122,14 @@ function CloseGlyph() {
 
 const MENU_ICONS: { Icon: (props: { size?: number }) => React.ReactElement; name: string; use: string }[] = [
   { Icon: HamburgerGlyph, name: "Hamburger", use: "Opens the main navigation, most common on mobile." },
+  { Icon: CheeseburgerGlyph, name: "Cheeseburger", use: "Switches to a list view." },
   { Icon: VeggieBurgerGlyph, name: "Veggie Burger", use: "A slimmer hamburger, popular in minimal designs." },
   { Icon: HotDogGlyph, name: "Hot Dog", use: "Usually means filter." },
   { Icon: MeatballsGlyph, name: "Meatballs", use: "More actions, often in a toolbar or on a card." },
-  { Icon: KebabGlyph, name: "Kebab", use: "More actions for a single item, like a row in a list." },
-  { Icon: BentoGlyph, name: "Bento (a.k.a. Candy Box)", use: "Switches between apps, like an app launcher." },
-  { Icon: CheeseburgerGlyph, name: "Cheeseburger", use: "Switches to a list view." },
   { Icon: FriesGlyph, name: "Fries", use: "Represents a paragraph of text, like notes or a caption." },
-  { Icon: WaffleGlyph, name: "Waffle (a.k.a. Chocolate Box)", use: "Switches to a grid view, or opens an app launcher." },
+  { Icon: KebabGlyph, name: "Kebab", use: "More actions for a single item, like a row in a list." },
+  { Icon: WaffleGlyph, name: "Waffle", use: "Switches to a grid view, or opens an app launcher." },
+  { Icon: BentoGlyph, name: "Candy Box", use: "Switches between apps, like an app launcher." },
 ];
 
 // Desktop-only self-aware joke: the site's real navigation is the floating bottom nav
@@ -220,7 +220,8 @@ export function HamburgerEasterEgg() {
       </h2>
       <p style={bodyTextStyle}>
         I get it. But this site runs on a{" "}
-        <span style={{ fontWeight: 700, color: "var(--c-teal)" }}>floating bottom nav.</span>{" "}
+        <span style={{ fontWeight: 700, color: "var(--c-teal)" }}>floating bottom nav.</span>
+        <br />
         Since you&rsquo;re here, here&rsquo;s the full menu:
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 14px", margin: "16px 0" }}>
@@ -237,7 +238,7 @@ export function HamburgerEasterEgg() {
         ))}
       </div>
       <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "2px 0 12px" }} />
-      <p style={{ ...bodyTextStyle, margin: 0 }}>Your actual navigation is waiting down below 👇</p>
+      <p style={{ ...bodyTextStyle, margin: 0, fontSize: 15, fontWeight: 700 }}>Your actual navigation is waiting down below 👇</p>
     </>
   );
 
