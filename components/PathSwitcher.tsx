@@ -16,6 +16,13 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
   story: BookOpen,
 };
 
+// Reserved width for whichever path is currently active, sized for the longest content that
+// slot ever shows ("Evaluate", or the "CURRENT PATH" eyebrow above it) plus headroom — fixed
+// rather than auto-sized so the bar's total width doesn't shift when a shorter/longer label
+// (e.g. "Story" vs "Evaluate") becomes the active one. Hover-only previews on an inactive
+// button still size to their own content, since those are transient, not the resting state.
+const ACTIVE_LABEL_WIDTH = 80;
+
 interface PathSwitcherProps {
   selectedPath: string;
 }
@@ -79,7 +86,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       <motion.span
         className="relative flex flex-col items-start overflow-hidden whitespace-nowrap"
         initial={false}
-        animate={{ width: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
+        animate={{ width: isActive ? ACTIVE_LABEL_WIDTH : isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
         // Animating to a real measured width (rather than an arbitrary max-width like 160px)
         // means the motion always covers exactly the distance the label actually needs — a
         // max-width transition reaches a short label's true width almost instantly, then keeps
@@ -118,6 +125,16 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   const nudgeControls = useAnimation();
   const [staticHighlight, setStaticHighlight] = useState(false);
   const highlightTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // selectedPath comes from usePathname() in the shared layout, which only updates once Next.js
+  // actually commits the new route — so waiting on it made the slide start only after the page
+  // had already loaded. pendingKey flips the highlight the instant a path is clicked instead;
+  // once the real navigation lands and selectedPath catches up to match, it clears itself.
+  const [pendingKey, setPendingKey] = useState<PathKey | null>(null);
+  useEffect(() => {
+    if (pendingKey && selectedPath === pendingKey) setPendingKey(null);
+  }, [selectedPath, pendingKey]);
+  const effectivePath = pendingKey ?? selectedPath;
 
   // HamburgerEasterEgg (app/(public)/(experience)/layout.tsx's header, a sibling of this
   // component — not an ancestor/descendant) dispatches this on open, pointing the joke at the
@@ -177,7 +194,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
           <div style={{ width: 1, alignSelf: "stretch", background: "var(--c-border-med)" }} />
 
           {PATH_ORDER.map((key) => {
-            const isActive = selectedPath === key;
+            const isActive = effectivePath === key;
             const isExpanded = isActive || hoveredKey === key;
             return (
               <NavButton
@@ -187,7 +204,10 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
                 isActive={isActive}
                 isExpanded={isExpanded}
                 eyebrow={isActive ? "Current Path" : undefined}
-                onClick={() => router.push(PATH_URLS[key])}
+                onClick={() => {
+                  setPendingKey(key);
+                  router.push(PATH_URLS[key]);
+                }}
                 onHoverStart={() => setHoveredKey(key)}
                 onHoverEnd={() => setHoveredKey((cur) => (cur === key ? null : cur))}
               />
