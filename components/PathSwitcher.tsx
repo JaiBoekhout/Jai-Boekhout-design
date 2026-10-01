@@ -16,11 +16,11 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
   story: BookOpen,
 };
 
-// Reserved width for whichever path is currently active, sized for the longest content that
-// slot ever shows ("Evaluate", or the "CURRENT PATH" eyebrow above it) plus headroom — fixed
-// rather than auto-sized so the bar's total width doesn't shift when a shorter/longer label
-// (e.g. "Story" vs "Evaluate") becomes the active one. Hover-only previews on an inactive
-// button still size to their own content, since those are transient, not the resting state.
+// Reserved width for whichever path is currently active, sized for the longest label ("Evaluate")
+// plus headroom — fixed rather than auto-sized so the bar's total width doesn't shift when a
+// shorter/longer label (e.g. "Story" vs "Evaluate") becomes the active one. Hover-only previews
+// on an inactive button still size to their own content, since those are transient, not the
+// resting state.
 const ACTIVE_LABEL_WIDTH = 80;
 
 interface PathSwitcherProps {
@@ -32,7 +32,6 @@ interface NavButtonProps {
   label: string;
   isActive: boolean;
   isExpanded: boolean;
-  eyebrow?: string;
   onClick: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
@@ -41,10 +40,18 @@ interface NavButtonProps {
 // Shared rendering for every button in the bar (the 4 paths, plus the standalone Home button
 // below) — icon-only at rest, label expands on hover or while active, same treatment for both
 // so Home doesn't read as a visually distinct bolt-on.
-function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, onHoverStart, onHoverEnd }: NavButtonProps) {
+//
+// motion.button + layout (also on the <nav> wrapper below) rather than a plain <button>: any
+// button's width changing reflows every button after it in the row (normal flex behavior), and
+// without `layout` that reflow just snaps instantly — only the button whose own width/gap was
+// explicitly animated moved smoothly, while its neighbors visibly jumped to their new position
+// in one frame. `layout` makes Framer Motion animate that repositioning too, for every button,
+// not just the one being directly expanded/collapsed.
+function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverStart, onHoverEnd }: NavButtonProps) {
   const buttonCorner = useButtonCorner();
   return (
-    <button
+    <motion.button
+      layout
       type="button"
       onClick={onClick}
       onMouseEnter={onHoverStart}
@@ -52,6 +59,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
       aria-current={isActive ? "page" : undefined}
       aria-label={label}
       className="relative flex items-center transition-colors"
+      transition={{ layout: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
       style={{
         borderRadius: buttonCorner,
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
@@ -84,28 +92,14 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
         <Icon size={16} />
       </span>
       <motion.span
-        className="relative flex flex-col items-center overflow-hidden whitespace-nowrap"
+        className="relative flex items-center overflow-hidden whitespace-nowrap"
         initial={false}
         animate={{ width: isActive ? ACTIVE_LABEL_WIDTH : isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
-        // Animating to a real measured width (rather than an arbitrary max-width like 160px)
-        // means the motion always covers exactly the distance the label actually needs — a
-        // max-width transition reaches a short label's true width almost instantly, then keeps
-        // "running" toward the arbitrary cap with nothing left to show, which reads as a snap
-        // followed by a dead pause rather than one continuous glide.
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-        style={{ lineHeight: 1.15 }}
       >
-        {eyebrow && (
-          <span
-            className="uppercase"
-            style={{ fontSize: 8, letterSpacing: "0.08em", fontFamily: "var(--font-mono)", color: "var(--c-text-muted)" }}
-          >
-            {eyebrow}
-          </span>
-        )}
         <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{label}</span>
       </motion.span>
-    </button>
+    </motion.button>
   );
 }
 
@@ -166,7 +160,9 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
       className="fixed bottom-8 left-1/2 z-50"
     >
       <motion.div animate={nudgeControls} style={{ display: "inline-block", position: "relative" }}>
-        <nav
+        <motion.nav
+          layout
+          transition={{ layout: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
           aria-label="Switch path"
           className="flex items-center gap-1.5 p-1.5"
           style={{
@@ -203,7 +199,6 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
                 label={PATH_DISPLAY_NAMES[key]}
                 isActive={isActive}
                 isExpanded={isExpanded}
-                eyebrow={isActive ? "Current Path" : undefined}
                 onClick={() => {
                   setPendingKey(key);
                   router.push(PATH_URLS[key]);
@@ -220,7 +215,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               style={{ position: "absolute", inset: -3, borderRadius: buttonCorner, boxShadow: "0 0 0 2px var(--c-teal)", pointerEvents: "none" }}
             />
           )}
-        </nav>
+        </motion.nav>
       </motion.div>
     </motion.div>
   );
