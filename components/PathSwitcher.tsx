@@ -16,12 +16,14 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
   story: BookOpen,
 };
 
-// Reserved width for whichever path is currently active, sized for the longest label ("Evaluate")
-// plus headroom — fixed rather than auto-sized so the bar's total width doesn't shift when a
-// shorter/longer label (e.g. "Story" vs "Evaluate") becomes the active one. Hover-only previews
-// on an inactive button still size to their own content, since those are transient, not the
-// resting state.
-const ACTIVE_LABEL_WIDTH = 80;
+// Reserved min-width for whichever button is currently active, covering icon + gap + the longest
+// label ("Evaluate") + padding, with headroom — fixed rather than auto-sized so the bar's total
+// width doesn't shift when a shorter/longer label (e.g. "Story" vs "Evaluate") becomes the active
+// one. Applied to the whole button (centered via justifyContent) rather than just to the label
+// span, so a short label like "Work" centers as a group with its icon instead of the icon staying
+// pinned to the left edge with the label floating off to one side of the leftover space. Hover-
+// only previews on an inactive button still size to their own content, since those are transient.
+const ACTIVE_BUTTON_MIN_WIDTH = 108;
 
 interface PathSwitcherProps {
   selectedPath: string;
@@ -58,13 +60,14 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverSt
       onMouseLeave={onHoverEnd}
       aria-current={isActive ? "page" : undefined}
       aria-label={label}
-      className="relative flex items-center transition-colors"
+      className="relative flex items-center justify-center transition-colors"
       transition={{ layout: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
       style={{
         borderRadius: buttonCorner,
         color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
         padding: "9px 11px",
         gap: isExpanded ? 9 : 0,
+        minWidth: isActive ? ACTIVE_BUTTON_MIN_WIDTH : undefined,
         cursor: "pointer",
         transition: "color 0.25s ease, gap 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
@@ -85,7 +88,12 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverSt
             border: "1px solid var(--c-teal)",
             background: "color-mix(in srgb, var(--c-teal) 12%, transparent)",
           }}
-          transition={{ type: "spring", stiffness: 500, damping: 34 }}
+          // Matches the button's own `layout` transition below exactly (same duration/curve,
+          // not a spring) — this pill is inset:0 within that button, so if the two animate on
+          // different curves/timings they briefly disagree about the button's actual current
+          // size. Since border-radius is fixed in px, that momentary mismatch stretched the
+          // pill non-uniformly (an "egg" shape) until both settled back in sync.
+          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         />
       )}
       <span className="relative flex" style={{ lineHeight: 0 }}>
@@ -94,7 +102,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, onClick, onHoverSt
       <motion.span
         className="relative flex items-center overflow-hidden whitespace-nowrap"
         initial={false}
-        animate={{ width: isActive ? ACTIVE_LABEL_WIDTH : isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
+        animate={{ width: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       >
         <span style={{ fontSize: 13, fontFamily: "var(--font-body)" }}>{label}</span>
