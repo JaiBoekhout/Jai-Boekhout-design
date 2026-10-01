@@ -84,7 +84,7 @@ function NavButton({ icon: Icon, label, isActive, isExpanded, eyebrow, onClick, 
         <Icon size={16} />
       </span>
       <motion.span
-        className="relative flex flex-col items-start overflow-hidden whitespace-nowrap"
+        className="relative flex flex-col items-center overflow-hidden whitespace-nowrap"
         initial={false}
         animate={{ width: isActive ? ACTIVE_LABEL_WIDTH : isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
         // Animating to a real measured width (rather than an arbitrary max-width like 160px)
