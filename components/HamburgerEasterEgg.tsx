@@ -52,9 +52,9 @@ function VeggieBurgerGlyph(props: { size?: number }) {
 function HotDogGlyph(props: { size?: number }) {
   return (
     <Glyph {...props}>
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="7" y1="12" x2="17" y2="12" />
-      <line x1="10" y1="18" x2="14" y2="18" />
+      <line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="8" y1="18" x2="16" y2="18" />
     </Glyph>
   );
 }
@@ -99,8 +99,8 @@ function FriesGlyph(props: { size?: number }) {
   return (
     <Glyph {...props}>
       <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="4" y1="12" x2="15" y2="12" />
-      <line x1="4" y1="18" x2="10" y2="18" />
+      <line x1="4" y1="12" x2="10" y2="12" />
+      <line x1="4" y1="18" x2="20" y2="18" />
     </Glyph>
   );
 }
@@ -128,7 +128,7 @@ const MENU_ICONS: { Icon: (props: { size?: number }) => React.ReactElement; name
   { Icon: KebabGlyph, name: "Kebab", use: "More actions for a single item, like a row in a list." },
   { Icon: BentoGlyph, name: "Bento (a.k.a. Candy Box)", use: "Switches between apps, like an app launcher." },
   { Icon: CheeseburgerGlyph, name: "Cheeseburger", use: "Switches to a list view." },
-  { Icon: FriesGlyph, name: "Fries", use: "Usually means sort, or left-aligned text." },
+  { Icon: FriesGlyph, name: "Fries", use: "Represents a paragraph of text, like notes or a caption." },
   { Icon: WaffleGlyph, name: "Waffle (a.k.a. Chocolate Box)", use: "Switches to a grid view, or opens an app launcher." },
 ];
 
