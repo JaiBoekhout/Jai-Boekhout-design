@@ -68,6 +68,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
               fontSize: "10px",
               color: "var(--c-teal)",
               letterSpacing: "0.14em",
+              fontWeight: 700,
               textTransform: "uppercase",
               display: "block",
               marginBottom: "20px",
