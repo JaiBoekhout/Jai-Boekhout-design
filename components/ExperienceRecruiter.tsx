@@ -1,5 +1,7 @@
 "use client";
 
+import NextImage from "next/image";
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Download } from "lucide-react";
@@ -519,8 +521,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                       style={{ background: "var(--project-card-bg)", borderRadius: "var(--card-corner)", padding: "6px", cursor: "pointer" }}
                                     >
                                       {(p.coverImageUrl || p.heroImageUrl || p.imgs[0]) ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" style={{ width: 44, height: 32, borderRadius: "var(--card-corner)", objectFit: "cover", flexShrink: 0 }} />
+                                        <NextImage src={p.coverImageUrl || p.heroImageUrl || p.imgs[0]} alt="" width={44} height={32} sizes="44px" style={{ borderRadius: "var(--card-corner)", objectFit: "cover", flexShrink: 0 }} />
                                       ) : (
                                         <div style={{ width: 44, height: 32, borderRadius: "var(--card-corner)", background: "var(--c-border-soft)", flexShrink: 0 }} />
                                       )}
@@ -765,12 +766,13 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     )}
                     <div className="flex items-center gap-2.5" style={{ marginBottom: (t.role || t.company) ? "4px" : "12px" }}>
                       {t.photoUrl && (
-                        <img
+                        <NextImage
                           src={t.photoUrl}
                           alt=""
                           width={36}
                           height={36}
-                          style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                          sizes="36px"
+                          style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                         />
                       )}
                       <p className="testimonial-name flex items-center gap-1.5" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 500, margin: 0 }}>

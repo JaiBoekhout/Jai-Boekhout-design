@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { getImageProps } from "next/image";
+import NextImage, { getImageProps } from "next/image";
 import type { CMSProject } from "@/store/contentStore";
 import { useContentStore, resolveLinkedCaseStudy, projectUrlSlug, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ProjectCard, ProjectCardPlaceholder } from "@/components/ProjectCard";
@@ -281,14 +281,18 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     <div className="flex items-center gap-4 lg:flex-1 lg:min-w-0">
                       {rowCoverSrc ? (
                         <div style={{ position: "relative", width: 96, height: 64, flexShrink: 0 }}>
-                          <img src={rowCoverSrc} alt={content.mediaMeta?.[rowCoverSrc]?.alt || p.name} style={{ width: 96, height: 64, borderRadius: 7, objectFit: "cover", border: "0.5px solid var(--c-border)", display: "block" }} />
+                          {/* sizes="96px" is the point: as a raw <img> this pulled the full-size
+                              cover just to draw a 96px thumbnail. */}
+                          <NextImage src={rowCoverSrc} alt={content.mediaMeta?.[rowCoverSrc]?.alt || p.name} fill sizes="96px" style={{ borderRadius: 7, objectFit: "cover", border: "0.5px solid var(--c-border)" }} />
                           {rowHoverSrc && (
-                            <img
+                            <NextImage
                               src={rowHoverSrc}
                               alt=""
                               aria-hidden="true"
-                              className="absolute inset-0 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
-                              style={{ width: 96, height: 64, borderRadius: 7, objectFit: "cover", border: "0.5px solid var(--c-border)" }}
+                              fill
+                              sizes="96px"
+                              className="opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                              style={{ borderRadius: 7, objectFit: "cover", border: "0.5px solid var(--c-border)" }}
                             />
                           )}
                         </div>

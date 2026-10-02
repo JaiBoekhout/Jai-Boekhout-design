@@ -213,16 +213,30 @@ export function ProjectDetailBody({
         // colliding with the header row above it, especially since project names here can run
         // to a full sentence rather than a short title.
         <div className="w-full relative overflow-hidden aspect-[3/4] sm:aspect-[16/9] lg:aspect-[21/9]" style={{ maxHeight: 560 }}>
+          {/* fill + these exact `sizes` deliberately match what prefetchHeroImage() in
+              FeaturedProjects.tsx computes on card hover. As a CSS background this never used the
+              URL that prefetch was warming, so the prefetch was doing nothing; now the request it
+              warms is the one that actually lands. */}
           <div
             style={{
               position: "absolute", inset: 0,
-              backgroundImage: `url(${heroSrc})`,
-              backgroundSize: "cover",
-              backgroundPosition: project.heroImagePosition || "center",
               transform: `scale(${project.heroImageScale ?? 1})`,
               transformOrigin: project.heroImagePosition || "center",
             }}
-          />
+          >
+            <NextImage
+              src={heroSrc}
+              alt=""
+              fill
+              // In page mode this hero is the LCP, so it should be eager and preloaded. In modal
+              // mode the popup only exists after a click, and the card hover has already warmed
+              // this exact URL via prefetchHeroImage() — preloading it on the underlying page
+              // would just compete with that page's own LCP.
+              priority={mode === "page"}
+              sizes="(min-width: 1024px) 44vw, 100vw"
+              style={{ objectFit: "cover", objectPosition: project.heroImagePosition || "center" }}
+            />
+          </div>
           {(project.heroOverlayEnabled ?? true) && (
             <div style={{ position: "absolute", inset: 0, background: buildHeroOverlayGradient(project, PROJECT_HERO_OVERLAY_DEFAULTS) }} />
           )}
@@ -415,7 +429,9 @@ export function ProjectDetailBody({
             {/* Cover image — sits directly under Role (or, when a project has no Role/Platform/
                 Scope set, right after Summary/the live-site link instead). */}
             {coverSrc ? (
-              <img src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} style={{ width: "100%", aspectRatio: "16/9", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", objectFit: "cover", display: "block", marginBottom: 22 }} />
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", marginBottom: 22 }}>
+                <NextImage src={coverSrc} alt={content.mediaMeta?.[coverSrc]?.alt || project.name} fill sizes="(min-width: 1024px) 44vw, 100vw" style={{ borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", objectFit: "cover" }} />
+              </div>
             ) : (
               <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: "var(--card-corner)", border: "0.5px solid var(--c-border)", background: "var(--c-bg-card)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginBottom: 22 }}>
                 <MissingImagePlaceholder logoWidth="22%" logoMaxWidth={90} />
