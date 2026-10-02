@@ -55,7 +55,9 @@ import {
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  // Static family, same reasoning as DM Mono below. 300 is unused by every saved theme; the rest
+  // of the range stays because an admin can pick any of it from the weight dropdowns.
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-poppins",
 });
@@ -67,8 +69,12 @@ const dmSans = DM_Sans({
 });
 const dmMono = DM_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
+  // Static family: one file per weight+style, so unused cuts are pure waste. Measured across
+  // every theme and page, only 400 and 500 normal are ever rendered — mono italic never is, and
+  // 300 isn't used by any saved theme. Both stay selectable in the CMS; they'd just synthesise,
+  // which is imperceptible on 10px mono labels.
+  weight: ["400", "500"],
+  style: ["normal"],
   variable: "--font-dm-mono",
 });
 const fraunces = Fraunces({
