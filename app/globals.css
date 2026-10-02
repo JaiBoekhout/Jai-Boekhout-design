@@ -295,15 +295,10 @@
      editing those shared tokens, so only this section's outlines are affected. */
   .pro-exp-outline { border: 1px solid rgba(237, 232, 223, 0.18) !important; }
   :root[data-theme="light"] .pro-exp-outline { border-color: rgba(26, 33, 40, 0.3) !important; }
-  /* PathSwitcher on phones: drop the active highlight and narrow the buttons. Those two go
-     together — the buttons are only as wide as they are on desktop so the label clears the
-     highlight's curve (the radius is capped at half the button height, so the shape pinches
-     inward exactly where the label sits). With no highlight there's no curve to clear, so the
-     button only has to fit the label itself, which is what buys back the room. The current page
-     still reads clearly from the accent colour on its icon and label.
-     !important throughout because both are inline styles on the component. */
+  /* PathSwitcher's bar is ~346px at its default button width, which is wider than the narrowest
+     phones. Each button only has to fit its own label, so there's room to narrow them here and
+     keep the bar clear of the viewport edges. !important because the width is an inline style. */
   @media (max-width: 767px) {
-    .path-nav-pill { display: none !important; }
     .path-nav-btn { width: 50px !important; }
   }
   /* StatsBar.tsx's "At a Glance" tiles — !important overrides the tile's own inline
