@@ -38,6 +38,21 @@ import {
 // style rather than failing, exactly as it already does for the weights this app applies via
 // separate CSS custom properties (--heading-weight etc.) independent of which static cuts of a
 // family were actually downloaded.
+// ─── Preloading ────────────────────────────────────────────────────────────────
+// next/font preloads every declared face by default, which emitted 48 <link rel="preload"> tags
+// and pulled 46 font files / 875 KiB on every page — 56% of the payload, and (being preloads, so
+// high priority by definition) enough to starve the LCP element on a throttled connection.
+//
+// A preload fetches the file whether or not anything renders in it. Without one, the @font-face
+// rule still exists but the browser only fetches when text actually uses that family. So the
+// seven families below — offerable in the CMS's Custom font pickers, but not used by any theme
+// currently saved — keep working the moment someone selects one, while costing nothing until
+// then. The six that themes do use (Poppins, DM Sans, DM Mono, Playfair Display, Work Sans,
+// Instrument Serif) stay preloaded, since those are on the critical path for first paint.
+//
+// If a theme is ever changed to use one of the lazy families, move it back to preloaded —
+// otherwise its first paint will swap from the fallback face.
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -57,17 +72,20 @@ const dmMono = DM_Mono({
   variable: "--font-dm-mono",
 });
 const fraunces = Fraunces({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-fraunces",
 });
 const spaceGrotesk = Space_Grotesk({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-space-grotesk",
 });
 const spaceMono = Space_Mono({
+  preload: false,
   subsets: ["latin"],
   weight: ["400", "700"],
   style: ["normal", "italic"],
@@ -86,23 +104,27 @@ const workSans = Work_Sans({
   variable: "--font-work-sans",
 });
 const manrope = Manrope({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-manrope",
 });
 const inter = Inter({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-inter",
 });
 const jetBrainsMono = JetBrains_Mono({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-jetbrains-mono",
 });
 const ibmPlexMono = IBM_Plex_Mono({
+  preload: false,
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
