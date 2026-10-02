@@ -223,10 +223,13 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
           {/* Active highlight. One element owned by the bar rather than a child of the active
               button, animating only its x — every button is the same size, so it never needs to
               resize and therefore never gets scaled. Sits first in the DOM so the buttons
-              (position: relative) paint over it. */}
+              (position: relative) paint over it. Hidden on phones (see .path-nav-pill in
+              globals.css), where the active icon/label's accent colour carries the state on its
+              own and dropping the highlight lets the buttons be narrower. */}
           {pill && (
             <motion.span
               aria-hidden="true"
+              className="path-nav-pill"
               initial={false}
               animate={{ x: pill.x, width: pill.w }}
               transition={{ duration: slide, ease: EASE }}
