@@ -453,6 +453,13 @@
   :root[data-style-theme="playful-rounded"][data-theme="light"] .at-a-glance-stats .stats-tile-text {
     color: #000000 !important;
   }
+  /* Jai Branding ("playful-rounded") — the selected project-filter pill's label. The fill is the
+     theme accent and stays as-is; only the label changes, to white in both modes, which reads
+     better on this theme's accent than the fixed dark navy the component sets inline. Mode-
+     agnostic on purpose. !important because that colour is an inline style. */
+  :root[data-style-theme="playful-rounded"] .project-filter-active {
+    color: #FFFFFF !important;
+  }
   /* Hover, both modes — deliberately mode-agnostic and one selector longer than the two rules
      above so it outranks them either way, and longer again than the generic
      `.stats-tile-clickable:hover .stats-tile-text` rule that would otherwise apply

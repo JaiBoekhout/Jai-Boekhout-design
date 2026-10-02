@@ -145,7 +145,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
               const active = featuredFilter === c.id;
               return (
                 <button key={c.id} onClick={() => setFeaturedFilter(c.id)}
-                  className="transition-all"
+                  className={`transition-all${active ? " project-filter-active" : ""}`}
                   style={{
                     fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: "0.03em",
                     padding: "7px 15px", borderRadius: "var(--tag-corner)", cursor: "pointer", flexShrink: 0,
