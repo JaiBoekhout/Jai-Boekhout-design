@@ -436,6 +436,25 @@
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .stats-tile-text {
     color: #FFFFFF !important;
   }
+  /* Jai Branding ("playful-rounded") — the "At a Glance" tiles' number/label/sub text. These
+     otherwise all take the Design System's Stats "Text" colour, which is one global pair applied
+     to every theme at once (#253780 for both modes), so a per-theme value can't be expressed from
+     the CMS — hence hardcoding it per mode here. Scoped to .at-a-glance-stats so the Work page's
+     own StatsBar instance is left alone. */
+  :root[data-style-theme="playful-rounded"][data-theme="dark"] .at-a-glance-stats .stats-tile-text {
+    color: #FFFFFF !important;
+  }
+  :root[data-style-theme="playful-rounded"][data-theme="light"] .at-a-glance-stats .stats-tile-text {
+    color: #000000 !important;
+  }
+  /* Hover, both modes — deliberately mode-agnostic and one selector longer than the two rules
+     above so it outranks them either way, and longer again than the generic
+     `.stats-tile-clickable:hover .stats-tile-text` rule that would otherwise apply
+     --stats-text-hover. Only the clickable tiles match, which is where a hover state already
+     exists (the others have no cursor or background change to accompany it). */
+  :root[data-style-theme="playful-rounded"] .at-a-glance-stats .stats-tile-clickable:hover .stats-tile-text {
+    color: var(--c-teal) !important;
+  }
   /* Project cards (grid/list/"View More") — title, hardcoded orange, dark mode only. */
   :root[data-style-theme="sunset-coral"][data-theme="dark"] .project-card-title {
     color: #F36C21 !important;
