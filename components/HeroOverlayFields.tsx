@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ImagePicker } from "@/components/ImagePicker";
 import { Switch } from "@/components/SiteKit";
 
@@ -135,21 +136,39 @@ export function buildHeroOverlayGradient(data: HeroOverlayData, defaults: Partia
 // before any hero text siblings/wrappers, and give every text element (or a wrapping div around
 // them) that follows it a `position: relative` (z-index: auto is enough) so normal CSS stacking
 // paints it above these two layers — extracted from the pattern ExperienceStory.tsx used first.
+// This photo is the LCP element on every page that sets one — measured under Lighthouse-style
+// throttling, /work's LCP was this layer. It used to be a CSS `background-image`, which is the
+// worst case for that: the preload scanner only reads markup, never inline style backgrounds, so
+// the request couldn't even start until CSS and JS had parsed and styles were computed (what
+// Lighthouse reports as "LCP request discovery"), and it bypassed next/image entirely — no AVIF/
+// WebP, no resizing, the full original served to every viewport.
+//
+// As an <Image fill priority> it's discoverable in the markup, gets a high-priority preload, and
+// goes through the optimizer. The visual result is identical: backgroundSize/backgroundPosition
+// become objectFit/objectPosition, and the zoom transform moves to the wrapper so it still scales
+// about the same focal point.
 export function HeroOverlayLayer({ data, defaults }: { data: HeroOverlayData; defaults?: Partial<HeroOverlayData> }) {
   if (!data.heroImageUrl) return null;
   const overlayEnabled = data.heroOverlayEnabled ?? true;
+  const focalPoint = data.heroImagePosition || "center";
   return (
     <>
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `url(${data.heroImageUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: data.heroImagePosition || "center",
           transform: `scale(${data.heroImageScale ?? 1})`,
-          transformOrigin: data.heroImagePosition || "center",
+          transformOrigin: focalPoint,
         }}
-      />
+      >
+        <Image
+          src={data.heroImageUrl}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: "cover", objectPosition: focalPoint }}
+        />
+      </div>
       {overlayEnabled && (
         <div className="absolute inset-0" style={{ background: buildHeroOverlayGradient(data, defaults) }} />
       )}
