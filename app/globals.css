@@ -295,6 +295,16 @@
      editing those shared tokens, so only this section's outlines are affected. */
   .pro-exp-outline { border: 1px solid rgba(237, 232, 223, 0.18) !important; }
   :root[data-theme="light"] .pro-exp-outline { border-color: rgba(26, 33, 40, 0.3) !important; }
+  /* PathSwitcher's buttons are sized for comfortable label clearance (see BUTTON_WIDTH there),
+     which makes the bar ~344px — wider than the narrowest phones. Shrink them back below that,
+     so the bar never overhangs the viewport. !important because the width is an inline style.
+     The active highlight measures its own width from the DOM, so it tracks this automatically. */
+  @media (max-width: 349px) {
+    .path-nav-btn { width: 56px !important; }
+    /* Narrowing the button alone would put the label back outside the highlight's curve, so the
+       label steps down a little too — the two have to move together. */
+    .path-nav-btn span { font-size: 10px !important; }
+  }
   /* StatsBar.tsx's "At a Glance" tiles — !important overrides the tile's own inline
      `background: var(--c-bg)` (inline styles otherwise beat any stylesheet selector). The "View
      section" copy is collapsed to zero width at rest (only the arrow, already the highlight

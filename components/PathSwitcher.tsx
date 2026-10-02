@@ -33,15 +33,22 @@ const SLIDE = 0.34;
 // the bar's own padding — expressing that as `top: BAR_PADDING` keeps the two from drifting
 // apart the next time this is resized.
 //
-// Sized so the whole bar clears a 320px viewport (the narrowest phones still in use):
-// 2×PADDING + 5×WIDTH + 5×GAP + 1px divider ≈ 303px. WIDTH is set from the longest label's
-// measured width — "Evaluate" renders at ~43px here — plus room either side.
-const BUTTON_WIDTH = 54;
+// WIDTH is set from how much room the highlight actually leaves at the label's height, not from
+// the label's width alone: the corner radius is capped at half the HEIGHT, so the highlight is a
+// stadium whose curve pinches inward toward the bottom, where the label sits. Measured, the
+// shape is only (WIDTH − 14.5)px wide at the label's bottom edge — so at the old 54px the 43.8px
+// "Evaluate" overflowed the curve by ~4.4px. Extra width lands entirely in the flat middle of
+// the stadium, which is what gives the label clearance (64 → ~49.5px of room, ~3px either side).
+//
+// Bar total = 2×PADDING + 5×WIDTH + 5×GAP + 1px divider ≈ 344px, which clears a 360px phone.
+// Narrower than that, the media query on .path-nav-btn in globals.css shrinks the buttons back;
+// the highlight measures its own width from the DOM, so it follows without needing to know.
+const BUTTON_WIDTH = 64;
 const BUTTON_HEIGHT = 52;
 const ICON_SIZE = 20;
 const LABEL_SIZE = 11;
-const BAR_PADDING = 6;
-const BAR_GAP = 4;
+const BAR_PADDING = 4;
+const BAR_GAP = 3;
 
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -79,7 +86,7 @@ function NavButton({
       onFocus={onHoverStart}
       onBlur={onHoverEnd}
       aria-current={isActive ? "page" : undefined}
-      className="relative flex flex-col items-center justify-center"
+      className="path-nav-btn relative flex flex-col items-center justify-center"
       style={{
         width: BUTTON_WIDTH,
         height: BUTTON_HEIGHT,
