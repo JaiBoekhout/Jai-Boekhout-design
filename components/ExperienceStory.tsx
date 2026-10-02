@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import NextImage from "next/image";
 import { useContentStore } from "@/store/contentStore";
 import { demoteNestedHeadings, dropTrailingEmptyParagraph } from "@/lib/utils";
 import { PathCTA } from "@/components/PathCTA";
@@ -301,19 +302,26 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               className="rounded-2xl overflow-hidden mx-auto md:mx-0"
               style={{ border: "1px solid var(--c-border-soft)", aspectRatio: "3/4", maxWidth: "50%" }}
             >
+              {/* Was a CSS background-image, which the optimizer can't touch and the preload
+                  scanner can't see — the full-resolution portrait was served to every viewport.
+                  The zoom/filter stay on this wrapper so the rendering is unchanged; alt carries
+                  the name the old role="img"/aria-label pair provided. */}
               <div
-                role="img"
-                aria-label="Jai Boekhout"
-                className="w-full h-full"
+                className="relative w-full h-full"
                 style={{
-                  backgroundImage: `url(${cms.portraitImageUrl})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: cms.portraitImagePosition || "center",
                   transform: `scale(${cms.portraitImageScale ?? 1})`,
                   transformOrigin: cms.portraitImagePosition || "center",
                   filter: "brightness(0.9) saturate(0.95)",
                 }}
-              />
+              >
+                <NextImage
+                  src={cms.portraitImageUrl}
+                  alt="Jai Boekhout"
+                  fill
+                  sizes="(min-width: 768px) 25vw, 50vw"
+                  style={{ objectFit: "cover", objectPosition: cms.portraitImagePosition || "center" }}
+                />
+              </div>
             </motion.div>
             {cms.portraitCaption && (
               <div
