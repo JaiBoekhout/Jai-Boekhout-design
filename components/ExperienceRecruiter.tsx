@@ -208,7 +208,14 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     letterSpacing: "0.14em",
                     fontWeight: 700,
                     textTransform: "uppercase",
-                    display: "block",
+                    // Chip treatment matched to the project detail's num/tag badge (see numTagBadge in
+                    // ProjectDetailBody.tsx) so the two read as the same kind of label. inline-block, not
+                    // block, or the fill would span the whole hero column instead of hugging the text.
+                    display: "inline-block",
+                    background: "rgba(6,9,12,0.75)",
+                    border: "0.5px solid color-mix(in srgb, var(--c-teal) 40%, transparent)",
+                    borderRadius: "var(--tag-corner)",
+                    padding: "5px 13px",
                     marginBottom: "20px",
                   }}
                 >
