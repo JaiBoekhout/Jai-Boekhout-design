@@ -32,10 +32,16 @@ const SLIDE = 0.34;
 // Kept as constants rather than Tailwind spacing classes because the pill is positioned against
 // the bar's own padding — expressing that as `top: BAR_PADDING` keeps the two from drifting
 // apart the next time this is resized.
-const BUTTON_SIZE = 48;
+//
+// Sized so the whole bar clears a 320px viewport (the narrowest phones still in use):
+// 2×PADDING + 5×WIDTH + 5×GAP + 1px divider ≈ 303px. WIDTH is set from the longest label's
+// measured width — "Evaluate" renders at ~43px here — plus room either side.
+const BUTTON_WIDTH = 54;
+const BUTTON_HEIGHT = 52;
 const ICON_SIZE = 20;
-const BAR_PADDING = 8;
-const BAR_GAP = 8;
+const LABEL_SIZE = 11;
+const BAR_PADDING = 6;
+const BAR_GAP = 4;
 
 const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
@@ -47,6 +53,7 @@ function NavButton({
   icon: Icon,
   label,
   isActive,
+  isHovered,
   onClick,
   onHoverStart,
   onHoverEnd,
@@ -55,6 +62,7 @@ function NavButton({
   icon: React.ComponentType<{ size?: number }>;
   label: string;
   isActive: boolean;
+  isHovered: boolean;
   onClick: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
@@ -71,20 +79,32 @@ function NavButton({
       onFocus={onHoverStart}
       onBlur={onHoverEnd}
       aria-current={isActive ? "page" : undefined}
-      aria-label={label}
-      className="relative flex items-center justify-center"
+      className="relative flex flex-col items-center justify-center"
       style={{
-        width: BUTTON_SIZE,
-        height: BUTTON_SIZE,
+        width: BUTTON_WIDTH,
+        height: BUTTON_HEIGHT,
         flexShrink: 0,
+        gap: 4,
         borderRadius: buttonCorner,
-        color: isActive ? "var(--c-teal)" : "var(--c-text-muted)",
+        color: isActive ? "var(--c-teal)" : isHovered ? "var(--c-text)" : "var(--c-text-muted)",
         background: "transparent",
         cursor: "pointer",
         transition: "color 0.2s ease",
       }}
     >
       <Icon size={ICON_SIZE} />
+      {/* Inherits the button's colour so it tracks active/hover with the icon. */}
+      <span
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: LABEL_SIZE,
+          lineHeight: 1.1,
+          fontWeight: isActive ? 500 : 400,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
     </button>
   );
 }
@@ -114,27 +134,23 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
 
   const navRef = useRef<HTMLElement | null>(null);
   const btnRefs = useRef(new Map<string, HTMLButtonElement>());
-  const [pillX, setPillX] = useState<number | null>(null);
-  // Held separately from hoveredKey so the card keeps rendering its last label while fading out,
-  // rather than blanking the text mid-fade.
-  const [tip, setTip] = useState<{ x: number; label: string } | null>(null);
+  // Width is measured rather than read from BUTTON_WIDTH so the pill can't silently desync from
+  // the buttons if they're ever resized (in CSS, or by a Design System change). Every button is
+  // the same width, so in practice this value never changes between states — which is what keeps
+  // the pill a pure translation, and therefore never scaled or deformed.
+  const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
 
   const measure = useCallback(() => {
     const active = btnRefs.current.get(effectivePath);
-    setPillX(active ? active.offsetLeft : null);
-    if (hoveredKey) {
-      const el = btnRefs.current.get(hoveredKey);
-      const label = hoveredKey === HOME_KEY ? "Home" : PATH_DISPLAY_NAMES[hoveredKey as PathKey];
-      if (el) setTip({ x: el.offsetLeft + el.offsetWidth / 2, label });
-    }
-  }, [effectivePath, hoveredKey]);
+    setPill(active ? { x: active.offsetLeft, w: active.offsetWidth } : null);
+  }, [effectivePath]);
 
   useIsoLayoutEffect(() => {
     measure();
   }, [measure, buttonCorner]);
 
   // The bar's geometry is fixed, so this only matters for the rare case of it changing underneath
-  // us — a Design System corner/size edit landing, or a late font swap shifting the card's width.
+  // us — a Design System corner/size edit landing, or a late font swap shifting a label's width.
   useEffect(() => {
     const nav = navRef.current;
     if (!nav || typeof ResizeObserver === "undefined") return;
@@ -182,43 +198,6 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
       className="fixed bottom-8 left-1/2 z-50"
     >
       <motion.div animate={nudgeControls} style={{ display: "inline-block", position: "relative" }}>
-        {/* Hover card. Absolutely positioned so it never affects the bar's layout, and it slides
-            along as you move across the icons rather than popping per button. The outer element
-            owns the horizontal position; the inner one centres itself on that point and handles
-            the fade, so the two transforms don't fight over the same property. */}
-        {tip && (
-          <motion.div
-            aria-hidden="true"
-            initial={false}
-            animate={{ x: tip.x }}
-            transition={{ duration: slide, ease: EASE }}
-            style={{ position: "absolute", left: 0, bottom: "100%", marginBottom: 6, pointerEvents: "none" }}
-          >
-            <motion.div
-              initial={false}
-              animate={{ opacity: hoveredKey ? 1 : 0, y: hoveredKey ? 0 : 4 }}
-              transition={{ duration: reduceMotion ? 0 : 0.18, ease: EASE }}
-              style={{
-                x: "-50%",
-                padding: "6px 14px",
-                borderRadius: buttonCorner,
-                background: "var(--c-bg-glass)",
-                border: "1px solid var(--c-border-med)",
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.45)",
-                fontFamily: "var(--font-body)",
-                fontSize: 14,
-                fontWeight: 500,
-                lineHeight: 1.3,
-                color: "var(--c-teal)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {tip.label}
-            </motion.div>
-          </motion.div>
-        )}
-
         <nav
           ref={navRef}
           aria-label="Switch path"
@@ -238,18 +217,17 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               button, animating only its x — every button is the same size, so it never needs to
               resize and therefore never gets scaled. Sits first in the DOM so the buttons
               (position: relative) paint over it. */}
-          {pillX !== null && (
+          {pill && (
             <motion.span
               aria-hidden="true"
               initial={false}
-              animate={{ x: pillX }}
+              animate={{ x: pill.x, width: pill.w }}
               transition={{ duration: slide, ease: EASE }}
               style={{
                 position: "absolute",
                 left: 0,
                 top: BAR_PADDING,
-                width: BUTTON_SIZE,
-                height: BUTTON_SIZE,
+                height: BUTTON_HEIGHT,
                 borderRadius: buttonCorner,
                 border: "1px solid var(--c-teal)",
                 background: "color-mix(in srgb, var(--c-teal) 12%, transparent)",
@@ -267,6 +245,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             icon={Home}
             label="Home"
             isActive={false}
+            isHovered={hoveredKey === HOME_KEY}
             onClick={() => router.push("/")}
             onHoverStart={() => setHoveredKey(HOME_KEY)}
             onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_KEY ? null : cur))}
@@ -280,6 +259,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               icon={PATH_ICONS[key]}
               label={PATH_DISPLAY_NAMES[key]}
               isActive={effectivePath === key}
+              isHovered={hoveredKey === key}
               onClick={() => {
                 setPendingKey(key);
                 router.push(PATH_URLS[key]);
