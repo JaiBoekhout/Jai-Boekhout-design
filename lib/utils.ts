@@ -71,6 +71,44 @@ export function demoteNestedHeadings(html: string): string {
     .replace(/<\/h[1-6]>/gi, "</span>");
 }
 
+// The other half of the same problem demoteNestedHeadings solves, and the one that was actually
+// breaking hydration on every page of the site.
+//
+// Rich-text fields get injected with dangerouslySetInnerHTML into hosts that are phrasing-content
+// only — <p>, <span>, <h1>, <h2>, <h3> — and the editor wraps essentially everything it produces
+// in <p>. That yields markup like <p style="..."><p>real text</p></p>, which is invalid: the HTML
+// parser closes the outer <p> the instant it sees the inner one, so the browser's DOM comes out as
+// two siblings plus a stray empty <p>, NOT the tree React serialised. React then finds a DOM it
+// can't reconcile, throws away the entire server-rendered tree and re-renders the whole page on
+// the client (error #418 — "Hydration failed… this tree will be regenerated"). Everything still
+// looked right afterwards only because that second, client-side render builds the correct nesting
+// via innerHTML, which parses in a context where no outer <p> is open to be closed. The cost was
+// paid invisibly on every single page load: all the SSR work discarded, plus a duplicated
+// <style id="cms-design-system"> from the re-render.
+//
+// Demoting the blocks to <span style="display:block"> keeps the parser happy — a span is phrasing
+// content, so nothing auto-closes — while rendering identically: Tailwind's preflight already
+// zeroes <p> margins, so a block-level span and a <p> compute the same box. Unlike the heading
+// demotion above, line-height is deliberately NOT collapsed here; a paragraph's strut is what
+// gives an intentionally-empty <p></p> its blank line, and these are body-copy fields where the
+// inherited size is the right size.
+//
+// Lists are left alone: <ul>/<li> have no equivalent one-property stand-in, none of the fields
+// that land in a phrasing host uses them today, and silently flattening a list would be a real
+// visual change rather than a parser fix.
+export function demoteNestedBlocks(html: string): string {
+  return demoteNestedHeadings(html)
+    .replace(/<(?:p|div|blockquote)(\s[^>]*)?>/gi, (_, attrs = "") => {
+      const styleMatch = /\bstyle\s*=\s*(["'])/i.exec(attrs);
+      if (styleMatch) {
+        const quote = styleMatch[1];
+        return `<span${attrs.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;`)}>`;
+      }
+      return `<span${attrs} style="display:block">`;
+    })
+    .replace(/<\/(?:p|div|blockquote)>/gi, "</span>");
+}
+
 // Rich-text fields almost always end with a trailing empty <p></p> (the editor's own cursor
 // rest-line). Harmless alone, but when two such fields get concatenated into one (e.g. Story's
 // hero-statement + legacy sub-headline merge — see CMSStory.subheadline), the first field's

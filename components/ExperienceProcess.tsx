@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useContentStore } from "@/store/contentStore";
-import { demoteNestedHeadings } from "@/lib/utils";
+import { demoteNestedBlocks } from "@/lib/utils";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { PathCTA } from "@/components/PathCTA";
 import { HeroOverlayLayer } from "@/components/HeroOverlayFields";
@@ -130,7 +130,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
               fontWeight: 400,
               maxWidth: "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.process.heroStatement) }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.process.heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding, so
@@ -150,7 +150,7 @@ export function ExperienceProcess({ onNavigate }: { onNavigate: (path: string) =
                 maxWidth: "700px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.process.heroStatementMobile) }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.process.heroStatementMobile) }}
             />
           )}
         </div>

@@ -10,7 +10,7 @@ import { MobileNavMenu } from "@/components/MobileNavMenu";
 import { useContentStore } from "@/store/contentStore";
 import type { CMSHomeCard } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
-import { demoteNestedHeadings } from "@/lib/utils";
+import { demoteNestedBlocks } from "@/lib/utils";
 
 // cta/hoverLabel stay fixed (not CMS-editable, per the Home tab's scoped fields); question and
 // description are pulled live from content.homepage.cards[id] at render time instead.
@@ -160,7 +160,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             fontWeight: 400,
             letterSpacing: "-0.02em",
           }}
-          dangerouslySetInnerHTML={{ __html: home.headline }}
+          dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.headline) }}
         />
         {home.headlineMobile && (
           <motion.p
@@ -176,7 +176,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               fontWeight: 400,
               letterSpacing: "-0.02em",
             }}
-            dangerouslySetInnerHTML={{ __html: home.headlineMobile }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.headlineMobile) }}
           />
         )}
 
@@ -194,7 +194,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             lineHeight: 1.6,
             fontWeight: 300,
           }}
-          dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(home.subheadline) }}
+          dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.subheadline) }}
         />
         {/* Mobile override of the same H1 above (hidden md:block there, block md:hidden here) —
             deliberately NOT itself an <h1>. Two real <h1> elements both exist in the DOM at once
@@ -214,7 +214,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               fontWeight: 300,
               margin: 0,
             }}
-            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(home.subheadlineMobile) }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.subheadlineMobile) }}
           />
         )}
 
@@ -230,7 +230,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             color: "var(--c-teal)",
             marginTop: "8px",
           }}
-          dangerouslySetInnerHTML={{ __html: home.question }}
+          dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.question) }}
         />
         {home.questionMobile && (
           <motion.p
@@ -245,7 +245,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
               color: "var(--c-teal)",
               marginTop: "8px",
             }}
-            dangerouslySetInnerHTML={{ __html: home.questionMobile }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.questionMobile) }}
           />
         )}
       </div>
@@ -314,7 +314,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                   transition: "opacity 0.2s ease",
                   opacity: isHovered ? 0.5 : 1,
                 }}
-                dangerouslySetInnerHTML={{ __html: cardText.question }}
+                dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cardText.question) }}
               />
               {cardText.questionMobile && (
                 <h2
@@ -329,7 +329,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                     transition: "opacity 0.2s ease",
                     opacity: isHovered ? 0.5 : 1,
                   }}
-                  dangerouslySetInnerHTML={{ __html: cardText.questionMobile }}
+                  dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cardText.questionMobile) }}
                 />
               )}
 
@@ -378,7 +378,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                           fontWeight: 300,
                           margin: 0,
                         }}
-                        dangerouslySetInnerHTML={{ __html: cardText.description }}
+                        dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cardText.description) }}
                       />
                       {cardText.descriptionMobile && (
                         <p
@@ -391,7 +391,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
                             fontWeight: 300,
                             margin: 0,
                           }}
-                          dangerouslySetInnerHTML={{ __html: cardText.descriptionMobile }}
+                          dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cardText.descriptionMobile) }}
                         />
                       )}
                     </motion.div>
@@ -453,11 +453,11 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           {content.global.location} ·{" "}
           {home.footerNoteMobile ? (
             <>
-              <span className="hidden md:inline" dangerouslySetInnerHTML={{ __html: home.footerNote }} />
-              <span className="inline md:hidden" dangerouslySetInnerHTML={{ __html: home.footerNoteMobile }} />
+              <span className="hidden md:inline" dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.footerNote) }} />
+              <span className="inline md:hidden" dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.footerNoteMobile) }} />
             </>
           ) : (
-            <span dangerouslySetInnerHTML={{ __html: home.footerNote }} />
+            <span dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(home.footerNote) }} />
           )}
         </span>
       </div>

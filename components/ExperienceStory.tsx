@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import NextImage from "next/image";
 import { useContentStore } from "@/store/contentStore";
-import { demoteNestedHeadings, dropTrailingEmptyParagraph } from "@/lib/utils";
+import { demoteNestedBlocks, dropTrailingEmptyParagraph } from "@/lib/utils";
 import { PathCTA } from "@/components/PathCTA";
 import { HeroOverlayLayer, STORY_HERO_OVERLAY_DEFAULTS } from "@/components/HeroOverlayFields";
 
@@ -176,7 +176,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
               fontWeight: 400,
               maxWidth: hasHeroPhoto ? "800px" : "700px",
             }}
-            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(heroStatement) }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding, so
@@ -196,7 +196,7 @@ export function ExperienceStory({ onNavigate }: { onNavigate: (path: string) => 
                 maxWidth: "700px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(heroStatementMobile) }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(heroStatementMobile) }}
             />
           )}
         </div>

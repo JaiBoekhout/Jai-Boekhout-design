@@ -10,6 +10,7 @@ import type { CMSSocials } from "@/store/contentStore";
 import { Button, TextField, TextArea, Checkbox } from "@/components/SiteKit";
 import { submitEnquiry } from "@/app/actions/contact";
 import { pathKeyToUrl } from "@/lib/paths";
+import { demoteNestedBlocks } from "@/lib/utils";
 
 // Keep in sync with SOCIAL_PLATFORMS in DesignSystemSection.tsx (same 8 keys/order) — split into
 // two copies since the admin list needs muted icons + CMSUrlInput fields and this one needs
@@ -409,7 +410,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
                 lineHeight: 1.15,
                 marginBottom: "16px",
               }}
-              dangerouslySetInnerHTML={{ __html: content.evaluate.ctaHeading }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.evaluate.ctaHeading) }}
             />
             {content.evaluate.ctaHeadingMobile && (
               <h3
@@ -423,7 +424,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
                   lineHeight: 1.15,
                   marginBottom: "16px",
                 }}
-                dangerouslySetInnerHTML={{ __html: content.evaluate.ctaHeadingMobile }}
+                dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.evaluate.ctaHeadingMobile) }}
               />
             )}
             <div

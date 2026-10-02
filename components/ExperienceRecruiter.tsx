@@ -15,7 +15,7 @@ import { ClientsSlider } from "@/components/ClientsSlider";
 import { SkillNetwork } from "@/components/SkillNetwork";
 import { useButtonCorner } from "@/components/SiteKit";
 import { ProjectCard } from "@/components/ProjectCard";
-import { demoteNestedHeadings } from "@/lib/utils";
+import { demoteNestedBlocks } from "@/lib/utils";
 
 const TEAL = "var(--c-teal)";
 // Matches the public top bar's rendered height (app/(public)/(experience)/layout.tsx) —
@@ -239,7 +239,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                     lineHeight: 1.1,
                     fontWeight: 400,
                   }}
-                  dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatement) }}
+                  dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cms.heroStatement) }}
                 />
                 {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
                     variants exist in the DOM regardless of which one CSS is currently hiding, so
@@ -258,7 +258,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                       fontWeight: 400,
                       margin: 0,
                     }}
-                    dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(cms.heroStatementMobile) }}
+                    dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(cms.heroStatementMobile) }}
                   />
                 )}
                 {/* Industries — moved here from the About Me section so it sits over the hero

@@ -7,7 +7,7 @@ import { FeaturedProjects } from "@/components/FeaturedProjects";
 import { ClientsSlider } from "@/components/ClientsSlider";
 import { StatsBar } from "@/components/StatsBar";
 import { useContentStore, getFeaturedProjects, getMoreProjects, resolveWorkStats, enrichProjectWithCaseStudy } from "@/store/contentStore";
-import { demoteNestedHeadings } from "@/lib/utils";
+import { demoteNestedBlocks } from "@/lib/utils";
 
 // Same 3 stat ids Evaluate's own "At a Glance" row makes clickable there (the rest are purely
 // informational, no matching detail section to jump to) — mapped here to the #hash anchors
@@ -104,7 +104,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
               fontWeight: 400,
               maxWidth: "800px",
             }}
-            dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.work.heroStatement) }}
+            dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.work.heroStatement) }}
           />
           {/* Mobile override of the same H1 above — deliberately NOT itself an <h1>. Both
               variants exist in the DOM regardless of which one CSS is currently hiding
@@ -125,7 +125,7 @@ export function ExperienceWork({ onNavigate }: { onNavigate: (path: string, proj
                 maxWidth: "800px",
                 margin: 0,
               }}
-              dangerouslySetInnerHTML={{ __html: demoteNestedHeadings(content.work.heroStatementMobile) }}
+              dangerouslySetInnerHTML={{ __html: demoteNestedBlocks(content.work.heroStatementMobile) }}
             />
           )}
         </div>
