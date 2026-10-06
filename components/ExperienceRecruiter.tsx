@@ -482,12 +482,10 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                   </p>
                                   {/* Card mode shows exactly the same set of projects as list mode —
                                       switching the toggle changes how they're drawn, never which
-                                      ones. Tracks are capped at 380px because ProjectCard has no
-                                      max-width of its own (it's built for the Work page's
-                                      multi-column grid), so without the cap one or two cards would
-                                      stretch across this whole column; auto-fill then wraps them
-                                      down to a single column as the column narrows. */}
-                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 380px))", justifyContent: "start", gap: 12 }}>
+                                      ones. .exp-project-grid steps 1 / 2 / 3 across the same
+                                      breakpoints the Work page's card grid uses, so the two read
+                                      as one treatment. */}
+                                  <div className="exp-project-grid">
                                     {jobProjects.map((p) => (
                                       <ProjectCard
                                         key={p.id}
@@ -501,7 +499,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                                           hoverScale: p.coverImageHoverScale ?? 1,
                                         }}
                                         labels={p.tags.slice(0, 2)}
-                                        sizes="(min-width: 640px) 380px, 100vw"
+                                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                                         headingLevel="div"
                                         onActivate={() => onNavigate("work", projectUrlSlug(p))}
                                       />

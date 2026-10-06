@@ -823,6 +823,15 @@
   @media (min-width: 640px)  { .project-list-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .project-list-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (min-width: 1280px) { .project-list-grid { grid-template-columns: repeat(var(--plg-cols, 4), 1fr); } }
+
+  /* Evaluate page's per-experience project cards (CMSExperience.projectsDisplayMode === "card").
+     Same 1 / 2 / 3 steps as the Work grid above so the two read as one treatment, but it stops at
+     3 rather than following --plg-cols to 4+: these sit inside an experience accordion's content
+     column, which is narrower than the Work page's full-width grid, so a fourth track would push
+     the cards below the width their cover images and two-line titles need. */
+  .exp-project-grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 12px; }
+  @media (min-width: 640px)  { .exp-project-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .exp-project-grid { grid-template-columns: repeat(3, 1fr); } }
 }
 
 /* Page-hero headings' mobile-override rules (.hero-mobile-h1/h2/h3) are intentionally NOT here.
