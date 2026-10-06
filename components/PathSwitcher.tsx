@@ -164,10 +164,10 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             // accent) via color-mix, so every theme gets its own outline rather than a hardcoded
             // colour, and the halo stays soft enough not to be confused with the solid 2px accent
             // ring the hamburger's nudge throws (staticHighlight below).
-            border: "3px solid color-mix(in srgb, var(--c-teal) 55%, transparent)",
+            border: "2.25px solid color-mix(in srgb, var(--c-teal) 55%, transparent)",
             borderRadius: buttonCorner,
             backdropFilter: "blur(20px)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 6px color-mix(in srgb, var(--c-teal) 14%, transparent)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 4.5px color-mix(in srgb, var(--c-teal) 14%, transparent)",
           }}
         >
           {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
