@@ -136,7 +136,7 @@ export function MobileNavMenu() {
 
       <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "16px 2px" }} />
 
-      <HamburgerMenuReference headingId={headingId} />
+      <HamburgerMenuReference headingId={headingId} compact />
     </>
   );
 
@@ -209,12 +209,15 @@ const sheetStyle: React.CSSProperties = {
   position: "fixed",
   top: 0,
   right: 0,
-  bottom: 0,
   zIndex: 71,
   width: "min(340px, 88vw)",
-  // 100dvh rather than 100vh so mobile browser chrome collapsing doesn't leave the sheet's end
-  // stranded under the address bar.
-  height: "100dvh",
+  // Hugs its content and stops short of the floating nav instead of running the full height —
+  // the sheet's own closing line points at that nav, so covering it was the one thing this panel
+  // shouldn't do. 120px clears the bar (32px up from the bottom, ~65px tall, plus its halo) with
+  // a little breathing room. dvh rather than vh so collapsing browser chrome doesn't strand the
+  // end of the sheet under the address bar; it still scrolls internally if a screen is short
+  // enough that even the compact content doesn't fit.
+  maxHeight: "calc(100dvh - 120px)",
   overflowY: "auto",
   overscrollBehavior: "contain",
   WebkitOverflowScrolling: "touch",

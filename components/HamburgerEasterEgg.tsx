@@ -301,7 +301,7 @@ const closeButtonStyle: React.CSSProperties = {
 // under the Theme/Accessibility controls. Shared rather than copied because the nine glyphs only
 // make their point if they stay pixel-identical between the two — they exist to show the precise
 // shape differences between near-identical menu icons.
-export function HamburgerMenuReference({ headingId }: { headingId?: string }) {
+export function HamburgerMenuReference({ headingId, compact = false }: { headingId?: string; compact?: boolean }) {
   return (
     <>
       <h2 id={headingId} style={headingStyle}>
@@ -313,16 +313,22 @@ export function HamburgerMenuReference({ headingId }: { headingId?: string }) {
         <br />
         Since you&rsquo;re here, here&rsquo;s the full menu:
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 14px", margin: "16px 0" }}>
+      {/* compact drops each glyph's "what it usually means" line. The mobile sheet uses it so the
+          panel stays short enough to sit above the floating nav rather than covering the very
+          thing the line below points at — the glyphs and their names still carry the joke, which
+          is what that grid is there for. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: compact ? "14px 14px" : "18px 14px", margin: "16px 0" }}>
         {MENU_ICONS.map(({ Icon, name, use }) => (
           <div key={name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <span style={{ color: SWATCH_TEXT }}>
               <Icon size={20} />
             </span>
             <span style={{ fontFamily: "var(--font-body)", fontSize: 11.5, fontWeight: 500, color: SWATCH_TEXT, lineHeight: 1.3 }}>{name}</span>
-            <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "color-mix(in srgb, " + SWATCH_TEXT + " 65%, transparent)", lineHeight: 1.4 }}>
-              {use}
-            </span>
+            {!compact && (
+              <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "color-mix(in srgb, " + SWATCH_TEXT + " 65%, transparent)", lineHeight: 1.4 }}>
+                {use}
+              </span>
+            )}
           </div>
         ))}
       </div>
