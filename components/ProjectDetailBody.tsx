@@ -254,9 +254,23 @@ export function ProjectDetailBody({
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "rgba(245,241,234,0.65)", marginBottom: 14 }}>
                 {project.client}
               </div>
+              {/* Only the first three show on phones. A six-tag project wrapped to two rows here,
+                  pushing the banner tall enough to crowd the title it sits under — and these are
+                  a glance-level label on a photo, not the real list. The full set is still in the
+                  page's own Tags section further down, so nothing is actually lost.
+
+                  Hidden in CSS rather than sliced in JS so the markup stays identical on both
+                  sides of the breakpoint — a width check at render time would differ between the
+                  server and the client and break hydration. */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {project.tags.map((t, ti) => (
-                  <span key={`${t}-${ti}`} style={OVERLAY_TAG_STYLE}>{t}</span>
+                  <span
+                    key={`${t}-${ti}`}
+                    className={ti > 2 ? "hidden sm:inline-block" : undefined}
+                    style={OVERLAY_TAG_STYLE}
+                  >
+                    {t}
+                  </span>
                 ))}
               </div>
             </div>
