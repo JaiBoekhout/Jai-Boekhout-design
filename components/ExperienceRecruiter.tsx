@@ -475,32 +475,37 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                             if (jobProjects.length === 0) return null;
 
                             if (job.projectsDisplayMode === "card") {
-                              const featured = jobProjects.find((p) => p.id === job.projectsFeaturedId) ?? jobProjects[0];
                               return (
                                 <div className="mt-6">
                                   <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "var(--c-teal)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "10px" }}>
                                     Projects
                                   </p>
-                                  {/* Capped to one grid-cell's width — ProjectCard has no max-width
-                                      of its own (it's designed to sit inside a multi-column grid
-                                      on the Work page), so a lone card here would otherwise
-                                      stretch to the full width of this column. */}
-                                  <div style={{ maxWidth: 380 }}>
-                                    <ProjectCard
-                                      project={featured}
-                                      cover={{
-                                        src: featured.coverImageUrl || featured.imgs?.[0] || null,
-                                        position: featured.coverImagePosition || "center",
-                                        scale: featured.coverImageScale ?? 1,
-                                        hoverSrc: featured.coverImageHoverUrl,
-                                        hoverPosition: featured.coverImageHoverPosition || "center",
-                                        hoverScale: featured.coverImageHoverScale ?? 1,
-                                      }}
-                                      labels={featured.tags.slice(0, 2)}
-                                      sizes="380px"
-                                      headingLevel="div"
-                                      onActivate={() => onNavigate("work", projectUrlSlug(featured))}
-                                    />
+                                  {/* Card mode shows exactly the same set of projects as list mode —
+                                      switching the toggle changes how they're drawn, never which
+                                      ones. Tracks are capped at 380px because ProjectCard has no
+                                      max-width of its own (it's built for the Work page's
+                                      multi-column grid), so without the cap one or two cards would
+                                      stretch across this whole column; auto-fill then wraps them
+                                      down to a single column as the column narrows. */}
+                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 380px))", justifyContent: "start", gap: 12 }}>
+                                    {jobProjects.map((p) => (
+                                      <ProjectCard
+                                        key={p.id}
+                                        project={p}
+                                        cover={{
+                                          src: p.coverImageUrl || p.imgs?.[0] || null,
+                                          position: p.coverImagePosition || "center",
+                                          scale: p.coverImageScale ?? 1,
+                                          hoverSrc: p.coverImageHoverUrl,
+                                          hoverPosition: p.coverImageHoverPosition || "center",
+                                          hoverScale: p.coverImageHoverScale ?? 1,
+                                        }}
+                                        labels={p.tags.slice(0, 2)}
+                                        sizes="(min-width: 640px) 380px, 100vw"
+                                        headingLevel="div"
+                                        onActivate={() => onNavigate("work", projectUrlSlug(p))}
+                                      />
+                                    ))}
                                   </div>
                                 </div>
                               );

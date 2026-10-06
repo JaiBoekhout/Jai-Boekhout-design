@@ -112,52 +112,32 @@ function ProjectOrderRows({
   );
 }
 
-// Shared "List / Card" display toggle + single-card picker, rendered underneath either mode's
-// project rows below. Card mode shows exactly one project (as a rich image card matching the
-// Work page's grid, built in ExperienceRecruiter.tsx) so it needs its own single-select — a
-// reorderable list has an obvious order, but "which one card" doesn't follow from that alone.
+// "List / Card" display toggle, rendered ABOVE the project rows it applies to — it governs how
+// the whole selection below is drawn, so it reads as a heading for that section rather than a
+// footnote to it.
+//
+// It only ever changes the drawing. Both modes render exactly the projects picked (and left
+// unhidden) in the rows below, in that order: 8 selected projects are 8 rows in list mode and 8
+// cards in card mode. Card mode used to be a special case that showed a single project chosen
+// from its own dropdown, which meant switching modes silently threw the rest of the selection
+// away — see ExperienceRecruiter.tsx for the matching render.
 function ProjectsDisplayModeEditor({
-  exp, visibleItems, onChange,
+  exp, onChange,
 }: {
   exp: CMSExperience;
-  visibleItems: { id: string; name: string }[];
   onChange: (patch: Partial<CMSExperience>) => void;
 }) {
   const mode = exp.projectsDisplayMode ?? "list";
   return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between" style={{ marginBottom: mode === "card" ? 8 : 0 }}>
-        <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-          Display
-        </label>
-        <Switch
-          checked={mode === "card"}
-          onChange={(checked) => onChange({ projectsDisplayMode: checked ? "card" : "list" })}
-          label={mode === "card" ? "Card" : "List"}
-        />
-      </div>
-      {mode === "card" && (
-        visibleItems.length > 0 ? (
-          <select
-            value={visibleItems.some((it) => it.id === exp.projectsFeaturedId) ? exp.projectsFeaturedId : ""}
-            onChange={(e) => onChange({ projectsFeaturedId: e.target.value || undefined })}
-            style={{
-              width: "100%", background: "#0C1117", border: "1px solid rgba(237,232,223,0.08)", borderRadius: "8px",
-              padding: "10px 14px", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: "#EDE8DF", fontWeight: 300, outline: "none",
-              ...selectArrowStyle,
-            }}
-          >
-            <option value="" disabled>Select which project to feature…</option>
-            {visibleItems.map((it) => (
-              <option key={it.id} value={it.id}>{it.name}</option>
-            ))}
-          </select>
-        ) : (
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", margin: 0 }}>
-            No visible projects to feature yet — add or unhide one above.
-          </p>
-        )
-      )}
+    <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+        Display
+      </label>
+      <Switch
+        checked={mode === "card"}
+        onChange={(checked) => onChange({ projectsDisplayMode: checked ? "card" : "list" })}
+        label={mode === "card" ? "Card" : "List"}
+      />
     </div>
   );
 }
@@ -191,6 +171,7 @@ function ExperienceProjectsEditor({
         <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
           Projects (picked manually — no agency linked)
         </label>
+        <ProjectsDisplayModeEditor exp={exp} onChange={onChange} />
         {items.length > 0 && (
           <div className="mb-3">
             <ProjectOrderRows
@@ -232,11 +213,6 @@ function ExperienceProjectsEditor({
         ) : (
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#8C9AA3", margin: 0 }}>Every project has been added.</p>
         )}
-        <ProjectsDisplayModeEditor
-          exp={exp}
-          visibleItems={items.filter((it) => !it.hidden)}
-          onChange={onChange}
-        />
       </div>
     );
   }
@@ -267,6 +243,7 @@ function ExperienceProjectsEditor({
       <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#14ADB5", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: "8px" }}>
         Projects (from this company)
       </label>
+      <ProjectsDisplayModeEditor exp={exp} onChange={onChange} />
       <ProjectOrderRows
         items={effective}
         onMove={(idx, dir) => {
@@ -282,11 +259,6 @@ function ExperienceProjectsEditor({
           commitMatched(next);
         }}
         onReorder={commitMatched}
-      />
-      <ProjectsDisplayModeEditor
-        exp={exp}
-        visibleItems={effective.filter((it) => !it.hidden)}
-        onChange={onChange}
       />
     </div>
   );
