@@ -215,30 +215,7 @@ export function HamburgerEasterEgg() {
       <button type="button" data-close aria-label="Close" onClick={() => setOpen(false)} style={closeButtonStyle}>
         <CloseGlyph />
       </button>
-      <h2 id={headingId} style={headingStyle}>
-        Craving a hamburger?
-      </h2>
-      <p style={bodyTextStyle}>
-        I get it. But this site runs on a{" "}
-        <span style={{ fontWeight: 700, color: "var(--c-teal)" }}>floating bottom nav.</span>
-        <br />
-        Since you&rsquo;re here, here&rsquo;s the full menu:
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 14px", margin: "16px 0" }}>
-        {MENU_ICONS.map(({ Icon, name, use }) => (
-          <div key={name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <span style={{ color: SWATCH_TEXT }}>
-              <Icon size={20} />
-            </span>
-            <span style={{ fontFamily: "var(--font-body)", fontSize: 11.5, fontWeight: 500, color: SWATCH_TEXT, lineHeight: 1.3 }}>{name}</span>
-            <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "color-mix(in srgb, " + SWATCH_TEXT + " 65%, transparent)", lineHeight: 1.4 }}>
-              {use}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "2px 0 12px" }} />
-      <p style={{ ...bodyTextStyle, margin: 0, fontSize: 15, fontWeight: 700 }}>Your actual navigation is waiting down below 👇</p>
+      <HamburgerMenuReference headingId={headingId} />
     </>
   );
 
@@ -318,6 +295,42 @@ const closeButtonStyle: React.CSSProperties = {
   color: SWATCH_TEXT,
   opacity: 0.7,
 };
+
+// The joke + glyph reference itself, minus any dialog chrome. The desktop popup above wraps this
+// in its own anchored dialog; the mobile hamburger sheet (components/MobileNavMenu.tsx) stacks it
+// under the Theme/Accessibility controls. Shared rather than copied because the nine glyphs only
+// make their point if they stay pixel-identical between the two — they exist to show the precise
+// shape differences between near-identical menu icons.
+export function HamburgerMenuReference({ headingId }: { headingId?: string }) {
+  return (
+    <>
+      <h2 id={headingId} style={headingStyle}>
+        Craving a hamburger?
+      </h2>
+      <p style={bodyTextStyle}>
+        I get it. But this site runs on a{" "}
+        <span style={{ fontWeight: 700, color: "var(--c-teal)" }}>floating bottom nav.</span>
+        <br />
+        Since you&rsquo;re here, here&rsquo;s the full menu:
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 14px", margin: "16px 0" }}>
+        {MENU_ICONS.map(({ Icon, name, use }) => (
+          <div key={name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <span style={{ color: SWATCH_TEXT }}>
+              <Icon size={20} />
+            </span>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: 11.5, fontWeight: 500, color: SWATCH_TEXT, lineHeight: 1.3 }}>{name}</span>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: 10, color: "color-mix(in srgb, " + SWATCH_TEXT + " 65%, transparent)", lineHeight: 1.4 }}>
+              {use}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "2px 0 12px" }} />
+      <p style={{ ...bodyTextStyle, margin: 0, fontSize: 15, fontWeight: 700 }}>Your actual navigation is waiting down below 👇</p>
+    </>
+  );
+}
 
 const headingStyle: React.CSSProperties = {
   fontFamily: "var(--font-heading)",
