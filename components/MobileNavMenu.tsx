@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Minus, Plus } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { ThemeSwitcherOptions, SWATCH_BG, SWATCH_TEXT, SWATCH_ACTIVE, SWATCH_DIVIDER } from "@/components/ThemeDropdown";
 import { HamburgerMenuReference } from "@/components/HamburgerEasterEgg";
@@ -89,52 +89,62 @@ export function MobileNavMenu() {
     }
   }, [open]);
 
+  // Clamped rather than cycled: with an explicit -/+ pair, a + that silently wrapped back to the
+  // smallest size would read as broken.
+  const atMin = fontScale <= SIZES[0].scale;
+  const atMax = fontScale >= SIZES[SIZES.length - 1].scale;
+  const stepLabel = SIZES.find((s) => s.scale === fontScale)?.label ?? "Default";
+
   const sheetContent = (
     <>
-      <button type="button" data-close aria-label="Close menu" onClick={() => setOpen(false)} style={closeButtonStyle}>
-        <X size={18} />
-      </button>
+      {/* In normal flow rather than absolutely placed, so the sheet needs no top padding to clear
+          it — that reserved space was the tallest thing above the fold. */}
+      <div className="flex justify-end" style={{ marginBottom: 2 }}>
+        <button type="button" data-close aria-label="Close menu" onClick={() => setOpen(false)} style={closeButtonStyle}>
+          <X size={18} />
+        </button>
+      </div>
 
       {/* Theme — options + mode toggle shown directly, no nested popup to expand */}
-      <div style={{ padding: "2px 2px 2px" }}>
-        <span style={sectionLabelStyle}>Theme</span>
-      </div>
+      <span style={sectionLabelStyle}>Theme</span>
       <ThemeSwitcherOptions />
 
-      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "12px 2px" }} />
+      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "10px 2px" }} />
 
-      {/* Accessibility (font size) */}
-      <div style={{ padding: "0 2px" }}>
-        <span style={{ ...sectionLabelStyle, marginBottom: 10 }}>Accessibility</span>
-        <div className="flex items-center gap-5">
-          {SIZES.map(({ scale, label }) => {
-            const active = fontScale === scale;
-            return (
-              <button
-                key={scale}
-                type="button"
-                onClick={() => setFontScale(scale)}
-                aria-label={`${label} text size`}
-                aria-pressed={active}
-                title={label}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "6px 0",
-                  cursor: "pointer",
-                  color: active ? SWATCH_ACTIVE : SWATCH_TEXT,
-                  fontFamily: "var(--font-body)",
-                  fontWeight: active ? 600 : 400,
-                }}
-              >
-                <span style={{ fontSize: 14 + scale * 5, lineHeight: 1 }}>A</span>
-              </button>
-            );
-          })}
+      {/* Accessibility — one row, laid out like the Dark/Light switch above it (label left,
+          control right) instead of a heading with a separate row of three A's underneath. Halves
+          the height, which is what lets the sheet's closing line sit above the floating nav. */}
+      <div className="flex items-center justify-between" style={{ padding: "6px 10px 2px" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: SWATCH_TEXT, letterSpacing: "0.04em" }}>
+          Accessibility
+        </span>
+        <div className="flex items-center" style={{ gap: 10 }} role="group" aria-label={`Text size: ${stepLabel}`}>
+          <button
+            type="button"
+            onClick={() => setFontScale(SIZES[Math.max(0, SIZES.findIndex((s) => s.scale === fontScale) - 1)].scale)}
+            disabled={atMin}
+            aria-label="Smaller text"
+            style={{ ...stepButtonStyle, opacity: atMin ? 0.3 : 1, cursor: atMin ? "default" : "pointer" }}
+          >
+            <Minus size={12} strokeWidth={2.75} />
+          </button>
+          {/* Grows with the setting, so the control shows the current size rather than just naming it */}
+          <span aria-hidden="true" style={{ fontFamily: "var(--font-body)", fontSize: 13 + fontScale * 4, lineHeight: 1, color: SWATCH_ACTIVE, fontWeight: 600, width: 20, textAlign: "center" }}>
+            A
+          </span>
+          <button
+            type="button"
+            onClick={() => setFontScale(SIZES[Math.min(SIZES.length - 1, SIZES.findIndex((s) => s.scale === fontScale) + 1)].scale)}
+            disabled={atMax}
+            aria-label="Larger text"
+            style={{ ...stepButtonStyle, opacity: atMax ? 0.3 : 1, cursor: atMax ? "default" : "pointer" }}
+          >
+            <Plus size={12} strokeWidth={2.75} />
+          </button>
         </div>
       </div>
 
-      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "16px 2px" }} />
+      <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "12px 2px" }} />
 
       <HamburgerMenuReference headingId={headingId} compact />
     </>
@@ -214,32 +224,47 @@ const sheetStyle: React.CSSProperties = {
   // Hugs its content and stops short of the floating nav instead of running the full height —
   // the sheet's own closing line points at that nav, so covering it was the one thing this panel
   // shouldn't do. 120px clears the bar (32px up from the bottom, ~65px tall, plus its halo) with
-  // a little breathing room. dvh rather than vh so collapsing browser chrome doesn't strand the
-  // end of the sheet under the address bar; it still scrolls internally if a screen is short
-  // enough that even the compact content doesn't fit.
-  maxHeight: "calc(100dvh - 120px)",
+  // a little breathing room, and it still scrolls internally on a screen short enough that even
+  // the compact content doesn't fit.
+  //
+  // Percentage, NOT dvh/vh. The text-size control zooms the document root
+  // (store/fontScaleStore.tsx), and dvh/vh resolve against the UNZOOMED viewport — so at 125% the
+  // cap stayed 520px while the screen was only worth 512, and the sheet grew straight back over
+  // the nav. For a fixed element a percentage resolves against the viewport in the zoomed
+  // coordinate space, so it tracks every text size. Measured at all three: gap to the nav stays
+  // positive (24 / 28 / 31px) instead of going to -52 and -129.
+  maxHeight: "calc(100% - 120px)",
   overflowY: "auto",
   overscrollBehavior: "contain",
   WebkitOverflowScrolling: "touch",
   background: SWATCH_BG,
   borderLeft: `1px solid ${SWATCH_DIVIDER}`,
   boxShadow: "-16px 0 40px rgba(0,0,0,0.45)",
-  padding: "52px 20px 28px",
+  padding: "12px 20px 16px",
 };
 
 const sectionLabelStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 12,
+  fontSize: 11,
   color: SWATCH_TEXT,
   letterSpacing: "0.04em",
   display: "block",
+  // 10px inset matches the Dark row and the theme option buttons below, so all three labels in
+  // the sheet share one left edge.
+  padding: "0 10px",
   marginBottom: 6,
 };
 
+const stepButtonStyle: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 5,
+  margin: -5,
+  display: "flex",
+  color: SWATCH_TEXT,
+};
+
 const closeButtonStyle: React.CSSProperties = {
-  position: "absolute",
-  top: 14,
-  right: 14,
   background: "none",
   border: "none",
   cursor: "pointer",

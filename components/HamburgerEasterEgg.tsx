@@ -317,7 +317,7 @@ export function HamburgerMenuReference({ headingId, compact = false }: { heading
           panel stays short enough to sit above the floating nav rather than covering the very
           thing the line below points at — the glyphs and their names still carry the joke, which
           is what that grid is there for. */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: compact ? "14px 14px" : "18px 14px", margin: "16px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: compact ? "10px 14px" : "18px 14px", margin: compact ? "12px 0" : "16px 0" }}>
         {MENU_ICONS.map(({ Icon, name, use }) => (
           <div key={name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
             <span style={{ color: SWATCH_TEXT }}>
