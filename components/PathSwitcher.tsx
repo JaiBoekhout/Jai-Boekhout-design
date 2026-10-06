@@ -113,7 +113,7 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
   // actually commits the new route — so waiting on it made the highlight start moving only after
   // the page had already loaded. pendingKey moves it the instant a path is clicked instead; once
   // the real navigation lands and selectedPath catches up to match, it clears itself.
-  const [pendingKey, setPendingKey] = useState<PathKey | null>(null);
+  const [pendingKey, setPendingKey] = useState<NavKey | null>(null);
   useEffect(() => {
     if (pendingKey && selectedPath === pendingKey) setPendingKey(null);
   }, [selectedPath, pendingKey]);
@@ -157,22 +157,32 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
             padding: BAR_PADDING,
             gap: BAR_GAP,
             background: "var(--c-bg-glass)",
-            border: "1px solid var(--c-border-med)",
+            // Accent outline + a soft halo of the same colour. The previous hairline in
+            // --c-border-med sat close enough to the page background that reviewers reported
+            // overlooking the nav entirely — which matters more here than on most chrome, since
+            // this bar IS the site's navigation. Both tones derive from --c-teal (the live theme
+            // accent) via color-mix, so every theme gets its own outline rather than a hardcoded
+            // colour, and the halo stays soft enough not to be confused with the solid 2px accent
+            // ring the hamburger's nudge throws (staticHighlight below).
+            border: "1.5px solid color-mix(in srgb, var(--c-teal) 55%, transparent)",
             borderRadius: buttonCorner,
             backdropFilter: "blur(20px)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 3px color-mix(in srgb, var(--c-teal) 14%, transparent)",
           }}
         >
           {/* Home — not a PathKey (it isn't one of the 4 CMS-driven experience paths), so it's
-              rendered standalone rather than folded into PATH_ORDER; it's also never "active"
-              since this bar only ever renders on an experience page, never on the homepage
-              itself. */}
+              rendered standalone rather than folded into PATH_ORDER. It CAN be the active entry:
+              the bar renders on the homepage now as well, which is where visitors kept missing
+              that site navigation existed at all. */}
           <NavButton
             icon={Home}
             label="Home"
-            isActive={false}
+            isActive={effectivePath === HOME_KEY}
             isHovered={hoveredKey === HOME_KEY}
-            onClick={() => router.push("/")}
+            onClick={() => {
+              setPendingKey(HOME_KEY);
+              router.push("/");
+            }}
             onHoverStart={() => setHoveredKey(HOME_KEY)}
             onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_KEY ? null : cur))}
           />

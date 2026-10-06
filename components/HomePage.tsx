@@ -7,6 +7,8 @@ import { ArrowRight } from "lucide-react";
 import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { FontSizeToggle } from "@/components/FontSizeToggle";
 import { MobileNavMenu } from "@/components/MobileNavMenu";
+import { HamburgerEasterEgg } from "@/components/HamburgerEasterEgg";
+import { PathSwitcher } from "@/components/PathSwitcher";
 import { useContentStore } from "@/store/contentStore";
 import type { CMSHomeCard } from "@/store/contentStore";
 import { pathKeyToUrl } from "@/lib/paths";
@@ -51,7 +53,7 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
 
   return (
     <motion.div
-      className="min-h-screen flex flex-col justify-between px-8 pt-6 pb-16 md:px-16"
+      className="min-h-screen flex flex-col justify-between px-8 pt-6 pb-28 md:px-16"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -92,9 +94,13 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
             UX & Product Designer
           </span>
         </div>
+        {/* Same trio as the experience pages' header. The hamburger used to be omitted here on
+            purpose, but review feedback was that the homepage looked like it had no navigation
+            at all — so it (and the floating nav at the bottom) now appear sitewide. */}
         <div className="flex items-center gap-3">
           <ThemeDropdown />
           <FontSizeToggle />
+          <HamburgerEasterEgg />
         </div>
       </div>
 
@@ -461,6 +467,10 @@ export function HomePage({ onSelect, logoUrl }: HomePageProps) {
           )}
         </span>
       </div>
+
+      {/* selectedPath="home" so the Home entry reads as the current page here, the same way each
+          experience page highlights its own. */}
+      <PathSwitcher selectedPath="home" />
     </motion.div>
   );
 }

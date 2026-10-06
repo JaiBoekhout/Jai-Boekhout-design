@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { useHideOnScroll } from "@/store/useHideOnScroll";
 import { useContentStore, DEFAULT_LOGO_URL } from "@/store/contentStore";
 import { ThemeDropdown } from "@/components/ThemeDropdown";
@@ -36,35 +37,47 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
       >
         {/* Desktop: text left, logo absolutely centred, icon cluster right. */}
         <div className="hidden md:flex justify-between items-center" style={{ position: "relative" }}>
-          <div className="flex flex-col gap-1">
-            <Link
-              href="/"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--c-text-muted)",
-                textDecoration: "none",
-                letterSpacing: "0.06em",
-                transition: "color 0.2s",
-                alignSelf: "flex-start",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-teal)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-text-muted)"; }}
-            >
-              ← Jai Boekhout
+          {/* The back control is its own 40x40 button beside the whole name/tagline block rather
+              than an "←" glued to the front of the first line — it reads as a control at the size
+              the rest of the header's buttons use, and it sits level with both lines instead of
+              just the top one. .header-icon-btn is the same class ThemeDropdown/FontSizeToggle/
+              HamburgerEasterEgg use, so size and hover (navy circle, inverted icon) match exactly;
+              it stays an <a> rather than HeaderIconButton's <button> so it's a real crawlable link
+              home, and so it never nests interactive elements. */}
+          <div className="flex items-center gap-3">
+            <Link href="/" aria-label="Back to home" className="header-icon-btn">
+              <ArrowLeft size={20} />
             </Link>
-            <span
-              className="nav-tagline"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--c-text-dim)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              UX & Product Design
-            </span>
+            <div className="flex flex-col gap-1">
+              <Link
+                href="/"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: "var(--c-text-muted)",
+                  textDecoration: "none",
+                  letterSpacing: "0.06em",
+                  transition: "color 0.2s",
+                  alignSelf: "flex-start",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-teal)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c-text-muted)"; }}
+              >
+                Jai Boekhout
+              </Link>
+              <span
+                className="nav-tagline"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: "var(--c-text-dim)",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                UX & Product Design
+              </span>
+            </div>
           </div>
 
           <img
@@ -83,6 +96,11 @@ export default function ExperienceLayout({ children }: { children: React.ReactNo
 
         {/* Mobile: logo + text centred and stacked, hamburger menu top-right. */}
         <div className="flex md:hidden flex-col items-center" style={{ position: "relative" }}>
+          <div style={{ position: "absolute", top: 0, left: 0 }}>
+            <Link href="/" aria-label="Back to home" className="header-icon-btn">
+              <ArrowLeft size={20} />
+            </Link>
+          </div>
           <div style={{ position: "absolute", top: 0, right: 0 }}>
             <MobileNavMenu />
           </div>
