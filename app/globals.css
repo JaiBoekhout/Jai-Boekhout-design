@@ -819,6 +819,16 @@
   /* Work page's "View more projects" — Card view (CMSWork.projectListLayout === "card").
      --plg-cols (set inline per the CMS's configured column count, 2-6) only takes effect at
      the widest breakpoint; the steps below it are fixed at 3/2/1 regardless of that setting. */
+  /* Demoted rich-text headings (demoteNestedHeadings in lib/utils.ts) carry line-height:0 so the
+     block contributes no strut of its own. Descendants must not inherit that zero, or a run that
+     sets only font-size collapses to a line box of no height and the next block paints over it —
+     which is exactly what happened to the Evaluate CTA heading. A class loses to the inline
+     line-height the rich-text editor writes, so hero fields that DO author one are untouched. */
+  .rte-demoted-heading > * { line-height: normal; }
+  /* A demoted heading holding bare text has no child to fix, so give the block itself its
+     line-height back; with no inner run there is no oversized strut to suppress anyway. */
+  .rte-demoted-heading:not(:has(*)) { line-height: normal; }
+
   .project-list-grid { display: grid; grid-template-columns: repeat(1, 1fr); }
   @media (min-width: 640px)  { .project-list-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 1024px) { .project-list-grid { grid-template-columns: repeat(3, 1fr); } }

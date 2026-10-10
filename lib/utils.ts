@@ -58,15 +58,28 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
 // on the visible text was silently being overridden by oversized invisible spacing they had no
 // way to see or control. Collapsing the wrapper's own strut to zero leaves line-box height
 // entirely up to the real inline content's own line-height, exactly as authored.
+//
+// That last sentence quietly assumed the inner content always sets a line-height of its own. Every
+// hero statement happens to, so this worked — but evaluate.ctaHeading's inner span sets only
+// font-size/weight/colour, so it inherited the zero and its line box collapsed to nothing: the
+// text still painted, took no vertical space, and the block below it rendered straight over the
+// top. That is what the "rte-demoted-heading" marker class is for; globals.css gives the demoted
+// block's children a normal line-height, which an authored inline line-height still outranks, so
+// the hero fields keep rendering exactly as before.
 export function demoteNestedHeadings(html: string): string {
   return html
     .replace(/<h[1-6](\s[^>]*)?>/gi, (_, attrs = "") => {
-      const styleMatch = /\bstyle\s*=\s*(["'])/i.exec(attrs);
+      // The marker class is what lets globals.css hand a usable line-height back to whatever sits
+      // INSIDE this block — see the strut note below.
+      const withClass = /\bclass\s*=\s*(["'])/i.test(attrs)
+        ? attrs.replace(/\bclass\s*=\s*(["'])/i, (_m: string, q: string) => `class=${q}rte-demoted-heading `)
+        : `${attrs} class="rte-demoted-heading"`;
+      const styleMatch = /\bstyle\s*=\s*(["'])/i.exec(withClass);
       if (styleMatch) {
         const quote = styleMatch[1];
-        return `<span${attrs.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;line-height:0;`)}>`;
+        return `<span${withClass.replace(new RegExp(`style\\s*=\\s*${quote}`, "i"), `style=${quote}display:block;line-height:0;`)}>`;
       }
-      return `<span${attrs} style="display:block;line-height:0">`;
+      return `<span${withClass} style="display:block;line-height:0">`;
     })
     .replace(/<\/h[1-6]>/gi, "</span>");
 }
