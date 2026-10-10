@@ -1740,7 +1740,13 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
             )}
             {dialog === "video" && (
               <VideoDialog
-                onConfirm={(url) => { (editor.commands as unknown as Record<string, (args: unknown) => void>).setYoutube({ src: url }); setDialog(null); }}
+                // setYoutubeVideo, not setYoutube — that is the name @tiptap/extension-youtube
+                // actually registers, and the cast that used to be here (commands as unknown as
+                // Record<string, ...>) silently accepted the wrong one: every click threw
+                // "setYoutube is not a function" into the console and the dialog just sat there.
+                // Typed and chained through focus() like every other dialog, so the node lands at
+                // the caret rather than wherever the selection happened to be left.
+                onConfirm={(url) => { editor.chain().focus().setYoutubeVideo({ src: url }).run(); setDialog(null); }}
                 onClose={() => setDialog(null)}
               />
             )}
