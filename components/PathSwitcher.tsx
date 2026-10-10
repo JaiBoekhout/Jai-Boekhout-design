@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useAnimation, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Home, Briefcase, UserCheck, Workflow, BookOpen } from "lucide-react";
@@ -17,6 +17,7 @@ const PATH_ICONS: Record<PathKey, React.ComponentType<{ size?: number }>> = {
 };
 
 const HOME_KEY = "home";
+const NAV_HREFS = ["/", ...PATH_ORDER.map((k) => PATH_URLS[k])];
 type NavKey = PathKey | typeof HOME_KEY;
 
 // Every button is this size, always — no button ever grows or shrinks, so the bar's width is
@@ -46,6 +47,7 @@ function NavButton({
   onClick,
   onHoverStart,
   onHoverEnd,
+  onPointerDown,
 }: {
   icon: React.ComponentType<{ size?: number }>;
   label: string;
@@ -54,12 +56,14 @@ function NavButton({
   onClick: () => void;
   onHoverStart: () => void;
   onHoverEnd: () => void;
+  onPointerDown: () => void;
 }) {
   const buttonCorner = useButtonCorner();
   return (
     <button
       type="button"
       onClick={onClick}
+      onPointerDown={onPointerDown}
       onMouseEnter={onHoverStart}
       onMouseLeave={onHoverEnd}
       onFocus={onHoverStart}
@@ -118,6 +122,50 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
     if (pendingKey && selectedPath === pendingKey) setPendingKey(null);
   }, [selectedPath, pendingKey]);
   const effectivePath = pendingKey ?? selectedPath;
+
+  // Every destination in this bar is a statically-prerendered route, so router.prefetch() pulls
+  // the whole thing and the later click is a cache hit with no network wait at all. Without it
+  // each first visit to a path paid 400-800ms of pure waiting on a throttled connection — the
+  // route payload was only requested once the button was clicked, and measurements showed the
+  // page painted the instant it arrived, so the delay was entirely fetch, not render.
+  //
+  // <Link> would do this automatically, but these are buttons (they drive an optimistic active
+  // state and a hover colour), so the prefetch has to be explicit. Deduped because prefetch is
+  // called from hover, focus, touch AND the idle sweep below, and would otherwise refire on
+  // every pointer movement across the bar.
+  const prefetched = useRef(new Set<string>());
+  const prefetch = useCallback(
+    (href: string) => {
+      if (prefetched.current.has(href)) return;
+      prefetched.current.add(href);
+      router.prefetch(href);
+    },
+    [router]
+  );
+
+  // Warm all five once the browser is idle, so even a first click is instant. Skipped entirely on
+  // Save-Data or a 2G-class connection: five route payloads is real bandwidth, and on exactly
+  // those connections the hover/focus/touch prefetches above still cover the route the visitor is
+  // actually heading for.
+  useEffect(() => {
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType ?? "")) return;
+
+    let cancelled = false;
+    const run = () => { if (!cancelled) NAV_HREFS.forEach(prefetch); };
+    const idle = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (h: number) => void;
+    };
+    const handle = idle.requestIdleCallback
+      ? idle.requestIdleCallback(run, { timeout: 3000 })
+      : window.setTimeout(run, 1500);
+    return () => {
+      cancelled = true;
+      if (idle.cancelIdleCallback) idle.cancelIdleCallback(handle);
+      else clearTimeout(handle);
+    };
+  }, [prefetch]);
 
   // HamburgerEasterEgg (app/(public)/(experience)/layout.tsx's header, a sibling of this
   // component — not an ancestor/descendant) dispatches this on open, pointing the joke at the
@@ -183,7 +231,8 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
               setPendingKey(HOME_KEY);
               router.push("/");
             }}
-            onHoverStart={() => setHoveredKey(HOME_KEY)}
+            onHoverStart={() => { setHoveredKey(HOME_KEY); prefetch("/"); }}
+            onPointerDown={() => prefetch("/")}
             onHoverEnd={() => setHoveredKey((cur) => (cur === HOME_KEY ? null : cur))}
           />
           <div style={{ width: 1, alignSelf: "stretch", background: "var(--c-border-med)" }} />
@@ -199,7 +248,8 @@ export function PathSwitcher({ selectedPath }: PathSwitcherProps) {
                 setPendingKey(key);
                 router.push(PATH_URLS[key]);
               }}
-              onHoverStart={() => setHoveredKey(key)}
+              onHoverStart={() => { setHoveredKey(key); prefetch(PATH_URLS[key]); }}
+              onPointerDown={() => prefetch(PATH_URLS[key])}
               onHoverEnd={() => setHoveredKey((cur) => (cur === key ? null : cur))}
             />
           ))}
