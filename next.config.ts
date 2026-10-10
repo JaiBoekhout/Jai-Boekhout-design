@@ -36,6 +36,8 @@ const nextConfig: NextConfig = {
       { source: "/portfolio/alliance-metal", destination: "/work/alliance-metal", permanent: true },
       { source: "/portfolio/ct-filtration", destination: "/work/ct-filtration", permanent: true },
       { source: "/portfolio/aurin-yoga-centrum", destination: "/work/aurin-yoga-centrum", permanent: true },
+      { source: "/portfolio/annosky", destination: "/work/annosky", permanent: true },
+      { source: "/portfolio/shadow-creek-winery", destination: "/work/shadow-creek", permanent: true },
       { source: "/portfolio", destination: "/work", permanent: true },
       { source: "/portfolio/:path*", destination: "/work", permanent: true },
     ];
