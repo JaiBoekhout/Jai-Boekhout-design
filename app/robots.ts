@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
   return {

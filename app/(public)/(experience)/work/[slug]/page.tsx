@@ -4,8 +4,7 @@ import { getPublishedProjects, getPublishedProjectBySlug, projectUrlSlug } from 
 import { getContent } from "@/store/serverContent";
 import { stripHtml, truncateAtWord, breadcrumbJsonLd } from "@/lib/utils";
 import { ProjectPageView } from "@/components/ProjectPageView";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export async function generateStaticParams() {
   return getPublishedProjects(await getContent()).map((p) => ({ slug: projectUrlSlug(p) }));

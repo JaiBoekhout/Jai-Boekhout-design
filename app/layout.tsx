@@ -11,9 +11,8 @@ import {
   DEFAULT_APPLE_TOUCH_ICON_URL,
 } from "@/store/contentStore";
 import { fontVariables } from "@/lib/fonts";
+import { SITE_URL } from "@/lib/siteUrl";
 import "./globals.css";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

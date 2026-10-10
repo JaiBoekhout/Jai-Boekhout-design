@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPublishedProjects, projectUrlSlug } from "@/store/contentStore";
 import { getContent } from "@/store/serverContent";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://jaiboekhout.nl";
+import { SITE_URL } from "@/lib/siteUrl";
 
 function toDate(iso: string | undefined): Date {
   if (!iso) return new Date();
