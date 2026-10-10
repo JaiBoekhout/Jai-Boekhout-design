@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Menu } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion, useAnimation } from "motion/react";
 import { SWATCH_BG, SWATCH_TEXT, SWATCH_DIVIDER } from "@/components/ThemeDropdown";
 import { HeaderIconButton } from "@/components/HeaderIconButton";
 
@@ -302,6 +302,27 @@ const closeButtonStyle: React.CSSProperties = {
 // make their point if they stay pixel-identical between the two — they exist to show the precise
 // shape differences between near-identical menu icons.
 export function HamburgerMenuReference({ headingId, compact = false }: { headingId?: string; compact?: boolean }) {
+  const reduceMotion = useReducedMotion();
+  const lineControls = useAnimation();
+  const [pointed, setPointed] = useState(false);
+  const pointedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (pointedTimeout.current) clearTimeout(pointedTimeout.current); }, []);
+
+  // Every glyph below looks like a menu you could open, so some visitors will try to click one.
+  // Rather than nothing happening, the click answers the question the click was asking: the
+  // closing line lights up in the accent colour and the real nav bounces at the bottom of the
+  // screen. Same window event the trigger button dispatches, so PathSwitcher needs no changes.
+  function pointAtTheRealNav() {
+    window.dispatchEvent(new Event("nudge-bottom-nav"));
+    setPointed(true);
+    if (pointedTimeout.current) clearTimeout(pointedTimeout.current);
+    pointedTimeout.current = setTimeout(() => setPointed(false), 1800);
+    if (!reduceMotion) {
+      lineControls.start({ scale: [1, 1.05, 1, 1.05, 1], transition: { duration: 0.9, ease: "easeInOut" } });
+    }
+  }
+
   return (
     <>
       <h2 id={headingId} style={headingStyle}>
@@ -319,7 +340,17 @@ export function HamburgerMenuReference({ headingId, compact = false }: { heading
           is what that grid is there for. */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: compact ? "10px 14px" : "18px 14px", margin: compact ? "12px 0" : "16px 0" }}>
         {MENU_ICONS.map(({ Icon, name, use }) => (
-          <div key={name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <button
+            key={name}
+            type="button"
+            onClick={pointAtTheRealNav}
+            aria-label={`${name} icon — this is a reference, not the navigation. Show me the real navigation.`}
+            style={{
+              display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start",
+              background: "none", border: "none", padding: 0, margin: 0, textAlign: "left",
+              font: "inherit", color: "inherit", cursor: "pointer",
+            }}
+          >
             <span style={{ color: SWATCH_TEXT }}>
               <Icon size={20} />
             </span>
@@ -329,11 +360,25 @@ export function HamburgerMenuReference({ headingId, compact = false }: { heading
                 {use}
               </span>
             )}
-          </div>
+          </button>
         ))}
       </div>
       <div style={{ height: 1, background: SWATCH_DIVIDER, margin: "2px 0 12px" }} />
-      <p style={{ ...bodyTextStyle, margin: 0, fontSize: 15, fontWeight: 700 }}>Your actual navigation is waiting down below 👇</p>
+      <motion.p
+        animate={lineControls}
+        aria-live="polite"
+        style={{
+          ...bodyTextStyle,
+          margin: 0,
+          fontSize: 15,
+          fontWeight: 700,
+          transformOrigin: "left center",
+          color: pointed ? "var(--c-teal)" : bodyTextStyle.color,
+          transition: "color 0.25s ease",
+        }}
+      >
+        Your actual navigation is waiting down below 👇
+      </motion.p>
     </>
   );
 }
