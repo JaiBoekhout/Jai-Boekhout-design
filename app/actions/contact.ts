@@ -4,6 +4,19 @@ import { getSession } from "@/lib/auth";
 import { saveEnquiry, deleteEnquiry, clearEnquiries, type Enquiry } from "@/lib/enquiries";
 export type { Enquiry } from "@/lib/enquiries";
 
+// Enquiry fields are whatever a stranger typed into a public form, and they get dropped into an
+// HTML email body. Without escaping, a submitted "<a href=...>" renders as real markup in the
+// inbox — a convincing phishing link inside a message that genuinely came from the portfolio.
+// The plain-text part needs no escaping; only the HTML one does.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function submitEnquiry(
   _prev: { ok: boolean; error?: string } | null,
   formData: FormData
@@ -34,17 +47,22 @@ export async function submitEnquiry(
     try {
       const { Resend } = await import("resend");
       const resend = new Resend(apiKey);
+      const safeName = escapeHtml(name);
+      const safeEmail = escapeHtml(email);
       await resend.emails.send({
         from: `Portfolio Enquiry <${fromEmail}>`,
         to: toEmail,
+        // The From address is a no-reply sender on the sending subdomain, so without this, hitting
+        // Reply would go nowhere useful and the enquirer's address would have to be copied by hand.
+        replyTo: email,
         subject: `New enquiry from ${name}`,
         text: `New enquiry from your portfolio:\n\nName: ${name}\nEmail: ${email}\n\n${message}`,
         html: `
           <p><strong>New enquiry from your portfolio</strong></p>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
           <p><strong>Message:</strong></p>
-          <p style="white-space:pre-wrap">${message}</p>
+          <p style="white-space:pre-wrap">${escapeHtml(message)}</p>
         `,
       });
     } catch (err) {
