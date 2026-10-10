@@ -454,10 +454,17 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
     <>
       {plane}
 
+      {/* Anchor target for /contact, which the old site had as its own page and Google still has
+          indexed — next.config.ts redirects it to /work#contact. Only the full (non-compact)
+          variant carries the id, and Evaluate's hero renders the compact one, so it stays unique
+          per page. scrollMarginTop keeps the heading clear of the sticky top bar, which would
+          otherwise sit over it once the browser jumps here. */}
       <motion.div
+        id="contact"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
+        style={{ scrollMarginTop: 88 }}
         className="px-8 md:px-16 mt-20 mb-20 max-w-[1280px] mx-auto"
       >
         {/* Separates this CTA from whatever content precedes it on every path (Work's project

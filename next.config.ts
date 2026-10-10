@@ -38,6 +38,13 @@ const nextConfig: NextConfig = {
       { source: "/portfolio/aurin-yoga-centrum", destination: "/work/aurin-yoga-centrum", permanent: true },
       { source: "/portfolio/annosky", destination: "/work/annosky", permanent: true },
       { source: "/portfolio/shadow-creek-winery", destination: "/work/shadow-creek", permanent: true },
+      { source: "/portfolio/windmills-tshirts", destination: "/work/windmills", permanent: true },
+      { source: "/portfolio/avans-university-power-usage", destination: "/work/avans-power-usage-installation", permanent: true },
+      { source: "/portfolio/alfa-vital", destination: "/work/alfa-vital", permanent: true },
+      // The old site had a standalone contact page. There is no page to send it to now — the
+      // enquiry form lives in the CTA block at the foot of each path page — so it lands on the
+      // Work page's copy of that block rather than a bare listing.
+      { source: "/contact", destination: "/work#contact", permanent: true },
       { source: "/portfolio", destination: "/work", permanent: true },
       { source: "/portfolio/:path*", destination: "/work", permanent: true },
     ];
