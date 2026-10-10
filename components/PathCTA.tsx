@@ -183,9 +183,14 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
   // closes, so the flight starts from where the form actually was.
   async function flyHomeAndClose() {
     const btn = btnRef.current, anchor = formAnchorRef.current;
-    if (!btn || !anchor || reduceMotion) {
+    // Phones get the thank-you and nothing else. The return flight is a fixed-position element
+    // animated across viewport coordinates, which is exactly the kind of thing mobile browsers
+    // disrupt mid-flight — collapsing chrome and the on-screen keyboard dismissing after a submit
+    // both move the viewport out from under it, so the plane visibly jumped. The outbound flight
+    // on open is untouched; nothing is moving the viewport at that moment.
+    const onPhone = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+    if (!btn || !anchor || reduceMotion || onPhone) {
       handleClose();
-      setJustSent(false);
       return;
     }
     const from = formPoint();
@@ -193,7 +198,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
 
     setAnimating(true);
     await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-    if (!planeRef.current) { handleClose(); setJustSent(false); return; }
+    if (!planeRef.current) { handleClose(); return; }
 
     setOpen(false);
     setContentReady(false);
