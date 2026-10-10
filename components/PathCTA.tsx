@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect, useActionState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, animate } from "motion/react";
-import { Send, X, Phone, MessageCircle, ArrowUpRight, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence, animate, useReducedMotion } from "motion/react";
+import { Send, X, Phone, MessageCircle, ArrowUpRight, AlertCircle, Check } from "lucide-react";
 import { FaLinkedin, FaGithub, FaDribbble, FaBehance, FaInstagram, FaXTwitter, FaYoutube, FaFacebook } from "react-icons/fa6";
 import { useContentStore, BUTTON_CORNER_RADIUS, BUTTON_SIZE_STYLE, DEFAULT_DESIGN_SYSTEM } from "@/store/contentStore";
 import type { CMSSocials } from "@/store/contentStore";
@@ -71,17 +71,23 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
   // sent" confirmation fades back to a reusable form after a few seconds instead of permanently
   // replacing it — matches the transient-confirmation pattern this panel already used.
   const [justSent, setJustSent] = useState(false);
+  // Captured before the fields are cleared, so the thank-you can greet them by name.
+  const [sentName, setSentName] = useState("");
+  const reduceMotion = useReducedMotion();
   const next = NEXT[currentPath];
 
   useEffect(() => {
-    if (submitState?.ok) {
-      setJustSent(true);
-      setName("");
-      setEmail("");
-      setMessage("");
-      const t = setTimeout(() => setJustSent(false), 3000);
-      return () => clearTimeout(t);
-    }
+    if (!submitState?.ok) return;
+    // Greet them by first name, captured before the fields are cleared below.
+    setSentName(name.trim().split(/\s+/)[0] ?? "");
+    setJustSent(true);
+    setName("");
+    setEmail("");
+    setMessage("");
+    // Long enough to read the thank-you, then the plane carries it away and the panel folds up.
+    const t = setTimeout(() => { void flyHomeAndClose(); }, 1800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitState]);
 
   // The main CTA button keeps its own hand-tuned fly-in-plane animation (measures its DOM rect
@@ -100,55 +106,44 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
     setOpen(false);
     setContentReady(false);
     setAnimating(false);
+    setJustSent(false);
     clearTimeout(timerRef.current);
   }
 
-  async function handleOpen() {
-    if (open || animating) return;
-    const btn = btnRef.current;
-    const anchor = formAnchorRef.current;
-    if (!btn || !anchor) return;
+  // Where the plane starts and lands. The anchor div is always in the DOM (even while the form is
+  // closed), so its rect gives the exact spot the panel grows from.
+  function buttonPoint() {
+    const b = btnRef.current!.getBoundingClientRect();
+    return { x: b.right - 22, y: b.top + b.height / 2 };
+  }
+  function formPoint() {
+    const a = formAnchorRef.current!.getBoundingClientRect();
+    return { x: a.left + 32, y: a.top + 38 }; // p-6 padding + icon/header-row centre
+  }
 
-    const bRect = btn.getBoundingClientRect();
-    const aRect = anchor.getBoundingClientRect();
-
-    const ix = bRect.right - 22;
-    const iy = bRect.top + bRect.height / 2;
-
-    // Target: the Send icon in the "Get in touch" header at the top of the form panel.
-    // The anchor div is always in the DOM (even when form is closed), so its rect gives
-    // us the exact position the form will grow from (transformOrigin: "top center").
-    const formTargetX = aRect.left + 32;   // p-6 padding (24px) + icon center (8px)
-    const formTargetY = aRect.top + 38;    // p-6 padding (24px) + header row center (14px)
-
-    setAnimating(true);
-    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-
+  // ── Smooth arc via cubic bezier ───────────────────────────────────────────
+  // Control points adapt to the relative position of the two ends, so the arc rises above the
+  // midpoint and arrives at a gentle angle whichever way it is flying. Pulled out of handleOpen
+  // so the return flight after a send is the same curve in reverse rather than a second copy.
+  async function flyPlane(from: { x: number; y: number }, to: { x: number; y: number }) {
     const plane = planeRef.current;
-    if (!plane) { setAnimating(false); return; }
+    if (!plane) return;
 
-    await animate(plane, { x: ix, y: iy, rotate: 0, opacity: 1, scale: 1 }, { duration: 0 }).finished;
+    await animate(plane, { x: from.x, y: from.y, rotate: 0, opacity: 1, scale: 1 }, { duration: 0 }).finished;
 
-    // ── Smooth arc via cubic bezier ───────────────────────────────────────
-    // Control points adapt to the relative position of the form header so the
-    // arc rises naturally above the midpoint and arrives at a gentle downward
-    // angle regardless of how far up/right the target is.
-    const P0x = ix,  P0y = iy;
-    const P1x = ix + (formTargetX - ix) * 0.3;
-    const P1y = iy + (formTargetY - iy) * 0.2 - 60;   // peak above midpoint — launch arc
-    const P2x = ix + (formTargetX - ix) * 0.72;
-    const P2y = iy + (formTargetY - iy) * 0.8 + 18;   // slight overshoot before landing
-    const P3x = formTargetX,  P3y = formTargetY;
+    const P1x = from.x + (to.x - from.x) * 0.3;
+    const P1y = from.y + (to.y - from.y) * 0.2 - 60;   // peak above midpoint — launch arc
+    const P2x = from.x + (to.x - from.x) * 0.72;
+    const P2y = from.y + (to.y - from.y) * 0.8 + 18;   // slight overshoot before landing
 
     const N = 24;
     const kx: number[] = [], ky: number[] = [], kr: number[] = [];
-
     for (let i = 0; i <= N; i++) {
       const t = i / N, u = 1 - t;
-      kx.push(u*u*u*P0x + 3*u*u*t*P1x + 3*u*t*t*P2x + t*t*t*P3x);
-      ky.push(u*u*u*P0y + 3*u*u*t*P1y + 3*u*t*t*P2y + t*t*t*P3y);
+      kx.push(u*u*u*from.x + 3*u*u*t*P1x + 3*u*t*t*P2x + t*t*t*to.x);
+      ky.push(u*u*u*from.y + 3*u*u*t*P1y + 3*u*t*t*P2y + t*t*t*to.y);
     }
-
+    // Nose points along the path.
     for (let i = 0; i <= N; i++) {
       const a = Math.max(0, i - 1), b = Math.min(N, i + 1);
       kr.push(Math.atan2(ky[b] - ky[a], kx[b] - kx[a]) * 180 / Math.PI);
@@ -159,15 +154,55 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
       ease: [0.25, 0.1, 0.25, 1],
       times: kx.map((_, i) => i / N),
     }).finished;
+  }
+
+  async function handleOpen() {
+    if (open || animating) return;
+    if (!btnRef.current || !formAnchorRef.current) return;
+
+    const from = buttonPoint();
+    const to = formPoint();
+
+    setAnimating(true);
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    if (!planeRef.current) { setAnimating(false); return; }
+
+    await flyPlane(from, to);
 
     // ── Open form (paper unfolds) + plane fades out together ────────────
     setOpen(true);
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setContentReady(true), 850);
 
-    await animate(plane, { opacity: 0, scale: 0.3 }, { duration: 0.35 }).finished;
+    await animate(planeRef.current, { opacity: 0, scale: 0.3 }, { duration: 0.35 }).finished;
+    setAnimating(false);
+  }
+
+  // The message leaving: the plane flies back out of the panel to the "Get in touch" button it
+  // came from, and the panel folds away behind it. Both end points are measured BEFORE the panel
+  // closes, so the flight starts from where the form actually was.
+  async function flyHomeAndClose() {
+    const btn = btnRef.current, anchor = formAnchorRef.current;
+    if (!btn || !anchor || reduceMotion) {
+      handleClose();
+      setJustSent(false);
+      return;
+    }
+    const from = formPoint();
+    const to = buttonPoint();
+
+    setAnimating(true);
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    if (!planeRef.current) { handleClose(); setJustSent(false); return; }
+
+    setOpen(false);
+    setContentReady(false);
+
+    await flyPlane(from, to);
+    await animate(planeRef.current, { opacity: 0, scale: 0.3 }, { duration: 0.3 }).finished;
 
     setAnimating(false);
+    setJustSent(false);
   }
 
   // Shared: the button + form panel (used in both modes)
@@ -311,6 +346,34 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
               </button>
             </div>
 
+            {justSent ? (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex flex-col items-center text-center gap-2"
+                style={{ padding: "18px 8px 12px" }}
+                role="status"
+                aria-live="polite"
+              >
+                <div
+                  style={{
+                    width: 42, height: 42, borderRadius: "50%", display: "flex",
+                    alignItems: "center", justifyContent: "center", color: "var(--c-teal)",
+                    background: "color-mix(in srgb, var(--c-teal) 14%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--c-teal) 35%, transparent)",
+                  }}
+                >
+                  <Check size={20} />
+                </div>
+                <h4 style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 500, color: "var(--c-text)", margin: 0 }}>
+                  {sentName ? `Thanks, ${sentName}!` : "Thanks!"}
+                </h4>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 14, lineHeight: 1.5, color: "var(--c-text-muted)", margin: 0, maxWidth: 320 }}>
+                  Your message is on its way — I&rsquo;ll get back to you soon.
+                </p>
+              </motion.div>
+            ) : (
             <motion.form
               action={formAction}
               initial={{ opacity: 0 }}
@@ -356,6 +419,7 @@ export function PathCTA({ currentPath, onNavigate, compact = false, heroContent,
                 </div>
               </div>
             </motion.form>
+            )}
           </div>
         </motion.div>
       )}
