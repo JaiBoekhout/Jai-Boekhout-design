@@ -14,7 +14,7 @@ import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
-import { Node, Extension, mergeAttributes } from "@tiptap/core";
+import { Node, Extension, mergeAttributes, type JSONContent } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -396,6 +396,66 @@ function LinkDialog({
   );
 }
 
+function ColumnsDialog({ initialRatio, onConfirm, onClose }: {
+  initialRatio?: string; onConfirm: (ratio: string) => void; onClose: () => void;
+}) {
+  const [count, setCount] = useState<2 | 3 | 4>(
+    (initialRatio ? ratioCount(initialRatio) : 2) as 2 | 3 | 4
+  );
+  return (
+    <div className="flex flex-col gap-2 p-3 rounded-lg" style={{ background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", minWidth: "300px" }}>
+      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "10px", color: ACCENT, letterSpacing: "0.1em" }}>
+        {initialRatio ? "COLUMN RATIO" : "INSERT COLUMNS"}
+      </p>
+      <div className="flex gap-1">
+        {([2, 3, 4] as const).map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setCount(n)}
+            onMouseDown={(e) => e.preventDefault()}
+            style={{
+              ...btnBase, padding: "4px 12px", borderRadius: 6,
+              fontFamily: "'DM Mono', monospace", fontSize: 11,
+              color: count === n ? "#0C1117" : "#EDE8DF",
+              background: count === n ? ACCENT : "rgba(237,232,223,0.06)",
+            }}
+          >
+            {n} col
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-col gap-1" style={{ marginTop: 2 }}>
+        {COLUMN_RATIOS[count].map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onConfirm(id)}
+            onMouseDown={(e) => e.preventDefault()}
+            title={label}
+            className="flex items-center gap-2"
+            style={{
+              ...btnBase, padding: "5px 7px", borderRadius: 6,
+              background: id === initialRatio ? "rgba(20,173,181,0.16)" : "rgba(237,232,223,0.04)",
+            }}
+          >
+            {/* a to-scale sketch of the split, so the shape is obvious without reading the numbers */}
+            <span style={{ display: "grid", gridTemplateColumns: ratioToTracks(id), gap: 2, width: 104, flexShrink: 0 }}>
+              {id.split("-").map((part, i) => (
+                <span key={i} style={{ height: 12, borderRadius: 2, background: id === initialRatio ? ACCENT : "rgba(237,232,223,0.3)" }} />
+              ))}
+            </span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10.5, color: "#EDE8DF" }}>{label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex gap-2 justify-end" style={{ marginTop: 2 }}>
+        <button type="button" onClick={onClose} style={{ ...btnBase, color: "#EDE8DF", padding: "5px 10px" }}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 function VideoDialog({ onConfirm, onClose }: { onConfirm: (url: string) => void; onClose: () => void }) {
   const [url, setUrl] = useState("");
   return (
@@ -700,6 +760,112 @@ const PANEL_ICON_OPTIONS = [
   { key: "arrow", label: "Arrow", Icon: ArrowRight },
 ] as const;
 type PanelIconKey = (typeof PANEL_ICON_OPTIONS)[number]["key"];
+
+// ── Multi-column block ────────────────────────────────────────────────────────
+// A row of 2-4 columns, each holding ordinary block content — paragraphs, images, even a
+// collapsible panel. Same shape as CollapsiblePanel below (a node whose content is "block+",
+// rendered through a React node view), just one level deeper: columnBlock holds columns, and
+// each column holds the blocks.
+//
+// Ratios are stored as a plain string like "25-75" and turned into fr units, so the gutter is
+// subtracted from the track sizes rather than from the content. Both the ratio and the gutter
+// travel as CSS custom properties on the wrapper instead of a literal grid-template-columns —
+// that way the mobile rule in globals.css can collapse everything to one column without needing
+// !important to out-rank an inline style.
+const COLUMN_RATIOS: Record<2 | 3 | 4, { id: string; label: string }[]> = {
+  2: [
+    { id: "50-50", label: "50 / 50" },
+    { id: "25-75", label: "25 / 75" },
+    { id: "75-25", label: "75 / 25" },
+    { id: "33-66", label: "33 / 66" },
+    { id: "66-33", label: "66 / 33" },
+    { id: "20-80", label: "20 / 80" },
+    { id: "80-20", label: "80 / 20" },
+  ],
+  3: [
+    { id: "33-33-33", label: "33 / 33 / 33" },
+    { id: "25-50-25", label: "25 / 50 / 25" },
+    { id: "50-25-25", label: "50 / 25 / 25" },
+    { id: "25-25-50", label: "25 / 25 / 50" },
+  ],
+  4: [
+    { id: "25-25-25-25", label: "25 / 25 / 25 / 25" },
+    { id: "40-20-20-20", label: "40 / 20 / 20 / 20" },
+    { id: "20-20-20-40", label: "20 / 20 / 20 / 40" },
+    { id: "20-30-30-20", label: "20 / 30 / 30 / 20" },
+  ],
+};
+const DEFAULT_COLUMN_GUTTER = 24;
+const ratioToTracks = (ratio: string) => ratio.split("-").map((n) => `${n}fr`).join(" ");
+const ratioCount = (ratio: string) => ratio.split("-").length;
+
+const ColumnItem = Node.create({
+  name: "column",
+  content: "block+",
+  isolating: true,
+  parseHTML() {
+    return [{ tag: "div.rte-column" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes(HTMLAttributes, { class: "rte-column" }), 0];
+  },
+});
+
+const ColumnBlock = Node.create({
+  name: "columnBlock",
+  group: "block",
+  content: "column{2,4}",
+  isolating: true,
+  defining: true,
+  addAttributes() {
+    return {
+      ratio: {
+        default: "50-50",
+        parseHTML: (el: HTMLElement) => el.getAttribute("data-ratio") || "50-50",
+        renderHTML: (attrs: { ratio: string }) => ({ "data-ratio": attrs.ratio }),
+      },
+      gutter: {
+        default: null,
+        parseHTML: (el: HTMLElement) => { const v = el.getAttribute("data-gutter"); return v ? parseInt(v) : null; },
+        renderHTML: (attrs: { gutter: number | null }) =>
+          (attrs.gutter === null || attrs.gutter === undefined ? {} : { "data-gutter": String(attrs.gutter) }),
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "div.rte-columns" }];
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const gutter = typeof node.attrs.gutter === "number" ? node.attrs.gutter : DEFAULT_COLUMN_GUTTER;
+    return ["div", mergeAttributes(HTMLAttributes, {
+      class: "rte-columns",
+      style: `--rte-col-tracks:${ratioToTracks(node.attrs.ratio as string)};--rte-col-gutter:${gutter}px`,
+    }), 0];
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(ColumnBlockView);
+  },
+});
+
+function ColumnBlockView({ node }: ReactNodeViewProps) {
+  const { ratio, gutter } = node.attrs as { ratio: string; gutter: number | null };
+  return (
+    <NodeViewWrapper
+      as="div"
+      className="rte-columns"
+      style={{
+        display: "grid",
+        gridTemplateColumns: ratioToTracks(ratio),
+        gap: typeof gutter === "number" ? gutter : DEFAULT_COLUMN_GUTTER,
+        margin: "16px 0",
+        outline: "1px dashed rgba(20,173,181,0.25)",
+        outlineOffset: 4,
+      }}
+    >
+      <NodeViewContent className="contents" />
+    </NodeViewWrapper>
+  );
+}
 
 const CollapsiblePanel = Node.create({
   name: "collapsiblePanel",
@@ -1308,7 +1474,7 @@ function ColorPicker({ currentColor, onSet, onClear }: { currentColor: string; o
   );
 }
 
-type Dialog = "link" | "video" | "pdf" | "button" | "color" | "svg" | null;
+type Dialog = "link" | "video" | "pdf" | "button" | "color" | "svg" | "columns" | null;
 
 // Every rich text editor now shares this one width, rather than each field capping itself to
 // wherever its own text actually renders on the live site (a per-field maxWidth prop used to do
@@ -1354,6 +1520,8 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5] } }),
       CaptionBlock,
       CollapsiblePanel,
+      ColumnBlock,
+      ColumnItem,
       SvgGraphic,
       TextStyle,
       FontSize,
@@ -1659,6 +1827,30 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
               </ToolbarBtn>
             );
           })}
+          {/* GUT — gutter between columns, shown only while the caret is inside a column block. */}
+          {editor.isActive("columnBlock") && (
+            <>
+              <Divider />
+              <Stepper
+                label="GUT"
+                title="gutter between columns"
+                display={`${(editor.getAttributes("columnBlock").gutter as number | null) ?? DEFAULT_COLUMN_GUTTER}px`}
+                onDec={() => {
+                  const cur = (editor.getAttributes("columnBlock").gutter as number | null) ?? DEFAULT_COLUMN_GUTTER;
+                  editor.chain().focus().updateAttributes("columnBlock", { gutter: Math.max(0, cur - 4) }).run();
+                }}
+                onInc={() => {
+                  const cur = (editor.getAttributes("columnBlock").gutter as number | null) ?? DEFAULT_COLUMN_GUTTER;
+                  editor.chain().focus().updateAttributes("columnBlock", { gutter: Math.min(96, cur + 4) }).run();
+                }}
+                onSetValue={(raw) => editor.chain().focus().updateAttributes("columnBlock", { gutter: Math.max(0, Math.min(96, raw)) }).run()}
+                onClear={(editor.getAttributes("columnBlock").gutter as number | null) !== null
+                  ? () => editor.chain().focus().updateAttributes("columnBlock", { gutter: null }).run()
+                  : undefined}
+              />
+            </>
+          )}
+
           {/* GAP — only meaningful for an inline (left-aligned) image, since that is the one that
               can share a line with its neighbour. Hidden entirely otherwise rather than shown
               disabled, to keep an already-busy toolbar quiet. */}
@@ -1707,6 +1899,13 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
           <ToolbarBtn onClick={() => setDialog(dialog === "link" ? null : "link")} active={editor.isActive("link") || dialog === "link"} title="Insert link"><Link2 size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => { setDialog(null); setShowLibrary(true); }} active={showLibrary} title="Insert image from library"><ImageIcon size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => setDialog(dialog === "video" ? null : "video")} active={dialog === "video"} title="Embed video"><YoutubeIcon size={12} /></ToolbarBtn>
+          <ToolbarBtn
+            onClick={() => setDialog(dialog === "columns" ? null : "columns")}
+            active={dialog === "columns" || editor.isActive("columnBlock")}
+            title={editor.isActive("columnBlock") ? "Change column ratio" : "Insert columns"}
+          >
+            <Columns3 size={12} />
+          </ToolbarBtn>
           <ToolbarBtn onClick={() => setDialog(dialog === "pdf" ? null : "pdf")} active={dialog === "pdf"} title="Insert PDF link"><FileText size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => setDialog(dialog === "svg" ? null : "svg")} active={dialog === "svg"} title="Insert SVG graphic"><Shapes size={12} /></ToolbarBtn>
           <ToolbarBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} active={editor.isActive("table")} title="Insert table"><TableIcon size={12} /></ToolbarBtn>
@@ -1811,6 +2010,56 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
                 onClose={() => setDialog(null)}
               />
             )}
+            {dialog === "columns" && (
+              <ColumnsDialog
+                initialRatio={editor.isActive("columnBlock") ? (editor.getAttributes("columnBlock").ratio as string) : undefined}
+                onConfirm={(ratio) => {
+                  const want = ratioCount(ratio);
+                  const blank = () => Array.from({ length: want }, () => ({ type: "column", content: [{ type: "paragraph" }] }));
+
+                  if (!editor.isActive("columnBlock")) {
+                    editor.chain().focus().insertContent({ type: "columnBlock", attrs: { ratio }, content: blank() }).run();
+                    setDialog(null);
+                    return;
+                  }
+
+                  // Same number of columns — nothing structural to do, just restyle the grid.
+                  if (ratioCount(editor.getAttributes("columnBlock").ratio as string) === want) {
+                    editor.chain().focus().updateAttributes("columnBlock", { ratio }).run();
+                    setDialog(null);
+                    return;
+                  }
+
+                  // Different number of columns means adding or removing real column nodes, so
+                  // the block has to be rebuilt in place. Walk up from the caret to find it,
+                  // carry the existing columns across, and when the count shrinks, append what
+                  // the dropped columns held onto the last surviving one rather than deleting
+                  // the author's content.
+                  const { $from } = editor.state.selection;
+                  let depth = $from.depth;
+                  while (depth > 0 && $from.node(depth).type.name !== "columnBlock") depth -= 1;
+                  if (depth === 0) { setDialog(null); return; }
+
+                  const block = $from.node(depth);
+                  const from = $from.before(depth);
+                  const to = $from.after(depth);
+                  const existing: JSONContent[][] = [];
+                  block.forEach((col) => existing.push((col.content.toJSON() ?? []) as JSONContent[]));
+
+                  const columns = Array.from({ length: want }, (_, i) => {
+                    if (i < want - 1) return { type: "column", content: existing[i] ?? [{ type: "paragraph" }] };
+                    const tail = existing.slice(want - 1).flat();
+                    return { type: "column", content: tail.length ? tail : [{ type: "paragraph" }] };
+                  });
+
+                  editor.chain().focus()
+                    .insertContentAt({ from, to }, { type: "columnBlock", attrs: { ratio }, content: columns })
+                    .run();
+                  setDialog(null);
+                }}
+                onClose={() => setDialog(null)}
+              />
+            )}
             {dialog === "video" && (
               <VideoDialog
                 // setYoutubeVideo, not setYoutube — that is the name @tiptap/extension-youtube
@@ -1872,6 +2121,9 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
              here exactly as they will once published; align-top keeps differing heights sitting
              on the same baseline. */
           .ProseMirror .react-renderer.node-image { display: inline-block; vertical-align: top; }
+          .ProseMirror .rte-column { min-width: 0; }
+          .ProseMirror .rte-column > :first-child { margin-top: 0; }
+          @media (max-width: 639px) { .ProseMirror .rte-columns { grid-template-columns: 1fr !important; } }
           .ProseMirror p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
             float: left;

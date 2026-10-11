@@ -357,13 +357,13 @@ export function ProjectDetailBody({
               >
                 <SectionTag style={SECTION_HEADING_STYLE}>Summary</SectionTag>
                 <div
-                  className={`rte-content ${project.descMobile ? "hidden md:block" : ""}`}
+                  className={`rte-content project-summary-body ${project.descMobile ? "hidden md:block" : ""}`}
                   dangerouslySetInnerHTML={{ __html: project.desc }}
                   style={{ marginBottom: 22 }}
                 />
                 {project.descMobile && (
                   <div
-                    className="rte-content block md:hidden"
+                    className="rte-content project-summary-body block md:hidden"
                     dangerouslySetInnerHTML={{ __html: project.descMobile }}
                     style={{ marginBottom: 22 }}
                   />

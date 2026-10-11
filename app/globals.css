@@ -528,6 +528,13 @@
      wide desktop screens. Applied to the container itself (not just <p>/<ul>/etc.) because
      Tiptap sometimes outputs a single paragraph as a bare text node with no wrapping tag. */
   .rte-content { max-width: 60ch; }
+  /* The project Summary and Detail fields are laid out, not just read — images sit side by side
+     there and column blocks need room to be columns at all — so they opt out of the reading-width
+     cap and use the full content column instead. Everything else (.rte-content on Story, Process,
+     the Evaluate bio, testimonials, the CTA body) keeps the cap, and can still be widened one
+     block at a time with the editor's MW control, which the :has() rule below already honours. */
+  .rte-content.project-summary-body,
+  .rte-content.project-detail-body { max-width: none; }
   /* The rich text editor's per-block "MW" (max width) control sets an inline max-width directly
      on a paragraph/heading — but a child's max-width can never make it wider than its own
      parent, so the 60ch cap above silently overrode every MW override wider than ~60ch. Once a
@@ -586,6 +593,19 @@
   /* Collapsible panel — native <details>/<summary>, so open/close needs no JS.
      Icon rotates on [open]; the rotation angle differs per icon glyph so each
      one reads as "open" (chevron flips, plus becomes a cross, arrow points down). */
+  /* Multi-column block (columnBlock in components/RichTextEditor.tsx). The track list and
+     gutter arrive as custom properties on the element, set when the node serialises, so the
+     stacking rule below just overrides grid-template-columns without having to out-rank an
+     inline style with !important. */
+  .rte-content .rte-columns { display: grid; grid-template-columns: var(--rte-col-tracks, 1fr 1fr); gap: var(--rte-col-gutter, 24px); margin: 16px 0; align-items: start; }
+  .rte-content .rte-column > :first-child { margin-top: 0; }
+  .rte-content .rte-column > :last-child { margin-bottom: 0; }
+  /* Any split below 640px is unreadable — a 20% track is ~70px on a phone — so every column
+     block collapses to a single stack regardless of how many columns it has. */
+  @media (max-width: 639px) {
+    .rte-content .rte-columns { grid-template-columns: 1fr; }
+  }
+
   .rte-content details.rte-collapsible { border: 1px solid color-mix(in srgb, var(--c-teal) 25%, transparent); border-radius: 0; margin: 16px 0; overflow: hidden; background: color-mix(in srgb, var(--c-teal) 3%, transparent); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
