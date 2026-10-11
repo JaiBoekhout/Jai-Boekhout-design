@@ -15,6 +15,7 @@ import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
 import { Node, Extension, mergeAttributes } from "@tiptap/core";
+import { NodeSelection } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
@@ -482,11 +483,17 @@ function ButtonDialog({
 }
 
 // ── Resizable Image NodeView ───────────────────────────────────────────────
-const IMAGE_ALIGN_MARGIN: Record<string, string> = { left: "12px 0", center: "12px auto", right: "12px 0 12px auto" };
+// Mirrors imageStyleFor()'s margin so the editor lays images out exactly as the published page
+// will — including the per-image GAP, which is the whole point of being able to see it here.
+function imageMarginFor(align: string | undefined, gap: number | null | undefined): string {
+  if (align === "center") return "12px auto";
+  if (align === "right") return "12px 0 12px auto";
+  return `12px ${typeof gap === "number" ? gap : DEFAULT_IMAGE_GAP}px 12px 0`;
+}
 
 function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewProps) {
-  const { src, alt, width, height, align } = node.attrs as {
-    src: string; alt?: string; width?: number | null; height?: number | null; align?: string;
+  const { src, alt, width, height, align, gap } = node.attrs as {
+    src: string; alt?: string; width?: number | null; height?: number | null; align?: string; gap?: number | null;
   };
 
   const [showPopup, setShowPopup]       = useState(false);
@@ -541,7 +548,7 @@ function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewP
   );
 
   return (
-    <NodeViewWrapper as="div" style={{ display: "inline-block", position: "relative", lineHeight: 0, maxWidth: "100%", margin: IMAGE_ALIGN_MARGIN[align || "left"] || IMAGE_ALIGN_MARGIN.left }}>
+    <NodeViewWrapper as="div" style={{ display: "inline-block", position: "relative", lineHeight: 0, maxWidth: "100%", margin: imageMarginFor(align, gap) }}>
       <img
         ref={imgRef}
         src={src}
@@ -614,23 +621,26 @@ function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewP
 // site's dangerouslySetInnerHTML render needs zero changes to respect it — it just overrides
 // .rte-content img's default symmetric "margin: 12px 0" for whichever side should collapse to 0.
 // Left-aligned images are inline-block so two (or more) that fit across the column sit on one
-// line, the way they would in any document — a 960px panel takes two 300px images side by side.
-// Put a paragraph between them (just press Enter) and they go back to one per line, so the
-// author decides rather than the layout deciding for them.
+// line — a 960px panel takes two 300px images side by side. GAP in the toolbar sets how much
+// air each one leaves to its right, per image, so a pair can be tightened up or pushed apart
+// without affecting every other pair in the document.
 //
-// center/right stay block on purpose: both centre and right-align via auto margins, which only
-// resolve on a block box, and "centred" only means anything when the image has the line to
-// itself. So the existing align control doubles as the own-line/shared-line switch.
+// center/right stay block on purpose: both align via auto margins, which only resolve on a
+// block box, and "centred" only means anything when the image has the line to itself. So the
+// align control doubles as the own-line/shared-line switch, and GAP is meaningless for them.
 //
 // This string is written straight onto the <img> as an inline style when the node serialises,
-// so it governs the published page too — and because it only applies to content saved from here
-// on, images already in the database keep the display:block they were stored with until the
-// next time that field is edited.
-const IMAGE_ALIGN_STYLE: Record<string, string> = {
-  left: "display:inline-block;vertical-align:top;margin:12px 8px 12px 0",
-  center: "display:block;margin:12px auto",
-  right: "display:block;margin:12px 0 12px auto",
-};
+// so it governs the published page too. Composed here at node level rather than from the align
+// attribute's own renderHTML, because it now depends on two attributes and two attributes each
+// emitting `style` would clobber one another.
+const DEFAULT_IMAGE_GAP = 8;
+
+function imageStyleFor(align: string, gap: number | null | undefined): string {
+  if (align === "center") return "display:block;margin:12px auto";
+  if (align === "right") return "display:block;margin:12px 0 12px auto";
+  const g = typeof gap === "number" ? gap : DEFAULT_IMAGE_GAP;
+  return `display:inline-block;vertical-align:top;margin:12px ${g}px 12px 0`;
+}
 
 const ResizableImage = Image.extend({
   addAttributes() {
@@ -649,7 +659,31 @@ const ResizableImage = Image.extend({
       align: {
         default: "left",
         parseHTML: (el) => el.getAttribute("data-align") || "left",
-        renderHTML: (attrs) => ({ "data-align": attrs.align, style: IMAGE_ALIGN_STYLE[attrs.align as string] || IMAGE_ALIGN_STYLE.left }),
+        renderHTML: (attrs) => ({ "data-align": attrs.align }),
+      },
+      gap: {
+        default: null,
+        parseHTML: (el) => { const v = el.getAttribute("data-gap"); return v ? parseInt(v) : null; },
+        renderHTML: (attrs) => (attrs.gap === null || attrs.gap === undefined ? {} : { "data-gap": String(attrs.gap) }),
+      },
+    };
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    return ["img", mergeAttributes(HTMLAttributes, {
+      style: imageStyleFor(node.attrs.align as string, node.attrs.gap as number | null),
+    })];
+  },
+  addKeyboardShortcuts() {
+    return {
+      // With an image selected, Enter did nothing at all — so once two images shared a line
+      // there was no way to push one onto its own. ProseMirror's default Enter binding never
+      // reached this node selection. Inserting an empty paragraph directly after the image is
+      // what separates the line, and matches what pressing Enter anywhere else in the document
+      // already does.
+      Enter: () => {
+        const { selection } = this.editor.state;
+        if (!(selection instanceof NodeSelection) || selection.node.type.name !== this.name) return false;
+        return this.editor.chain().insertContentAt(selection.to, { type: "paragraph" }).focus(selection.to + 1).run();
       },
     };
   },
@@ -1625,6 +1659,32 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
               </ToolbarBtn>
             );
           })}
+          {/* GAP — only meaningful for an inline (left-aligned) image, since that is the one that
+              can share a line with its neighbour. Hidden entirely otherwise rather than shown
+              disabled, to keep an already-busy toolbar quiet. */}
+          {editor.isActive("image") && editor.isActive("image", { align: "left" }) && (
+            <>
+              <Divider />
+              <Stepper
+                label="GAP"
+                title="space to the right of this image"
+                display={`${(editor.getAttributes("image").gap as number | null) ?? DEFAULT_IMAGE_GAP}px`}
+                onDec={() => {
+                  const cur = (editor.getAttributes("image").gap as number | null) ?? DEFAULT_IMAGE_GAP;
+                  editor.chain().focus().updateAttributes("image", { gap: Math.max(0, cur - 4) }).run();
+                }}
+                onInc={() => {
+                  const cur = (editor.getAttributes("image").gap as number | null) ?? DEFAULT_IMAGE_GAP;
+                  editor.chain().focus().updateAttributes("image", { gap: Math.min(96, cur + 4) }).run();
+                }}
+                onSetValue={(raw) => editor.chain().focus().updateAttributes("image", { gap: Math.max(0, Math.min(96, raw)) }).run()}
+                onClear={(editor.getAttributes("image").gap as number | null) !== null
+                  ? () => editor.chain().focus().updateAttributes("image", { gap: null }).run()
+                  : undefined}
+              />
+            </>
+          )}
+
           <Divider />
 
           {/* Mobile-width preview — constrains the content column to a phone-width viewport so
