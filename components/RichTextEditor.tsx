@@ -613,8 +613,21 @@ function ResizableImageView({ node, updateAttributes, selected }: ReactNodeViewP
 // Margin baked directly onto the saved <img>'s style attribute (not a class), so the public
 // site's dangerouslySetInnerHTML render needs zero changes to respect it — it just overrides
 // .rte-content img's default symmetric "margin: 12px 0" for whichever side should collapse to 0.
+// Left-aligned images are inline-block so two (or more) that fit across the column sit on one
+// line, the way they would in any document — a 960px panel takes two 300px images side by side.
+// Put a paragraph between them (just press Enter) and they go back to one per line, so the
+// author decides rather than the layout deciding for them.
+//
+// center/right stay block on purpose: both centre and right-align via auto margins, which only
+// resolve on a block box, and "centred" only means anything when the image has the line to
+// itself. So the existing align control doubles as the own-line/shared-line switch.
+//
+// This string is written straight onto the <img> as an inline style when the node serialises,
+// so it governs the published page too — and because it only applies to content saved from here
+// on, images already in the database keep the display:block they were stored with until the
+// next time that field is edited.
 const IMAGE_ALIGN_STYLE: Record<string, string> = {
-  left: "display:block;margin:12px 0",
+  left: "display:inline-block;vertical-align:top;margin:12px 8px 12px 0",
   center: "display:block;margin:12px auto",
   right: "display:block;margin:12px 0 12px auto",
 };
@@ -1793,6 +1806,12 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
         onClick={() => editor.chain().focus().run()}
       >
         <style>{`
+          /* ReactNodeViewRenderer wraps every node view in its own div.react-renderer, and that
+             host is display:block — which stacked images in the editor no matter what the
+             wrapper inside it did. Inline-block lets adjacent left-aligned images share a line
+             here exactly as they will once published; align-top keeps differing heights sitting
+             on the same baseline. */
+          .ProseMirror .react-renderer.node-image { display: inline-block; vertical-align: top; }
           .ProseMirror p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
             float: left;
