@@ -18,6 +18,7 @@ import { Node, Extension, mergeAttributes, type JSONContent } from "@tiptap/core
 import { NodeSelection } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   Bold, Italic, UnderlineIcon, Strikethrough, Link2, Image as ImageIcon,
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Minus, Undo, Redo,
@@ -847,13 +848,20 @@ const ColumnBlock = Node.create({
   },
 });
 
-function ColumnBlockView({ node }: ReactNodeViewProps) {
+function ColumnBlockView({ node, deleteNode }: ReactNodeViewProps) {
   const { ratio, gutter } = node.attrs as { ratio: string; gutter: number | null };
+  const [confirming, setConfirming] = useState(false);
+  useEffect(() => {
+    if (!confirming) return;
+    const t = setTimeout(() => setConfirming(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirming]);
   return (
     <NodeViewWrapper
       as="div"
       className="rte-columns"
       style={{
+        position: "relative",
         display: "grid",
         gridTemplateColumns: ratioToTracks(ratio),
         gap: typeof gutter === "number" ? gutter : DEFAULT_COLUMN_GUTTER,
@@ -862,6 +870,33 @@ function ColumnBlockView({ node }: ReactNodeViewProps) {
         outlineOffset: 4,
       }}
     >
+      {/* A column block is `isolating`, so Backspace inside a column can't reach out and remove
+          it — without this there was no way to delete one at all. Two-step so a stray click on a
+          control sitting over the content can't wipe a filled-in block. */}
+      <div
+        contentEditable={false}
+        onMouseDown={(e) => e.stopPropagation()}
+        style={{ position: "absolute", top: -11, right: -4, zIndex: 6, display: "flex", gap: 3 }}
+      >
+        {confirming && (
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#E8A87C", background: "#0C1117", border: "1px solid rgba(232,168,124,0.4)", borderRadius: 5, padding: "2px 6px", lineHeight: 1.6 }}>
+            delete block?
+          </span>
+        )}
+        <button
+          type="button"
+          title={confirming ? "Click again to delete this column block" : "Delete column block"}
+          onClick={() => { if (confirming) deleteNode(); else setConfirming(true); }}
+          style={{
+            ...btnBase, width: 18, height: 18, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#0C1117",
+            border: `1px solid ${confirming ? "rgba(232,168,124,0.6)" : "rgba(20,173,181,0.35)"}`,
+            color: confirming ? "#E8A87C" : "#8C9AA3",
+          }}
+        >
+          <X size={10} />
+        </button>
+      </div>
       <NodeViewContent className="contents" />
     </NodeViewWrapper>
   );
@@ -1621,6 +1656,27 @@ interface Props {
 
 export function RichTextEditor({ value, onChange, label = "Project Detail", previewStyle }: Props) {
   const [dialog, setDialog]       = useState<Dialog>(null);
+  // The toolbar is sticky, so a dialog anchored in normal flow stays at the field's top while the
+  // toolbar travels — it ended up far above the controls that opened it. Measuring the toolbar
+  // and portalling the dialog to <body> keeps the two together at any scroll position, and gets
+  // the dialog out of the toolbar's own z-index 4 stacking context (which sits *below* the CMS
+  // card header at 5, so raising it wasn't an option).
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [dialogPos, setDialogPos] = useState<{ top: number; left: number } | null>(null);
+  useEffect(() => {
+    if (!dialog) { setDialogPos(null); return; }
+    const place = () => {
+      const el = toolbarRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setDialogPos({ top: r.bottom + 4, left: r.left });
+    };
+    place();
+    // Capture phase: the editor can sit inside its own scrolling panel, not just the window.
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => { window.removeEventListener("scroll", place, true); window.removeEventListener("resize", place); };
+  }, [dialog]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
   const [, forceUpdate] = useState(0);
@@ -1826,6 +1882,7 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       {/* ── Toolbar — sticky so it stays reachable while editing a long field.
            top: 70 stacks it directly below the card's own sticky header (same height). ── */}
       <div
+        ref={toolbarRef}
         style={{
           position: "sticky",
           top: 70,
@@ -2109,9 +2166,9 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
       </div>
 
       {/* ── Dialogs ─────────────────────────────────────────────────────── */}
-      {dialog && (
-        <div className="relative" style={{ zIndex: 20 }}>
-          <div className="absolute left-0 top-0 shadow-xl" style={{ zIndex: 20 }}>
+      {dialog && dialogPos && createPortal(
+        <div style={{ position: "fixed", top: dialogPos.top, left: dialogPos.left, zIndex: 1000 }}>
+          <div className="shadow-xl">
             {dialog === "link" && (
               <LinkDialog
                 initialUrl={editor.getAttributes("link").href || "https://"}
@@ -2223,7 +2280,8 @@ export function RichTextEditor({ value, onChange, label = "Project Detail", prev
               />
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Editor area ─────────────────────────────────────────────────── */}

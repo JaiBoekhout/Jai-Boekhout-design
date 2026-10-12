@@ -606,6 +606,14 @@
     .rte-content .rte-columns { grid-template-columns: 1fr; }
   }
 
+  /* Editor only. Tiptap's React node view puts TWO wrappers between the grid and the columns:
+     the NodeViewContent element, plus its own contentDOM ([data-node-view-content-react]).
+     Without this the inner wrapper is the grid's single item and both columns stack inside it,
+     so a 2-column block looked like one column while the saved HTML was correct all along.
+     display:contents makes both transparent so .rte-column becomes the real grid item. */
+  .ProseMirror .rte-columns > [data-node-view-content],
+  .ProseMirror .rte-columns [data-node-view-content-react] { display: contents; }
+
   .rte-content details.rte-collapsible { border: 1px solid color-mix(in srgb, var(--c-teal) 25%, transparent); border-radius: 0; margin: 16px 0; overflow: hidden; background: color-mix(in srgb, var(--c-teal) 3%, transparent); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
