@@ -867,6 +867,26 @@ function ColumnBlockView({ node }: ReactNodeViewProps) {
   );
 }
 
+// style.color hands back "rgb(20, 173, 181)" for a hex that was written as "#14ADB5", which
+// renders fine but no longer matches a swatch, so a reloaded panel would show no selection.
+// var(--...) values come back verbatim and pass straight through.
+function normalizeColor(v: string | undefined): string | null {
+  if (!v) return null;
+  const m = /^rgb\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)\s*\)$/.exec(v.trim());
+  if (!m) return v;
+  return `#${m.slice(1).map((n) => Number(n).toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
+// Only emits the properties actually set, so an untouched panel serialises with no style
+// attribute at all and keeps inheriting the summary row's own type.
+function panelTitleStyle(attrs: Record<string, unknown>): string {
+  const parts: string[] = [];
+  if (typeof attrs.titleSize === "number") parts.push(`font-size:${attrs.titleSize}px`);
+  if (typeof attrs.titleWeight === "number") parts.push(`font-weight:${attrs.titleWeight}`);
+  if (typeof attrs.titleColor === "string" && attrs.titleColor) parts.push(`color:${attrs.titleColor}`);
+  return parts.join(";");
+}
+
 const CollapsiblePanel = Node.create({
   name: "collapsiblePanel",
   group: "block",
@@ -885,6 +905,34 @@ const CollapsiblePanel = Node.create({
         parseHTML: (el: HTMLElement) => el.getAttribute("data-icon") || "chevron",
         renderHTML: (attrs: { icon: PanelIconKey }) => ({ "data-icon": attrs.icon }),
       },
+      // The panel title is a plain string attribute edited through an <input>, not part of the
+      // document — so the toolbar's own type controls have no selection to act on and can never
+      // reach it. These three carry the styling instead. Each stays null until actually set, so
+      // a panel that was never touched emits no inline style at all and keeps inheriting from
+      // .rte-collapsible-summary exactly as before. They render onto the title span inside
+      // renderHTML() below rather than from here, since all three share one style attribute.
+      titleSize: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const v = (el.querySelector(".rte-collapsible-title") as HTMLElement | null)?.style.fontSize;
+          return v ? parseInt(v, 10) : null;
+        },
+        renderHTML: () => ({}),
+      },
+      titleWeight: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const v = (el.querySelector(".rte-collapsible-title") as HTMLElement | null)?.style.fontWeight;
+          return v ? parseInt(v, 10) : null;
+        },
+        renderHTML: () => ({}),
+      },
+      titleColor: {
+        default: null,
+        parseHTML: (el: HTMLElement) =>
+          normalizeColor((el.querySelector(".rte-collapsible-title") as HTMLElement | null)?.style.color),
+        renderHTML: () => ({}),
+      },
     };
   },
   parseHTML() {
@@ -895,7 +943,7 @@ const CollapsiblePanel = Node.create({
       "details",
       mergeAttributes(HTMLAttributes, { class: "rte-collapsible" }),
       ["summary", { class: "rte-collapsible-summary" },
-        ["span", { class: "rte-collapsible-title" }, node.attrs.title || "New question"],
+        ["span", { class: "rte-collapsible-title", ...(panelTitleStyle(node.attrs) ? { style: panelTitleStyle(node.attrs) } : {}) }, node.attrs.title || "New question"],
         ["span", { class: "rte-collapsible-icon" }],
       ],
       ["div", { class: "rte-collapsible-body" }, 0],
@@ -907,8 +955,11 @@ const CollapsiblePanel = Node.create({
 });
 
 function CollapsiblePanelView({ node, updateAttributes, deleteNode }: ReactNodeViewProps) {
-  const { title, icon } = node.attrs as { title: string; icon: PanelIconKey };
+  const { title, icon, titleSize, titleWeight, titleColor } = node.attrs as {
+    title: string; icon: PanelIconKey; titleSize: number | null; titleWeight: number | null; titleColor: string | null;
+  };
   const [iconMenuOpen, setIconMenuOpen] = useState(false);
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const ActiveIcon = PANEL_ICON_OPTIONS.find((o) => o.key === icon)?.Icon ?? ChevronDown;
 
   return (
@@ -930,12 +981,79 @@ function CollapsiblePanelView({ node, updateAttributes, deleteNode }: ReactNodeV
           onClick={(e) => e.stopPropagation()}
           placeholder="Panel title (e.g. a FAQ question)…"
           style={{
-            flex: 1, minWidth: 0, color: "#EDE8DF", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 400,
+            flex: 1, minWidth: 0,
+            // Previews the styling actually set, so the editor shows what the panel will look
+            // like rather than a neutral field. Falls back to the summary row's own type.
+            color: titleColor || "#EDE8DF",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: titleSize ?? 13,
+            fontWeight: titleWeight ?? 400,
             background: "#0C1117", border: "1px solid rgba(237,232,223,0.12)", borderRadius: 6, padding: "5px 9px", outline: "none",
           }}
           onFocus={(e) => (e.target.style.borderColor = "rgba(20,173,181,0.5)")}
           onBlur={(e) => (e.target.style.borderColor = "rgba(237,232,223,0.12)")}
         />
+        {/* Title type controls. The toolbar can't reach this title (it isn't document content),
+            so size/weight/colour live here, on the panel itself. */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => { setTypeMenuOpen((v) => !v); setIconMenuOpen(false); }}
+            title="Title size, weight and colour"
+            style={{ ...btnBase, color: ACCENT, background: typeMenuOpen ? "rgba(20,173,181,0.15)" : "none", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, padding: "2px 6px" }}
+          >
+            Aa
+          </button>
+          {typeMenuOpen && (
+            <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#0C1117", border: "1px solid rgba(20,173,181,0.3)", borderRadius: 8, padding: 8, zIndex: 20, width: 212, display: "flex", flexDirection: "column", gap: 8 }}>
+              <Stepper
+                label="SZ"
+                title="title size"
+                display={titleSize === null ? "Auto" : `${titleSize}px`}
+                onDec={() => updateAttributes({ titleSize: Math.max(10, (titleSize ?? 15) - 1) })}
+                onInc={() => updateAttributes({ titleSize: Math.min(48, (titleSize ?? 15) + 1) })}
+                onSetValue={(raw) => updateAttributes({ titleSize: Math.max(10, Math.min(48, raw)) })}
+                onClear={titleSize !== null ? () => updateAttributes({ titleSize: null }) : undefined}
+              />
+              <Stepper
+                label="WT"
+                title="title weight"
+                display={titleWeight === null ? "Auto" : String(titleWeight)}
+                onDec={() => updateAttributes({ titleWeight: Math.max(300, (titleWeight ?? 500) - 100) })}
+                onInc={() => updateAttributes({ titleWeight: Math.min(700, (titleWeight ?? 500) + 100) })}
+                onClear={titleWeight !== null ? () => updateAttributes({ titleWeight: null }) : undefined}
+              />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                {THEME_COLOR_SWATCHES.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    title={t.label}
+                    onClick={() => updateAttributes({ titleColor: t.value })}
+                    style={{ ...btnBase, width: 18, height: 18, borderRadius: 4, background: t.value, border: titleColor === t.value ? `2px solid ${ACCENT}` : "1px solid rgba(237,232,223,0.2)" }}
+                  />
+                ))}
+                {COLOR_SWATCHES.map((c, i) => (
+                  <button
+                    key={`${c}-${i}`}
+                    type="button"
+                    title={c}
+                    onClick={() => updateAttributes({ titleColor: c })}
+                    style={{ ...btnBase, width: 18, height: 18, borderRadius: 4, background: c, border: titleColor === c ? `2px solid ${ACCENT}` : "1px solid rgba(237,232,223,0.2)" }}
+                  />
+                ))}
+                <button
+                  type="button"
+                  title="Default colour"
+                  onClick={() => updateAttributes({ titleColor: null })}
+                  style={{ ...btnBase, width: 18, height: 18, borderRadius: 4, color: "#EDE8DF", border: "1px solid rgba(237,232,223,0.2)", fontSize: 10, lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: "#6A7A83", letterSpacing: "0.06em", flexShrink: 0 }}>ICON</span>
         <div style={{ position: "relative", flexShrink: 0 }}>
           <button
