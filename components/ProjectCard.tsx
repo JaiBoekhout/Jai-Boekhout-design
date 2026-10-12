@@ -38,6 +38,11 @@ export interface ProjectCardProps {
    *  hard refresh. Modal-internal navigation ("View More Projects" inside an already-open project)
    *  has no real href to go to — it updates the open modal's state instead. */
   href?: string;
+  /** Renders the card in the DOM but display:none. Used by the Work page's "View more projects"
+   *  list so every project keeps a crawlable <a href> in the server HTML even while hidden —
+   *  the images are next/image's default lazy, and an image in a display:none box is never in
+   *  the viewport, so a collapsed card costs markup only and fetches nothing. */
+  collapsed?: boolean;
   onActivate?: () => void;
   onMouseEnter?: () => void;
   onFocus?: () => void;
@@ -45,7 +50,7 @@ export interface ProjectCardProps {
 
 export function ProjectCard({
   project, cover, labels, sizes, headingLevel = "h2", showHoverHint = true, fadeInImage = false,
-  href, onActivate, onMouseEnter, onFocus,
+  href, collapsed = false, onActivate, onMouseEnter, onFocus,
 }: ProjectCardProps) {
   const Heading = headingLevel;
 
@@ -133,6 +138,8 @@ export function ProjectCard({
     outline: "none",
     boxShadow: "none",
     overflow: "hidden" as const,
+    // Inline so it beats the root's own `flex` utility class.
+    ...(collapsed ? { display: "none" as const } : null),
   };
 
   if (href) {

@@ -114,7 +114,12 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
   const rowIncrement = projectListLayout === "card" ? projectListRows * projectListColumns : projectListRows;
   const [visibleCount, setVisibleCount] = useState(rowIncrement);
   useEffect(() => { setVisibleCount(rowIncrement); }, [featuredFilter, rowIncrement]);
-  const visibleRows = rows.slice(0, visibleCount);
+  // Every row is rendered; the ones past visibleCount are display:none rather than sliced away.
+  // Slicing left ~11 of 20 projects with no <a href> anywhere in the server HTML, so Google knew
+  // them only from the sitemap and declined to index them ("Crawled – currently not indexed").
+  // A hidden card costs markup only: its images are next/image's default lazy, and an image in a
+  // display:none box never enters the viewport, so nothing is fetched until it's revealed.
+  const isCollapsed = (i: number) => i >= visibleCount;
 
   return (
     <div>
@@ -221,8 +226,10 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
       )}
 
       {/* ── Project list ────────────────────────────────────────────────────── */}
-      {listOpen && publishedMore.length > 0 && (
-        <div style={{ marginTop: 38, animation: "fadeUp 0.4s ease both" }}>
+      {publishedMore.length > 0 && (
+        // Hidden rather than unmounted, for the same crawlability reason as the rows below. A CSS
+        // animation doesn't run on a display:none element, so fadeUp still plays on open.
+        <div style={{ marginTop: 38, animation: "fadeUp 0.4s ease both", display: listOpen ? undefined : "none" }}>
           {rows.length === 0 ? (
             <div style={{ border: "0.5px dashed rgba(237,232,223,0.12)", borderRadius: 12, padding: "64px 24px", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, letterSpacing: "0.1em", color: "var(--c-text-40)", marginBottom: 10 }}>
@@ -238,7 +245,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             // sized by the CMS's "cards per row" setting via --plg-cols instead of the Featured
             // Grid's fixed 3-column cap.
             <div className="project-list-grid" style={{ ["--plg-cols" as string]: projectListColumns, gap: "0.625rem" }}>
-              {visibleRows.map((p) => {
+              {rows.map((p, rowIndex) => {
                 const cardCS = findLinkedCaseStudy(p);
                 const cardFromCS = !!cardCS?.coverImageUrl;
                 const colSizes = `(min-width: 1280px) ${Math.round(100 / projectListColumns)}vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw`;
@@ -257,6 +264,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                     labels={p.tags.slice(0, 2)}
                     sizes={colSizes}
                     href={`/work/${projectUrlSlug(p)}`}
+                    collapsed={isCollapsed(rowIndex)}
                     onMouseEnter={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
                     onFocus={() => prefetchHeroImage(p.heroImageUrl ?? p.imgs?.[0])}
                   />
@@ -265,7 +273,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {visibleRows.map((p) => {
+              {rows.map((p, rowIndex) => {
                 // Same cover-source priority as the Featured Grid cards above
                 const rowCS = findLinkedCaseStudy(p);
                 const rowFromCS = !!rowCS?.coverImageUrl;
@@ -275,7 +283,7 @@ export function FeaturedProjects({ featured, more }: FeaturedProjectsProps) {
                   <motion.div
                     key={p.id}
                     className="group relative flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-[22px] hover:bg-white/[0.02] transition-colors"
-                    style={{ padding: 18, borderTop: "0.5px solid var(--c-divider)", outline: "none", boxShadow: "none", borderRadius: 0 }}
+                    style={{ padding: 18, borderTop: "0.5px solid var(--c-divider)", outline: "none", boxShadow: "none", borderRadius: 0, ...(isCollapsed(rowIndex) ? { display: "none" } : null) }}
                   >
                     {/* Thumbnail + name/client — stays a row on every breakpoint */}
                     <div className="flex items-center gap-4 lg:flex-1 lg:min-w-0">
