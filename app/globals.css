@@ -614,6 +614,21 @@
   .ProseMirror .rte-columns > [data-node-view-content],
   .ProseMirror .rte-columns [data-node-view-content-react] { display: contents; }
 
+  /* Editor only. A column has no border or background of its own, so an empty one is literally
+     invisible — a freshly inserted 2-column block read as a single empty box with no hint that
+     there are two separate fields to click into. Each column gets its own dashed outline and
+     enough height to aim at while editing. None of this reaches the published page. */
+  .ProseMirror .rte-column {
+    border: 1px dashed rgba(20, 173, 181, 0.3);
+    border-radius: 6px;
+    padding: 8px 10px;
+    min-height: 44px;
+  }
+  .ProseMirror .rte-column > :first-child { margin-top: 0; }
+  .ProseMirror .rte-column > :last-child { margin-bottom: 0; }
+  /* The block's own outline would double up with the per-column ones. */
+  .ProseMirror .rte-columns { outline: none !important; }
+
   .rte-content details.rte-collapsible { border: 1px solid color-mix(in srgb, var(--c-teal) 25%, transparent); border-radius: 0; margin: 16px 0; overflow: hidden; background: color-mix(in srgb, var(--c-teal) 3%, transparent); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; cursor: pointer; list-style: none; font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: var(--c-text); }
   .rte-content details.rte-collapsible > summary.rte-collapsible-summary::-webkit-details-marker { display: none; }
