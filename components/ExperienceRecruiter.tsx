@@ -97,7 +97,11 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
     ? publishedFaqs.filter((f) => f.category === activeFaqTab)
     : publishedFaqs;
   const faqVisibleCount = cms.faqRows ?? 3;
-  const visibleFaqs = showAllFaqs ? tabFilteredFaqs : tabFilteredFaqs.slice(0, faqVisibleCount);
+  // Every question stays in the DOM; the ones past faqVisibleCount are display:none rather than
+  // sliced away. Slicing meant the page shipped only the first few questions, while the FAQPage
+  // JSON-LD (built from the same CMS records, server-side) promised Google all of them — schema
+  // describing content that isn't on the page, which is the mismatch Google treats as cloaking.
+  const faqCollapsed = (i: number) => !showAllFaqs && i >= faqVisibleCount;
   // Pins the list's height to whatever "All" needs, so switching to a tab with fewer questions
   // doesn't shrink the section and jolt everything below it upward — only remeasured while
   // actually on "All" (the only tab whose full item set is ever in the DOM to measure), which
@@ -125,7 +129,7 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
   useLayoutEffect(() => {
     remeasureFaqHeight();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFaqTab, showAllFaqs, openFaqs, visibleFaqs.length]);
+  }, [activeFaqTab, showAllFaqs, openFaqs, tabFilteredFaqs.length]);
   const qualificationsRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
@@ -887,11 +891,16 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
               {...(faqLayoutMode === "tabs" ? { role: "tabpanel" as const, id: "faq-tabpanel", "aria-labelledby": `faq-tab-${activeFaqTab}` } : {})}
             >
               <div ref={faqListRef}>
-                {visibleFaqs.map((faq, idx) => (
-                  <div key={faq.id} style={{ borderBottom: "0.5px solid var(--c-divider)" }}>
+                {tabFilteredFaqs.map((faq, idx) => (
+                  <div
+                    key={faq.id}
+                    style={{ borderBottom: "0.5px solid var(--c-divider)", ...(faqCollapsed(idx) ? { display: "none" } : null) }}
+                  >
                     <button
                       className="w-full text-left flex items-center justify-between gap-4 py-5"
                       onClick={() => toggleFaq(idx)}
+                      aria-expanded={openFaqs.has(idx)}
+                      aria-controls={`faq-answer-${faq.id}`}
                     >
                       <span className="faq-question" style={{ fontFamily: "var(--font-heading)", fontSize: "16px", color: "var(--c-text)", fontWeight: 400 }}>
                         {faq.question}
@@ -900,31 +909,30 @@ export function ExperienceRecruiter({ onNavigate }: { onNavigate: (path: string,
                         {openFaqs.has(idx) ? "−" : "+"}
                       </span>
                     </button>
-                    <AnimatePresence>
-                      {openFaqs.has(idx) && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          onAnimationComplete={remeasureFaqHeight}
-                          className="overflow-hidden"
-                        >
-                          <div
-                            className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
-                            style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                            dangerouslySetInnerHTML={{ __html: faq.answer }}
-                          />
-                          {faq.answerMobile && (
-                            <div
-                              className="rte-content block md:hidden"
-                              style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
-                              dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
-                            />
-                          )}
-                        </motion.div>
+                    {/* Always mounted, collapsed by animating height to 0, so the answer text is
+                        in the HTML for a crawler that never clicks. Unmounting it meant the page
+                        carried no answer text at all until a human opened the panel. */}
+                    <motion.div
+                      id={`faq-answer-${faq.id}`}
+                      initial={false}
+                      animate={openFaqs.has(idx) ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      onAnimationComplete={remeasureFaqHeight}
+                      className="overflow-hidden"
+                    >
+                      <div
+                        className={`rte-content ${faq.answerMobile ? "hidden md:block" : ""}`}
+                        style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                        dangerouslySetInnerHTML={{ __html: faq.answer }}
+                      />
+                      {faq.answerMobile && (
+                        <div
+                          className="rte-content block md:hidden"
+                          style={{ padding: "0 0 20px", fontSize: "13.5px", color: "var(--c-text-muted)" }}
+                          dangerouslySetInnerHTML={{ __html: faq.answerMobile }}
+                        />
                       )}
-                    </AnimatePresence>
+                    </motion.div>
                   </div>
                 ))}
               </div>
