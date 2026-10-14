@@ -562,8 +562,23 @@
   .rte-content h6 { font-family: var(--font-heading); font-size: var(--h6-size, 11px); font-weight: var(--heading-weight, 400); color: var(--c-text); margin: 8px 0 4px; line-height: var(--heading-line-height, 1.3); letter-spacing: var(--heading-letter-spacing, normal); }
   .rte-content p[data-type="caption"] { font-family: var(--font-mono); font-size: var(--label-size, 10px); font-weight: var(--label-weight, 400); color: var(--c-text-muted); letter-spacing: 0.06em; margin: 2px 0 12px; font-style: italic; }
   .rte-content p { margin: 0 0 10px; }
-  .rte-content ul, .rte-content ol { padding-left: 20px; margin: 0 0 10px; }
-  .rte-content li { margin-bottom: 4px; }
+  /* Tailwind's preflight resets ul/ol to list-style:none. This rule used to restore only the
+     padding, so every list rendered indented but with no bullet or number at all — in the editor
+     and on the published page alike. The marker types have to be named explicitly to get them
+     back; nested levels alternate the way a browser would by default. */
+  .rte-content ul, .rte-content ol,
+  .ProseMirror ul, .ProseMirror ol { padding-left: 20px; margin: 0 0 10px; list-style-position: outside; }
+  .rte-content ul, .ProseMirror ul { list-style-type: disc; }
+  .rte-content ol, .ProseMirror ol { list-style-type: decimal; }
+  .rte-content ul ul, .ProseMirror ul ul { list-style-type: circle; }
+  .rte-content ul ul ul, .ProseMirror ul ul ul { list-style-type: square; }
+  .rte-content ol ol, .ProseMirror ol ol { list-style-type: lower-alpha; }
+  .rte-content ol ol ol, .ProseMirror ol ol ol { list-style-type: lower-roman; }
+  /* A marker only paints on a list-item box, so anything that flips li's display loses it. */
+  .rte-content li, .ProseMirror li { display: list-item; margin-bottom: 4px; }
+  /* Tiptap wraps each item's text in a <p>; left as a block it pushes the text onto the line
+     below the marker. */
+  .rte-content li > p, .ProseMirror li > p { margin: 0; }
   .rte-content hr { border: none; border-top: 1px solid var(--c-border); margin: 18px 0; }
   .rte-content img { max-width: 100%; border-radius: 8px; margin: 12px 0; display: block; }
   .rte-content iframe { border-radius: 8px; margin: 12px 0; max-width: 100%; }
