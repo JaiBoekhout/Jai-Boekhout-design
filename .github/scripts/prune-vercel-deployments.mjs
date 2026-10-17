@@ -55,32 +55,30 @@ async function vercelFetch(path, opts = {}, { retries = 3 } = {}) {
   }
 }
 
-// Fails fast with an unambiguous message, so an expired token can never be mistaken for
-// "nothing to prune" or hide behind a pile of per-deployment errors.
-async function assertTokenWorks() {
-  try {
-    const me = await vercelFetch("/v2/user");
-    console.log(`Authenticated as: ${me.user?.username || me.user?.email || "unknown"}`);
-  } catch (e) {
-    if (e.status === 401 || e.status === 403) {
-      console.error(
-        `VERCEL_TOKEN was rejected (HTTP ${e.status}). The token is missing, expired, revoked, ` +
-        `or lacks access to this project. Create a new one at ` +
-        `https://vercel.com/account/tokens and update the VERCEL_TOKEN repo secret.\n  ${e.message}`
-      );
-      process.exit(1);
-    }
-    throw e;
-  }
-}
-
 async function listAllDeployments() {
   let deployments = [];
   let next;
   do {
     const qs = new URLSearchParams({ projectId, limit: "100" });
     if (next) qs.set("until", String(next));
-    const data = await vercelFetch(`/v6/deployments?${qs}`);
+    let data;
+    try {
+      data = await vercelFetch(`/v6/deployments?${qs}`);
+    } catch (e) {
+      // This is the first call that needs real project access, so it's the honest place to
+      // diagnose a bad credential — rather than a separate preflight against an endpoint the
+      // token may legitimately not be scoped for.
+      if (e.status === 401 || e.status === 403) {
+        console.error(
+          `VERCEL_TOKEN was rejected (HTTP ${e.status}) when listing deployments. The token is ` +
+          `missing, expired, revoked, or not scoped to this project. Create a new one at ` +
+          `https://vercel.com/account/tokens (scope it to the project/team that owns ` +
+          `${projectId}) and update the VERCEL_TOKEN repo secret.\n  ${e.message}`
+        );
+        process.exit(1);
+      }
+      throw e;
+    }
     deployments = deployments.concat(data.deployments || []);
     next = data.pagination?.next || null;
   } while (next);
@@ -113,8 +111,6 @@ function isAliasProtected(e) {
 }
 
 async function main() {
-  await assertTokenWorks();
-
   const deployments = await listAllDeployments();
   const sorted = [...deployments].sort((a, b) => b.created - a.created);
 
