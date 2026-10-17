@@ -241,7 +241,7 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
   const fetchEnquiries = useCallback(async () => {
     setEnquiriesLoading(true);
     try {
-      const res = await fetch("/api/enquiries");
+      const res = await fetch("/api/enquiries", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setEnquiries(data.enquiries ?? []);
@@ -869,7 +869,12 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                         </div>
                         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                           <button
-                            onClick={async () => { await clearEnquiriesAction(); setEnquiries([]); setConfirmClearAll(false); }}
+                            onClick={async () => {
+                              const ok = await clearEnquiriesAction();
+                              setConfirmClearAll(false);
+                              if (ok) setEnquiries([]);
+                              else await fetchEnquiries();
+                            }}
                             style={{ background: "#C0392B", border: "none", borderRadius: "7px", padding: "6px 14px", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "11px", color: "#fff" }}
                           >
                             Delete all
@@ -906,7 +911,14 @@ export function AdminCMS({ isOpen, onClose, onLoggedOut }: Props) {
                                   <>
                                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "11.5px", color: "#EDE8DF" }}>Delete?</span>
                                     <button
-                                      onClick={async () => { await deleteEnquiryAction(enq.id); setEnquiries(prev => prev.filter(e => e.id !== enq.id)); setConfirmDeleteEnquiryId(null); }}
+                                      onClick={async () => {
+                                        const ok = await deleteEnquiryAction(enq.id);
+                                        setConfirmDeleteEnquiryId(null);
+                                        // Only drop it locally if the server says it's gone;
+                                        // otherwise re-read so the list reflects reality.
+                                        if (ok) setEnquiries(prev => prev.filter(e => e.id !== enq.id));
+                                        else await fetchEnquiries();
+                                      }}
                                       style={{ background: "#C0392B", border: "none", borderRadius: "5px", padding: "3px 9px", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "10px", color: "#fff" }}
                                     >
                                       Delete

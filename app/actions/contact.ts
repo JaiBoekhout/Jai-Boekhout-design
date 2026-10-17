@@ -73,12 +73,18 @@ export async function submitEnquiry(
   return { ok: true };
 }
 
-export async function deleteEnquiryAction(id: string): Promise<void> {
-  if (!(await getSession())) return;
+// Returns whether the delete actually happened. These used to return void on a failed session
+// check, which is indistinguishable from success to the caller — the admin UI then removed the
+// row optimistically and the enquiry "came back" on the next load. Reporting the outcome lets
+// the UI show the truth instead.
+export async function deleteEnquiryAction(id: string): Promise<boolean> {
+  if (!(await getSession())) return false;
   await deleteEnquiry(id);
+  return true;
 }
 
-export async function clearEnquiriesAction(): Promise<void> {
-  if (!(await getSession())) return;
+export async function clearEnquiriesAction(): Promise<boolean> {
+  if (!(await getSession())) return false;
   await clearEnquiries();
+  return true;
 }
